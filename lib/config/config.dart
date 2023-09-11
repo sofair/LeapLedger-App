@@ -1,0 +1,34 @@
+import 'dart:io';
+
+import 'package:keepaccount_app/common/current.dart';
+import 'package:keepaccount_app/config/server.dart';
+
+class Config {
+  late Server server;
+
+  Config();
+
+  readFormJson(dynamic data) {
+    if (data == null) {
+      return;
+    }
+    if (data.runtimeType == Map<String, dynamic>) {
+    } else {
+      throw Exception("类型错误");
+    }
+  }
+
+  String toJson() {
+    return '';
+  }
+
+  init() {
+    server = Server()..init();
+  }
+
+  readFromConfigYaml() {
+    if (Current.env == ENV.dev) {}
+    String currentPath = Directory.current.path;
+    print(currentPath);
+  }
+}
