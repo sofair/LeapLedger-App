@@ -104,7 +104,7 @@ class ApiServer {
     if (response == null) {
       responseBody = ResponseBody(null, isSuccess: false);
     } else if (response.data is String) {
-      responseBody = ResponseBody({'msg': response.data}, isSuccess: false);
+      responseBody = ResponseBody({'Msg': response.data}, isSuccess: false);
     } else {
       responseBody = ResponseBody(response.data, isSuccess: false);
     }
@@ -121,14 +121,14 @@ class ResponseBody {
   ResponseBody(Map<String, dynamic>? body, {this.isSuccess = true}) {
     print(body);
     if (body != null) {
-      msg = body['msg'] ?? '';
+      msg = body['Msg'] ?? '';
       if (body is String) {
         msg = body as String;
         data = {};
-      } else if (body['data'] is Map<String, dynamic>) {
-        data = body['data'];
+      } else if (body['Data'] is Map<String, dynamic>) {
+        data = body['Data'];
       } else {
-        msg = body['msg'] ?? body['data'] as String;
+        msg = body['Msg'] ?? body['Data'] as String;
         data = {};
       }
     } else {
