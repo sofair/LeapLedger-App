@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keepaccount_app/common/global.dart';
 import 'package:keepaccount_app/model/product/model.dart';
 import 'package:keepaccount_app/model/transaction/category/model.dart';
-import 'package:keepaccount_app/util/util.dart';
+import 'package:keepaccount_app/util/enter.dart';
 import 'package:keepaccount_app/view/transaction/import/bloc/trans_import_tab_bloc.dart';
 import 'package:keepaccount_app/view/transaction/import/bloc/transaction_import_bloc.dart';
 import 'package:keepaccount_app/widget/common/common_shimmer.dart';
@@ -16,7 +16,8 @@ class TransactionImport extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<TransImportTabBloc>(
-      create: (context) => TransImportTabBloc()..add(TransImportTabLoadedEvent()),
+      create: (context) =>
+          TransImportTabBloc()..add(TransImportTabLoadedEvent()),
       child: const _TransactionImport(),
     );
   }
@@ -27,11 +28,13 @@ class _TransactionImport extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TransImportTabBloc, TransImportTabState>(builder: (context, state) {
+    return BlocBuilder<TransImportTabBloc, TransImportTabState>(
+        builder: (context, state) {
       if (state is TransImportTabLoaded) {
         return buildPage(state);
       }
-      return Scaffold(appBar: AppBar(title: const Text('导入账单')), body: buildShimmer());
+      return Scaffold(
+          appBar: AppBar(title: const Text('导入账单')), body: buildShimmer());
     });
   }
 
@@ -49,7 +52,8 @@ class _TransactionImport extends StatelessWidget {
                 child: TabBarView(
                     children: state.list
                         .map((e) => BlocProvider<TransactionImportBloc>(
-                            create: (context) => TransactionImportBloc(e.uniqueKey),
+                            create: (context) =>
+                                TransactionImportBloc(e.uniqueKey),
                             child: _TransactionImportTab(state.tree)))
                         .toList()))));
   }

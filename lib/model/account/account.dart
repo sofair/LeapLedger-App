@@ -1,7 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:keepaccount_app/api/api_server.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
-import 'package:keepaccount_app/util/json.dart';
+import 'package:keepaccount_app/util/enter.dart';
 
 part 'account.g.dart';
 
@@ -11,9 +11,9 @@ class AccountModel {
   late String name;
   @JsonKey(defaultValue: 0)
   late int id;
-  @JsonKey(fromJson: dateTimeFromJson, toJson: dateTimeToJson)
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
   late DateTime createdAt;
-  @JsonKey(fromJson: dateTimeFromJson, toJson: dateTimeToJson)
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
   late DateTime updatedAt;
 
   AccountModel();

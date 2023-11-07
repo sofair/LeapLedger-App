@@ -9,12 +9,14 @@ import 'package:keepaccount_app/model/account/account.dart';
 import 'package:keepaccount_app/model/product/model.dart';
 
 import 'package:keepaccount_app/model/transaction/category/model.dart';
+import 'package:keepaccount_app/model/transaction/model.dart';
 import 'package:keepaccount_app/routes/routes.dart';
-import 'package:keepaccount_app/util/json.dart';
+import 'package:keepaccount_app/util/enter.dart';
 
 part 'user.dart';
 part 'account.dart';
 part 'transaction_category.dart';
+part 'transaction.dart';
 part 'product.dart';
 
 enum Method {
@@ -29,7 +31,10 @@ class ApiServer {
     baseUrl: Global.config.server.network.address,
     receiveTimeout: const Duration(seconds: 5),
     connectTimeout: const Duration(seconds: 5),
-    headers: {'Content-Type': 'application/json', 'User-Agent': Current.peratingSystem},
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': Current.peratingSystem
+    },
   ))
     ..interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
@@ -37,7 +42,8 @@ class ApiServer {
         return handler.next(options); // 必须调用 next 方法，否则请求不会继续
       },
     ));
-  static Future<Response?> _issueRequest(Method method, String path, Object? data, Options options) async {
+  static Future<Response?> _issueRequest(
+      Method method, String path, Object? data, Options options) async {
     Response response;
     try {
       switch (method) {
@@ -62,12 +68,14 @@ class ApiServer {
     return response;
   }
 
-  static getData(Future<ResponseBody> Function() requestFunc, Function(ResponseBody) dataFormatFunc) async {
+  static getData(Future<ResponseBody> Function() requestFunc,
+      Function(ResponseBody) dataFormatFunc) async {
     ResponseBody response = await requestFunc();
     return dataFormatFunc(response);
   }
 
-  static Future<ResponseBody> request(Method method, String path, {Object? data, Map<String, dynamic>? header}) async {
+  static Future<ResponseBody> request(Method method, String path,
+      {Object? data, Map<String, dynamic>? header}) async {
     Options options = Options(headers: header ?? {});
     print({method, path, data});
     Response? response = await _issueRequest(method, path, data, options);
@@ -84,7 +92,9 @@ class ApiServer {
         if (isShowOverlayLoader) {
           Global.hideOverlayLoader();
         }
-        return await Global.navigatorKey.currentState!.pushNamed(Routes.login).then((value) {
+        return await Global.navigatorKey.currentState!
+            .pushNamed(Routes.login)
+            .then((value) {
           if (isShowOverlayLoader) {
             Global.showOverlayLoader();
           }
@@ -99,7 +109,8 @@ class ApiServer {
     return getResponseBodyAndShowError(response);
   }
 
-  static ResponseBody getResponseBodyAndShowError(Response? response, {String? errorMsg}) {
+  static ResponseBody getResponseBodyAndShowError(Response? response,
+      {String? errorMsg}) {
     ResponseBody responseBody;
     if (response == null) {
       responseBody = ResponseBody(null, isSuccess: false);
@@ -108,7 +119,7 @@ class ApiServer {
     } else {
       responseBody = ResponseBody(response.data, isSuccess: false);
     }
-    Global.toast.error(message: errorMsg ?? responseBody.msg);
+    Toast.error(message: errorMsg ?? responseBody.msg);
     print({"error", response});
     return responseBody;
   }

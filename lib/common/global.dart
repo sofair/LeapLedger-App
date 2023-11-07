@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:keepaccount_app/config/config.dart';
-import 'package:keepaccount_app/util/sharedPreferencesCache.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:keepaccount_app/util/toast.dart';
+import 'package:keepaccount_app/util/enter.dart';
 
 class Global {
   static SharedPreferencesCache cache = SharedPreferencesCache();
@@ -13,7 +12,6 @@ class Global {
   static OverlayEntry? overlayEntry;
   // 是否为release版
   static bool get isRelease => bool.fromEnvironment("dart.vm.product");
-  static Toast toast = Toast();
   //初始化全局信息，会在APP启动时执行
   static Future init() async {
     config.init();

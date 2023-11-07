@@ -1,7 +1,4 @@
-import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+part of 'enter.dart';
 
 class SharedPreferencesCache {
   static late SharedPreferences _prefs;

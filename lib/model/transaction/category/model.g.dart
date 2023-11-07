@@ -16,8 +16,8 @@ TransactionCategoryModel _$TransactionCategoryModelFromJson(
       ..incomeExpense =
           $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ??
               IncomeExpense.income
-      ..createdAt = dateTimeFromJson(json['CreatedAt'])
-      ..updatedAt = dateTimeFromJson(json['UpdatedAt']);
+      ..createdAt = DateTime.parse(json['CreatedAt'] as String)
+      ..updatedAt = DateTime.parse(json['UpdatedAt'] as String);
 
 Map<String, dynamic> _$TransactionCategoryModelToJson(
         TransactionCategoryModel instance) =>
@@ -27,8 +27,8 @@ Map<String, dynamic> _$TransactionCategoryModelToJson(
       'AccountId': instance.accountId,
       'Name': instance.name,
       'IncomeExpense': _$IncomeExpenseEnumMap[instance.incomeExpense]!,
-      'CreatedAt': dateTimeToJson(instance.createdAt),
-      'UpdatedAt': dateTimeToJson(instance.updatedAt),
+      'CreatedAt': instance.createdAt.toIso8601String(),
+      'UpdatedAt': instance.updatedAt.toIso8601String(),
     };
 
 const _$IncomeExpenseEnumMap = {
@@ -45,8 +45,8 @@ TransactionCategoryFatherModel _$TransactionCategoryFatherModelFromJson(
       ..incomeExpense =
           $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ??
               IncomeExpense.income
-      ..createdAt = dateTimeFromJson(json['CreatedAt'])
-      ..updatedAt = dateTimeFromJson(json['UpdatedAt']);
+      ..createdAt = DateTime.parse(json['CreatedAt'] as String)
+      ..updatedAt = DateTime.parse(json['UpdatedAt'] as String);
 
 Map<String, dynamic> _$TransactionCategoryFatherModelToJson(
         TransactionCategoryFatherModel instance) =>
@@ -55,6 +55,6 @@ Map<String, dynamic> _$TransactionCategoryFatherModelToJson(
       'AccountId': instance.accountId,
       'Name': instance.name,
       'IncomeExpense': _$IncomeExpenseEnumMap[instance.incomeExpense]!,
-      'CreatedAt': dateTimeToJson(instance.createdAt),
-      'UpdatedAt': dateTimeToJson(instance.updatedAt),
+      'CreatedAt': instance.createdAt.toIso8601String(),
+      'UpdatedAt': instance.updatedAt.toIso8601String(),
     };

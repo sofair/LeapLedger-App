@@ -9,13 +9,13 @@ part of 'account.dart';
 AccountModel _$AccountModelFromJson(Map<String, dynamic> json) => AccountModel()
   ..name = json['Name'] as String? ?? ''
   ..id = json['Id'] as int? ?? 0
-  ..createdAt = dateTimeFromJson(json['CreatedAt'])
-  ..updatedAt = dateTimeFromJson(json['UpdatedAt']);
+  ..createdAt = Json.dateTimeFromJson(json['CreatedAt'])
+  ..updatedAt = Json.dateTimeFromJson(json['UpdatedAt']);
 
 Map<String, dynamic> _$AccountModelToJson(AccountModel instance) =>
     <String, dynamic>{
       'Name': instance.name,
       'Id': instance.id,
-      'CreatedAt': dateTimeToJson(instance.createdAt),
-      'UpdatedAt': dateTimeToJson(instance.updatedAt),
+      'CreatedAt': Json.dateTimeToJson(instance.createdAt),
+      'UpdatedAt': Json.dateTimeToJson(instance.updatedAt),
     };

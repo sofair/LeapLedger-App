@@ -22,8 +22,8 @@ class AccountApi {
     ResponseBody response = await ApiServer.request(Method.post, '/account',
         data: accountModel.toJson());
     accountModel.id = response.data['Id'];
-    accountModel.createdAt = dateTimeFromJson(response.data['CreatedAt']);
-    accountModel.updatedAt = dateTimeFromJson(response.data['UpdatedAt']);
+    accountModel.createdAt = Json.dateTimeFromJson(response.data['CreatedAt']);
+    accountModel.updatedAt = Json.dateTimeFromJson(response.data['UpdatedAt']);
     return response;
   }
 

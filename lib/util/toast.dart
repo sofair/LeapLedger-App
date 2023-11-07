@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart' as fluttertoast;
+part of 'enter.dart';
 
 class Toast {
-  error({required String message}) {
+  static error({required String message}) {
     fluttertoast.Fluttertoast.showToast(
         msg: message,
         toastLength: fluttertoast.Toast.LENGTH_SHORT,

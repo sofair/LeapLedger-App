@@ -1,19 +1,26 @@
+part of 'model.dart';
+
+@JsonSerializable(fieldRename: FieldRename.pascal)
 class TransactionModel {
+  @JsonKey(defaultValue: 0)
   late int id;
+  @JsonKey(defaultValue: 0)
   late int accountId;
+  @JsonKey(defaultValue: '')
+  late String incomeExpense;
+  @JsonKey(defaultValue: 0)
   late int categoryId;
-  late String incomseExpense;
+  @JsonKey(defaultValue: 0)
+  late int amount;
+  @JsonKey(defaultValue: '')
   late String remark;
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
   late DateTime tradeTime;
-  TransactionModel(this.id, this.accountId, this.categoryId,
-      this.incomseExpense, this.remark, this.tradeTime);
-  TransactionModel.fromResponse(Map<String, dynamic> responseData) {
-    id = responseData['id'] ?? 0;
-    accountId = responseData['account_id'] ?? 0;
-    categoryId = responseData['category_id'] ?? 0;
-    incomseExpense = responseData['incomse_expense'] ?? '';
-    remark = responseData['remark'] ?? '';
-    tradeTime = DateTime.fromMillisecondsSinceEpoch(
-        (responseData['trade_time'] ?? 0) * 1000);
-  }
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
+  late DateTime createTime;
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
+  late DateTime updateTime;
+  TransactionModel();
+  factory TransactionModel.fromJson(Map<String, dynamic> json) => _$TransactionModelFromJson(json);
+  Map<String, dynamic> toJson() => _$TransactionModelToJson(this);
 }

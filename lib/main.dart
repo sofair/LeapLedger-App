@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
 import 'package:keepaccount_app/routes/routes.dart';
-import 'package:keepaccount_app/util/sharedPreferencesCache.dart';
+import 'package:keepaccount_app/util/enter.dart';
 import 'package:keepaccount_app/view/navigation/navigation.dart';
 import 'common/global.dart';
 import 'package:keepaccount_app/common/current.dart';

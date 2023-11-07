@@ -10,9 +10,9 @@ class TransactionCategoryFatherModel {
   late String name;
   @JsonKey(defaultValue: IncomeExpense.income)
   late IncomeExpense incomeExpense;
-  @JsonKey(fromJson: dateTimeFromJson, toJson: dateTimeToJson)
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
   late DateTime createdAt;
-  @JsonKey(fromJson: dateTimeFromJson, toJson: dateTimeToJson)
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
   late DateTime updatedAt;
   TransactionCategoryFatherModel();
   factory TransactionCategoryFatherModel.fromJson(Map<String, dynamic> json) =>

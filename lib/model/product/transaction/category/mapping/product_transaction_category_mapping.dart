@@ -10,13 +10,15 @@ class ProductTransactionCategoryMappingModel {
   late int categoryId;
   @JsonKey(defaultValue: 0)
   late int productKey;
-  @JsonKey(fromJson: dateTimeFromJson, toJson: dateTimeToJson)
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
   late DateTime createdAt;
-  @JsonKey(fromJson: dateTimeFromJson, toJson: dateTimeToJson)
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
   late DateTime updatedAt;
   ProductTransactionCategoryMappingModel();
 
-  factory ProductTransactionCategoryMappingModel.fromJson(Map<String, dynamic> json) =>
+  factory ProductTransactionCategoryMappingModel.fromJson(
+          Map<String, dynamic> json) =>
       _$ProductTransactionCategoryMappingModelFromJson(json);
-  Map<String, dynamic> toJson() => _$ProductTransactionCategoryMappingModelToJson(this);
+  Map<String, dynamic> toJson() =>
+      _$ProductTransactionCategoryMappingModelToJson(this);
 }

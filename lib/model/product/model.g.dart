@@ -48,8 +48,8 @@ ProductTransactionCategoryMappingModel
           ..ptcId = json['PtcId'] as int? ?? 0
           ..categoryId = json['CategoryId'] as int? ?? 0
           ..productKey = json['ProductKey'] as int? ?? 0
-          ..createdAt = dateTimeFromJson(json['CreatedAt'])
-          ..updatedAt = dateTimeFromJson(json['UpdatedAt']);
+          ..createdAt = DateTime.parse(json['CreatedAt'] as String)
+          ..updatedAt = DateTime.parse(json['UpdatedAt'] as String);
 
 Map<String, dynamic> _$ProductTransactionCategoryMappingModelToJson(
         ProductTransactionCategoryMappingModel instance) =>
@@ -58,6 +58,6 @@ Map<String, dynamic> _$ProductTransactionCategoryMappingModelToJson(
       'PtcId': instance.ptcId,
       'CategoryId': instance.categoryId,
       'ProductKey': instance.productKey,
-      'CreatedAt': dateTimeToJson(instance.createdAt),
-      'UpdatedAt': dateTimeToJson(instance.updatedAt),
+      'CreatedAt': instance.createdAt.toIso8601String(),
+      'UpdatedAt': instance.updatedAt.toIso8601String(),
     };
