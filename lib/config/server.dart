@@ -15,7 +15,6 @@ class Network {
     port = const String.fromEnvironment("config.server.network.port");
     print(host);
     address = "$host:$port";
-    print(address);
   }
   Network.fromJson(dynamic data) {
     if (data.runtimeType == Map<String, dynamic>) {

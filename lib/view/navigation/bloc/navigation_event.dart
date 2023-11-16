@@ -2,9 +2,18 @@ part of 'navigation_bloc.dart';
 
 abstract class NavigationEvent {}
 
-class RefreshEvent {}
+class NavigateToHomePage extends NavigationEvent {
+  NavigateToHomePage();
+}
 
-class ChangeTabPageEvent extends NavigationEvent {
-  TabPage currentTab;
-  ChangeTabPageEvent(this.currentTab);
+class NavigateToFlowPage extends NavigationEvent {
+  NavigateToFlowPage();
+}
+
+class NavigateToSharePage extends NavigationEvent {
+  NavigateToSharePage();
+}
+
+class NavigateToUserHomePage extends NavigationEvent {
+  NavigateToUserHomePage();
 }

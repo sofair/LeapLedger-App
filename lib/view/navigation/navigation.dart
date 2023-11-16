@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keepaccount_app/api/model/model.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
+import 'package:keepaccount_app/routes/routes.dart';
 import 'package:keepaccount_app/view/home/home.dart';
+import 'package:keepaccount_app/widget/dialog/enter.dart';
 
 import 'bloc/navigation_bloc.dart';
 import 'package:keepaccount_app/view/transaction/flow/transaction_flow.dart';
+
+part 'widget/user_drawer.dart';
+part 'widget/user_drawer_header.dart';
 
 class Navigation extends StatefulWidget {
   const Navigation({super.key});
@@ -21,39 +27,65 @@ class _NavigationState extends State<Navigation> {
     super.initState();
   }
 
+  TabPage currentPage = TabPage.home;
   @override
   Widget build(BuildContext context) {
-    Map<TabPage, Widget> pageMap = {
-      TabPage.home: const Home(),
-      TabPage.transaction: TransactionFlow(),
-      TabPage.group: const Center(
-        child: Text("group"),
-      ),
-      TabPage.mine: const Center(child: Text("mine"))
-    };
     return BlocProvider(
-        create: (BuildContext context) => NavigationBloc(),
-        child: Scaffold(
-            body: BlocSelector<NavigationBloc, NavigationState, InTabPageState>(
-              selector: (state) {
-                if (state is InTabPageState) {
-                  return state;
-                } else {
-                  return InTabPageState(currentTabPage: TabPage.home);
-                }
-              },
-              builder: (context, state) {
-                return pageMap[state.currentTabPage]!;
-              },
-            ),
-            floatingActionButton: FloatingActionButton(
-                onPressed: () {}, child: const Icon(Icons.add)),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.centerDocked,
-            bottomNavigationBar: const _DemoBottomAppBar(
-              fabLocation: FloatingActionButtonLocation.centerDocked,
-              shape: CircularNotchedRectangle(),
-            )));
+        create: (context) => NavigationBloc(),
+        child: BlocListener<NavigationBloc, NavigationState>(
+          child: buildScaffold(),
+          listener: (context, state) {
+            if (state is InUserHomePage) {
+              _scaffoldKey.currentState!.openEndDrawer();
+            }
+          },
+        ));
+  }
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  Widget buildScaffold() {
+    return Scaffold(
+      key: _scaffoldKey,
+      body: BlocBuilder<NavigationBloc, NavigationState>(
+        builder: (context, state) {
+          print(state);
+          if (state is InHomePage) {
+            return buildPageByType(TabPage.home);
+          } else if (state is InFlowPage) {
+            return buildPageByType(TabPage.flow);
+          } else if (state is InUserHomePage) {
+            var page = BlocProvider.of<NavigationBloc>(context).currentDisplayPage;
+            return buildPageByType(page);
+          } else if (state is InSharePage) {
+            return buildPageByType(TabPage.share);
+          }
+          return Container();
+        },
+      ),
+      floatingActionButton: FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add)),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: const _DemoBottomAppBar(
+        fabLocation: FloatingActionButtonLocation.centerDocked,
+        shape: CircularNotchedRectangle(),
+      ),
+      endDrawer: const UserDrawer(),
+    );
+  }
+
+  Widget buildPageByType(TabPage page) {
+    switch (page) {
+      case TabPage.home:
+        return const Home();
+      case TabPage.flow:
+        return TransactionFlow();
+
+      case TabPage.share:
+        return const Center(
+          child: Text("group"),
+        );
+      default:
+        return Container();
+    }
   }
 }
 
@@ -66,8 +98,7 @@ class _DemoBottomAppBar extends StatelessWidget {
   final FloatingActionButtonLocation fabLocation;
   final NotchedShape? shape;
 
-  static final List<FloatingActionButtonLocation> centerLocations =
-      <FloatingActionButtonLocation>[
+  static final List<FloatingActionButtonLocation> centerLocations = <FloatingActionButtonLocation>[
     FloatingActionButtonLocation.centerDocked,
     FloatingActionButtonLocation.centerFloat,
   ];
@@ -81,39 +112,40 @@ class _DemoBottomAppBar extends StatelessWidget {
         data: IconThemeData(color: Theme.of(context).colorScheme.onPrimary),
         child: Row(
           children: <Widget>[
-            _textIcon('首页', Icons.home_filled, TabPage.home, context),
-            _textIcon('流水', Icons.compare_arrows, TabPage.transaction, context),
+            _textIcon('首页', Icons.home_filled, TabPage.home, () {
+              BlocProvider.of<NavigationBloc>(context).add(NavigateToHomePage());
+            }),
+            _textIcon('流水', Icons.compare_arrows, TabPage.flow, () {
+              BlocProvider.of<NavigationBloc>(context).add(NavigateToFlowPage());
+            }),
             if (centerLocations.contains(fabLocation)) const Spacer(),
-            _textIcon('成员', Icons.people, TabPage.group, context),
-            _textIcon('我的', Icons.person, TabPage.mine, context),
+            _textIcon('共享', Icons.people, TabPage.share, () {
+              BlocProvider.of<NavigationBloc>(context).add(NavigateToSharePage());
+            }),
+            _textIcon('我的', Icons.person, TabPage.userHome, () {
+              BlocProvider.of<NavigationBloc>(context).add(NavigateToUserHomePage());
+            }),
           ],
         ),
       ),
     );
   }
 
-  Widget _textIcon(
-      String label, IconData icon, TabPage tabPage, BuildContext context) {
+  Widget _textIcon(String label, IconData icon, TabPage tabPage, Function onTap) {
     return Expanded(
         child: GestureDetector(
-      onTap: () {
-        BlocProvider.of<NavigationBloc>(context)
-            .add(ChangeTabPageEvent(tabPage));
-      },
-      child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: 30,
-            ),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-            )
-          ]),
+      onTap: () => onTap(),
+      child: Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(
+          icon,
+          color: Colors.white,
+          size: 30,
+        ),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+        )
+      ]),
     ));
   }
 }

@@ -6,29 +6,23 @@ part of 'model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-TransactionCategoryModel _$TransactionCategoryModelFromJson(
-        Map<String, dynamic> json) =>
-    TransactionCategoryModel()
-      ..id = json['Id'] as int? ?? 0
-      ..fatherId = json['FatherId'] as int? ?? 0
-      ..accountId = json['AccountId'] as int? ?? 0
-      ..name = json['Name'] as String? ?? ''
-      ..incomeExpense =
-          $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ??
-              IncomeExpense.income
-      ..createdAt = DateTime.parse(json['CreatedAt'] as String)
-      ..updatedAt = DateTime.parse(json['UpdatedAt'] as String);
+TransactionCategoryModel _$TransactionCategoryModelFromJson(Map<String, dynamic> json) => TransactionCategoryModel()
+  ..id = json['Id'] as int? ?? 0
+  ..fatherId = json['FatherId'] as int? ?? 0
+  ..accountId = json['AccountId'] as int? ?? 0
+  ..name = json['Name'] as String? ?? ''
+  ..incomeExpense = $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ?? IncomeExpense.income
+  ..createdAt = Json.dateTimeFromJson(json['CreatedAt'])
+  ..updatedAt = Json.dateTimeFromJson(json['UpdatedAt']);
 
-Map<String, dynamic> _$TransactionCategoryModelToJson(
-        TransactionCategoryModel instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$TransactionCategoryModelToJson(TransactionCategoryModel instance) => <String, dynamic>{
       'Id': instance.id,
       'FatherId': instance.fatherId,
       'AccountId': instance.accountId,
       'Name': instance.name,
       'IncomeExpense': _$IncomeExpenseEnumMap[instance.incomeExpense]!,
-      'CreatedAt': instance.createdAt.toIso8601String(),
-      'UpdatedAt': instance.updatedAt.toIso8601String(),
+      'CreatedAt': Json.dateTimeToJson(instance.createdAt),
+      'UpdatedAt': Json.dateTimeToJson(instance.updatedAt),
     };
 
 const _$IncomeExpenseEnumMap = {
@@ -36,25 +30,21 @@ const _$IncomeExpenseEnumMap = {
   IncomeExpense.expense: 'expense',
 };
 
-TransactionCategoryFatherModel _$TransactionCategoryFatherModelFromJson(
-        Map<String, dynamic> json) =>
+TransactionCategoryFatherModel _$TransactionCategoryFatherModelFromJson(Map<String, dynamic> json) =>
     TransactionCategoryFatherModel()
       ..id = json['Id'] as int? ?? 0
       ..accountId = json['AccountId'] as int? ?? 0
       ..name = json['Name'] as String? ?? ''
-      ..incomeExpense =
-          $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ??
-              IncomeExpense.income
-      ..createdAt = DateTime.parse(json['CreatedAt'] as String)
-      ..updatedAt = DateTime.parse(json['UpdatedAt'] as String);
+      ..incomeExpense = $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ?? IncomeExpense.income
+      ..createdAt = Json.dateTimeFromJson(json['CreatedAt'])
+      ..updatedAt = Json.dateTimeFromJson(json['UpdatedAt']);
 
-Map<String, dynamic> _$TransactionCategoryFatherModelToJson(
-        TransactionCategoryFatherModel instance) =>
+Map<String, dynamic> _$TransactionCategoryFatherModelToJson(TransactionCategoryFatherModel instance) =>
     <String, dynamic>{
       'Id': instance.id,
       'AccountId': instance.accountId,
       'Name': instance.name,
       'IncomeExpense': _$IncomeExpenseEnumMap[instance.incomeExpense]!,
-      'CreatedAt': instance.createdAt.toIso8601String(),
-      'UpdatedAt': instance.updatedAt.toIso8601String(),
+      'CreatedAt': Json.dateTimeToJson(instance.createdAt),
+      'UpdatedAt': Json.dateTimeToJson(instance.updatedAt),
     };

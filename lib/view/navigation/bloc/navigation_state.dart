@@ -2,13 +2,18 @@ part of 'navigation_bloc.dart';
 
 abstract class NavigationState {}
 
-class HomeInitial extends NavigationState {}
+class InHomePage extends NavigationState {
+  InHomePage();
+}
 
-class LoadingState extends NavigationState {}
+class InFlowPage extends NavigationState {
+  InFlowPage();
+}
 
-class LoadedState extends NavigationState {}
+class InSharePage extends NavigationState {
+  InSharePage();
+}
 
-class InTabPageState extends NavigationState {
-  late TabPage currentTabPage;
-  InTabPageState({this.currentTabPage = TabPage.home});
+class InUserHomePage extends NavigationState {
+  InUserHomePage();
 }
