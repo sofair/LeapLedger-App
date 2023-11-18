@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
+part of 'common.dart';
 
 Widget buildShimmer() {
   return SingleChildScrollView(

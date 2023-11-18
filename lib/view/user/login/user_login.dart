@@ -40,6 +40,7 @@ class UserLoginState extends State<UserLogin> {
       child: BlocListener<UserBloc, UserState>(
         listener: (context, state) {
           if (state is UserLoginedState) {
+            UserBloc.checkUserState(context);
             tipToast("登录成功");
             Navigator.pop(context, true);
           }

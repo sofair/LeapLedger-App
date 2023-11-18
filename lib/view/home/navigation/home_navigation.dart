@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
-import 'package:keepaccount_app/model/account/account.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 import 'package:keepaccount_app/routes/routes.dart';
 
 import 'bloc/home_navigation_bloc.dart';
@@ -31,26 +31,16 @@ class NavigationState extends State<Navigation> {
   Widget build(BuildContext context) {
     return UserBloc.listenerCurrentAccountIdUpdate(() {
       setState(() {
+        print(account.name);
         account = UserBloc.currentAccount;
       });
     },
         navigatorButtons([
+          navigatorButton(title: "当前账单", subTitle: account.name, color: Colors.blue, route: AccountRoutes.list),
           navigatorButton(
-              title: "当前账单",
-              subTitle: account.name,
-              color: Colors.blue,
-              route: AccountRoutes.list),
-          navigatorButton(
-              title: "设置交易类型",
-              color: Colors.blue,
-              icon: Icons.abc,
-              route: TransactionCategoryRoutes.setting),
-          navigatorButton(
-              title: "导入账单",
-              color: Colors.blue,
-              route: TransactionImportRoutes.home),
-          navigatorButton(
-              title: "导出账单", color: Colors.blue, route: AccountRoutes.list)
+              title: "设置交易类型", color: Colors.blue, icon: Icons.abc, route: TransactionCategoryRoutes.setting),
+          navigatorButton(title: "导入账单", color: Colors.blue, route: TransactionImportRoutes.home),
+          navigatorButton(title: "导出账单", color: Colors.blue, route: AccountRoutes.list)
         ]));
   }
 
@@ -63,11 +53,7 @@ class NavigationState extends State<Navigation> {
   }
 
   Widget navigatorButton(
-      {required String title,
-      String? subTitle,
-      required Color color,
-      IconData? icon,
-      required String route}) {
+      {required String title, String? subTitle, required Color color, IconData? icon, required String route}) {
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, route);

@@ -6,7 +6,7 @@ import 'package:keepaccount_app/api/api_server.dart';
 import 'package:keepaccount_app/api/model/model.dart';
 import 'package:keepaccount_app/bloc/captcha/captcha_bloc.dart';
 import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/account.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 import 'package:keepaccount_app/model/user/model.dart';
 import 'package:keepaccount_app/routes/routes.dart';
 part 'user_event.dart';
@@ -25,7 +25,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
   UserBloc() : super(UserInitial()) {
     getToCache();
-    on<SetCurrentAccountId>(_setCurrentAccountId);
+    on<SetCurrentAccount>(_setCurrentAccountId);
     on<UserLoginEvent>(_login);
     on<UserRegisterEvent>(_register);
     on<UserPasswordUpdateEvent>(_updatePassword);
@@ -33,7 +33,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   }
 
   void _login(UserLoginEvent event, Emitter<UserState> emit) async {
-    print(event.userAccount + event.password);
     var bytes = utf8.encode(event.userAccount + event.password);
     var password = sha256.convert(bytes).toString();
     var response = await UserApi.login(
@@ -79,8 +78,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         var password = sha256.convert(bytes).toString();
         response = await UserApi.forgetPassword(event.email, password, event.captcha);
       default:
-        print(email);
-        print(event.password);
         var bytes = utf8.encode(email + event.password);
         var password = sha256.convert(bytes).toString();
         response = await UserApi.updatePassword(password, event.captcha);
@@ -109,17 +106,14 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
   }
 
-  void _setCurrentAccountId(SetCurrentAccountId event, Emitter<UserState> emit) async {
-    if (event.accountId == currentAccount.id) {
-      emit(UpdateCurrentAccount());
-    }
-    var responseBody = await UserApi.setCurrentAccount(event.accountId);
-    if (responseBody.isSuccess) {
-      UserBloc.currentAccount.id = event.accountId;
-      UserBloc.saveToCache();
-      emit(UpdateCurrentAccount());
-    }
+  void _setCurrentAccountId(SetCurrentAccount event, Emitter<UserState> emit) async {
+    UserBloc.currentAccount = event.account;
+    emit(UpdateCurrentAccount());
+    UserBloc.saveToCache();
+    await UserApi.setCurrentAccount(event.account.id);
   }
+
+  // Remaining methods unchanged
 
   static saveToCache() => Global.cache.save('User', {
         'Username': username,
@@ -150,6 +144,11 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     if (token == '') {
       Future.delayed(Duration.zero, () {
         Navigator.pushNamed(context, UserRoutes.login);
+      });
+    } else if (currentAccount.id == 0) {
+      //初始化账本
+      Future.delayed(Duration.zero, () {
+        Navigator.pushNamed(context, AccountRoutes.templateList);
       });
     }
   }

@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
-import 'package:keepaccount_app/model/account/account.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 
 class AccountDetail extends StatelessWidget {
   const AccountDetail({super.key});
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic>? args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
-    final AccountModel account =
-        args?['accountModel'] ?? AccountModel.fromJson({});
+    final AccountModel account = args?['accountModel'] ?? AccountModel.fromJson({});
     return Scaffold(
       appBar: AppBar(
         title: const Text('账本详情'),
@@ -24,8 +22,7 @@ class AccountDetail extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               child: Text(
                 account.name,
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
             // Padding(
@@ -34,13 +31,11 @@ class AccountDetail extends StatelessWidget {
             // ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                  '更新日期：${DateFormat('yyyy-MM-dd HH:mm:ss').format(account.updatedAt)}'),
+              child: Text('更新日期：${DateFormat('yyyy-MM-dd HH:mm:ss').format(account.updatedAt)}'),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                  '创建日期：${DateFormat('yyyy-MM-dd HH:mm:ss').format(account.createdAt)}'),
+              child: Text('创建日期：${DateFormat('yyyy-MM-dd HH:mm:ss').format(account.createdAt)}'),
             ),
             // Padding(
             //   padding: const EdgeInsets.all(16.0),

@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:keepaccount_app/api/api_server.dart';
-import 'package:keepaccount_app/model/account/account.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 
 part 'account_list_event.dart';
 part 'account_list_state.dart';

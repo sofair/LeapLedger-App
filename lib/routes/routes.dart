@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:keepaccount_app/common/global.dart';
 import 'package:keepaccount_app/model/transaction/category/model.dart';
 import 'package:keepaccount_app/view/account/detail/account_detail.dart';
 
 import 'package:keepaccount_app/view/account/edit/account_edit.dart';
 
 import 'package:keepaccount_app/view/account/list/account_list.dart';
+import 'package:keepaccount_app/view/account/template/list/account_template_list.dart';
 import 'package:keepaccount_app/view/user/home/user_home.dart';
 import 'package:keepaccount_app/view/user/login/user_login.dart';
 import 'package:keepaccount_app/view/transaction/category/edit/transaction_category_edit.dart';

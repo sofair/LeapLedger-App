@@ -24,7 +24,7 @@ class UserInfoUpdateEvent extends UserEvent {
   UserInfoUpdateEvent(this.model);
 }
 
-class SetCurrentAccountId extends UserEvent {
-  final int accountId;
-  SetCurrentAccountId(this.accountId);
+class SetCurrentAccount extends UserEvent {
+  final AccountModel account;
+  SetCurrentAccount(this.account);
 }

@@ -11,6 +11,7 @@ class AccountRoutes {
       list: (context) => Routes.buildloginPermissionRoute(context, const AccountList()),
       edit: (context) => const AccountEdit(),
       detail: (context) => const AccountDetail(),
+      templateList: (context) => const AccountTemplateList(),
     });
   }
 }

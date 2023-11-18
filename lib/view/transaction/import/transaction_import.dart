@@ -6,8 +6,8 @@ import 'package:keepaccount_app/model/transaction/category/model.dart';
 import 'package:keepaccount_app/util/enter.dart';
 import 'package:keepaccount_app/view/transaction/import/bloc/trans_import_tab_bloc.dart';
 import 'package:keepaccount_app/view/transaction/import/bloc/transaction_import_bloc.dart';
-import 'package:keepaccount_app/widget/common/common_shimmer.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:keepaccount_app/widget/common/common.dart';
 part 'widget/tab.dart';
 
 class TransactionImport extends StatelessWidget {

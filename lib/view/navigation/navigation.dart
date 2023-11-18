@@ -48,7 +48,6 @@ class _NavigationState extends State<Navigation> {
       key: _scaffoldKey,
       body: BlocBuilder<NavigationBloc, NavigationState>(
         builder: (context, state) {
-          print(state);
           if (state is InHomePage) {
             return buildPageByType(TabPage.home);
           } else if (state is InFlowPage) {

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 
 import 'package:keepaccount_app/routes/routes.dart';
 import 'package:keepaccount_app/view/account/bloc/account_bloc.dart';
-import 'package:keepaccount_app/widget/common/common_shimmer.dart';
+import 'package:keepaccount_app/widget/common/common.dart';
 
-import 'package:keepaccount_app/model/account/account.dart';
 import 'package:keepaccount_app/view/account/list/bloc/account_list_bloc.dart';
 
 class AccountList extends StatelessWidget {
@@ -69,7 +69,6 @@ class _AccountListState extends State<_AccountList> {
       ]),
       body: BlocBuilder<AccountListBloc, AccountListState>(
         builder: (_, state) {
-          print(state);
           if (state is AccountListLoaded) {
             list = state.list;
             return _listView();
@@ -86,9 +85,7 @@ class _AccountListState extends State<_AccountList> {
 
   Widget listener(Widget widget) {
     return BlocListener<AccountBloc, AccountState>(
-        listener: (_, state) {},
-        child: UserBloc.listenerCurrentAccountIdUpdate(
-            () => updateCurrentAccount(), widget));
+        listener: (_, state) {}, child: UserBloc.listenerCurrentAccountIdUpdate(() => updateCurrentAccount(), widget));
   }
 
   List<Widget> operationName = [
@@ -97,14 +94,12 @@ class _AccountListState extends State<_AccountList> {
     const Text('编辑'),
     const Text('删除', style: TextStyle(color: Colors.red))
   ];
-  late List<Function(BuildContext context, AccountModel account)>
-      operationFunction;
+  late List<Function(BuildContext context, AccountModel account)> operationFunction;
   _listView() {
     operationFunction = [
       (BuildContext context, AccountModel account) {
         //设置当前账本
-        RepositoryProvider.of<UserBloc>(context)
-            .add(SetCurrentAccountId(account.id));
+        RepositoryProvider.of<UserBloc>(context).add(SetCurrentAccount(account));
         setState(() {
           currentAccount = account.id;
         });
@@ -112,13 +107,11 @@ class _AccountListState extends State<_AccountList> {
       },
       (BuildContext context, AccountModel account) {
         //详情
-        Navigator.pushReplacementNamed(context, AccountRoutes.detail,
-            arguments: {'accountModel': account});
+        Navigator.pushReplacementNamed(context, AccountRoutes.detail, arguments: {'accountModel': account});
       },
       (BuildContext context, AccountModel account) {
         //编辑
-        Navigator.pushReplacementNamed(context, AccountRoutes.edit,
-            arguments: {'accountModel': account}).then((value) {
+        Navigator.pushReplacementNamed(context, AccountRoutes.edit, arguments: {'accountModel': account}).then((value) {
           if (value is AccountModel) {
             setState(() {
               int index = list.indexWhere((element) => element.id == value.id);
@@ -130,8 +123,7 @@ class _AccountListState extends State<_AccountList> {
       (BuildContext context, AccountModel account) {
         //删除
         showDeleteConfirmationDialog(context, () {
-          BlocProvider.of<AccountBloc>(context)
-              .add(AccountDeleteEvent(account));
+          BlocProvider.of<AccountBloc>(context).add(AccountDeleteEvent(account));
           setState(() {
             list.removeWhere((element) => element.id == account.id);
             Navigator.pop(context);
@@ -154,15 +146,13 @@ class _AccountListState extends State<_AccountList> {
               : null;
           return ListTile(
             leading: leading,
-            contentPadding:
-                const EdgeInsets.only(left: 16, right: 8), // 设置左右侧填充
+            contentPadding: const EdgeInsets.only(left: 16, right: 8), // 设置左右侧填充
             horizontalTitleGap: 0,
             title: Text(
               account.name,
               style: const TextStyle(fontSize: 20),
             ),
-            subtitle: Text(
-                '建立时间：${DateFormat('yyyy-MM-dd HH:mm:ss').format(account.createdAt)}'),
+            subtitle: Text('建立时间：${DateFormat('yyyy-MM-dd HH:mm:ss').format(account.createdAt)}'),
             trailing: IconButton(
                 onPressed: () async {
                   await _showCustomModalBottomSheet(list[index]);
@@ -207,8 +197,7 @@ class _AccountListState extends State<_AccountList> {
     );
   }
 
-  void showDeleteConfirmationDialog(
-      BuildContext context, VoidCallback onConfirm) {
+  void showDeleteConfirmationDialog(BuildContext context, VoidCallback onConfirm) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

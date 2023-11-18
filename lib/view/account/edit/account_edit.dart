@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/model/account/account.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 import 'package:keepaccount_app/view/account/bloc/account_bloc.dart';
 import 'package:keepaccount_app/widget/form/form.dart';
 
@@ -8,20 +8,16 @@ class AccountEdit extends StatelessWidget {
   const AccountEdit({super.key});
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic>? args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
-    final AccountModel accountModel =
-        args?['accountModel'] ?? AccountModel.fromJson({});
+    final AccountModel accountModel = args?['accountModel'] ?? AccountModel.fromJson({});
     return BlocProvider<AccountBloc>(
         create: (context) => AccountBloc(),
         child: Scaffold(
             appBar: AppBar(
               title: const Text('编辑账户'),
             ),
-            body: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: EditForm(accountModel))));
+            body: Padding(padding: const EdgeInsets.all(16.0), child: EditForm(accountModel))));
   }
 }
 
@@ -64,21 +60,18 @@ class _EditFormState extends State<EditForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                stringForm('账户名称', widget._accountMode.name,
-                    (text) => widget._accountMode.name = text)
+                stringForm('账户名称', widget._accountMode.name, (text) => widget._accountMode.name = text)
               ],
             ),
           ),
           ElevatedButton(
             onPressed: () {
               if (_formKey.currentState!.validate()) {
-                BlocProvider.of<AccountBloc>(context)
-                    .add(AccountSaveEvent(widget._accountMode));
+                BlocProvider.of<AccountBloc>(context).add(AccountSaveEvent(widget._accountMode));
               }
             },
             style: ElevatedButton.styleFrom(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
             ),
             child: const Text(
               '保 存',

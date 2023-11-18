@@ -6,7 +6,7 @@ import 'package:keepaccount_app/api/model/model.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
 import 'package:keepaccount_app/common/current.dart';
 import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/account.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 import 'package:keepaccount_app/model/product/model.dart';
 
 import 'package:keepaccount_app/model/transaction/category/model.dart';

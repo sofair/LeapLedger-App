@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'package:keepaccount_app/model/account/account.dart';
 import 'package:keepaccount_app/api/api_server.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 
 part 'account_event.dart';
 part 'account_state.dart';
@@ -19,8 +19,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     }
   }
 
-  _mapAccountSaveEventToState(
-      AccountSaveEvent event, Emitter<AccountState> emit) {
+  _mapAccountSaveEventToState(AccountSaveEvent event, Emitter<AccountState> emit) {
     getData(event.accountModel);
     if (event.accountModel.id > 0) {
       updateAccount(event, emit);
@@ -35,8 +34,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     accountModel.name;
   }
 
-  Stream<AccountState> updateAccount(
-      AccountSaveEvent event, Emitter<AccountState> emit) async* {
+  Stream<AccountState> updateAccount(AccountSaveEvent event, Emitter<AccountState> emit) async* {
     if ((await AccountApi.update(event.accountModel)).isSuccess) {
       emit(AccountSaveSuccessState(event.accountModel));
     } else {
@@ -44,8 +42,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     }
   }
 
-  Stream<AccountState> addAccount(
-      AccountSaveEvent event, Emitter<AccountState> emit) async* {
+  Stream<AccountState> addAccount(AccountSaveEvent event, Emitter<AccountState> emit) async* {
     if ((await AccountApi.add(event.accountModel)).isSuccess) {
       emit(AccountSaveSuccessState(event.accountModel));
     } else {
