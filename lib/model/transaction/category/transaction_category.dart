@@ -10,6 +10,8 @@ class TransactionCategoryModel {
   late int accountId;
   @JsonKey(defaultValue: '')
   late String name;
+  @JsonKey(fromJson: Json.iconDataFormJson, toJson: Json.iconDataToJson)
+  late IconData icon;
   @JsonKey(defaultValue: IncomeExpense.income)
   late IncomeExpense incomeExpense;
   @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
@@ -17,7 +19,6 @@ class TransactionCategoryModel {
   @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
   late DateTime updatedAt;
   TransactionCategoryModel();
-  factory TransactionCategoryModel.fromJson(Map<String, dynamic> json) =>
-      _$TransactionCategoryModelFromJson(json);
+  factory TransactionCategoryModel.fromJson(Map<String, dynamic> json) => _$TransactionCategoryModelFromJson(json);
   Map<String, dynamic> toJson() => _$TransactionCategoryModelToJson(this);
 }

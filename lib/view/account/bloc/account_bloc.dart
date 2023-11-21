@@ -8,10 +8,10 @@ part 'account_state.dart';
 class AccountBloc extends Bloc<AccountEvent, AccountState> {
   AccountBloc() : super(AccountInitial()) {
     on<AccountSaveEvent>(_mapAccountSaveEventToState);
-    on<AccountDeleteEvent>(deleteAccount);
+    on<AccountDeleteEvent>(_deleteAccount);
   }
 
-  deleteAccount(AccountDeleteEvent event, Emitter<AccountState> emit) async* {
+  _deleteAccount(AccountDeleteEvent event, Emitter<AccountState> emit) async* {
     if ((await AccountApi.delete(event.accountModel.id)).isSuccess) {
       emit(AccountDeleteSuccessState());
     } else {
@@ -19,34 +19,19 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     }
   }
 
-  _mapAccountSaveEventToState(AccountSaveEvent event, Emitter<AccountState> emit) {
-    getData(event.accountModel);
+  _mapAccountSaveEventToState(AccountSaveEvent event, Emitter<AccountState> emit) async {
     if (event.accountModel.id > 0) {
-      updateAccount(event, emit);
+      if ((await AccountApi.update(event.accountModel)).isSuccess) {
+        emit(AccountSaveSuccessState(event.accountModel));
+      } else {
+        emit(AccountSaveFailState(event.accountModel));
+      }
     } else {
-      addAccount(event, emit);
-    }
-    // Emit a new state to indicate that the save operation is completed.
-    //emit(AccountInitial());
-  }
-
-  getData(AccountModel accountModel) {
-    accountModel.name;
-  }
-
-  Stream<AccountState> updateAccount(AccountSaveEvent event, Emitter<AccountState> emit) async* {
-    if ((await AccountApi.update(event.accountModel)).isSuccess) {
-      emit(AccountSaveSuccessState(event.accountModel));
-    } else {
-      emit(AccountSaveFailState(event.accountModel));
-    }
-  }
-
-  Stream<AccountState> addAccount(AccountSaveEvent event, Emitter<AccountState> emit) async* {
-    if ((await AccountApi.add(event.accountModel)).isSuccess) {
-      emit(AccountSaveSuccessState(event.accountModel));
-    } else {
-      emit(AccountSaveFailState(event.accountModel));
+      if ((await AccountApi.add(event.accountModel)).isSuccess) {
+        emit(AccountSaveSuccessState(event.accountModel));
+      } else {
+        emit(AccountSaveFailState(event.accountModel));
+      }
     }
   }
 

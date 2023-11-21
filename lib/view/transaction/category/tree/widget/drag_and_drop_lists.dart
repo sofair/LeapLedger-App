@@ -119,7 +119,9 @@ class _DragAndDropListsState extends State<_DragAndDropLists> with AutomaticKeep
       child: Material(
           color: Colors.transparent,
           child: ListTile(
-              title: Text(child.name), trailing: _actionButtons(() => _updateChild(child), () => _deleteChild(child)))),
+              leading: Icon(child.icon),
+              title: Text(child.name),
+              trailing: _actionButtons(() => _updateChild(child), () => _deleteChild(child)))),
     );
   }
 

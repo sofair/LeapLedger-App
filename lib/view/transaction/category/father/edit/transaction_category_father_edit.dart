@@ -59,12 +59,12 @@ class _EditFormState extends State<_EditForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                stringForm(
+                FormInputField.string(
                     '名称', widget.transactionCategoryFather.name, (text) => widget.transactionCategoryFather.name = text)
               ],
             ),
           ),
-          saveButton(
+          FormButton.save(
               context,
               (context) => BlocProvider.of<TransCatFatherBloc>(context)
                   .add(TransCatFatherSaveEvent(widget.transactionCategoryFather))),

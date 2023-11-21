@@ -89,8 +89,8 @@ class _AccountTemplateListBodyState extends State<AccountTemplateListBody> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              const Icon(
-                Icons.library_books_outlined,
+              Icon(
+                model.icon,
                 size: 32,
                 color: Colors.black54,
               ),

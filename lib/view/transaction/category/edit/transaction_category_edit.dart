@@ -13,14 +13,7 @@ class TransactionCategoryEdit extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<TransactionCategoryBloc>(
         create: (context) => TransactionCategoryBloc(),
-        child: Scaffold(
-            appBar: AppBar(
-              title: const Text('编辑交易类型'),
-            ),
-            body: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: _EditForm(transactionCategory ??
-                    TransactionCategoryModel.fromJson({})))));
+        child: _EditForm(transactionCategory ?? TransactionCategoryModel.fromJson({})));
   }
 }
 
@@ -47,31 +40,67 @@ class _EditFormState extends State<_EditForm> {
             pop(context, state.transactionCategory);
           }
         },
-        child: buildForm());
+        child: Scaffold(
+            appBar: AppBar(
+              title: const Text('编辑交易类型'),
+              actions: <Widget>[
+                IconButton(
+                  icon: const Icon(
+                    Icons.save,
+                    size: 24,
+                  ),
+                  onPressed: () => BlocProvider.of<TransactionCategoryBloc>(context)
+                      .add(TransactionCategorySaveEvent(widget.transactionCategory)),
+                ),
+              ],
+            ),
+            body: buildForm()));
   }
 
   Widget buildForm() {
     return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                stringForm('名称', widget.transactionCategory.name,
-                    (text) => widget.transactionCategory.name = text)
-              ],
-            ),
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: <Widget>[
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(90),
+                ),
+                margin: const EdgeInsets.only(bottom: 16),
+                width: 64,
+                height: 64,
+                child: Icon(
+                  widget.transactionCategory.icon,
+                  size: 32,
+                  color: Colors.black87,
+                ),
+              ),
+              FormInputField.string(
+                  '名称', widget.transactionCategory.name, (text) => widget.transactionCategory.name = text),
+              const SizedBox(
+                height: 16,
+              ),
+              FormSelecter.transactionCategoryIcon(widget.transactionCategory.icon, onChanged: _onSelectIcon),
+            ],
           ),
-          saveButton(
-              context,
-              (context) => BlocProvider.of<TransactionCategoryBloc>(context)
-                  .add(TransactionCategorySaveEvent(
-                      widget.transactionCategory))),
-        ],
-      ),
-    );
+        ));
+  }
+
+  void _onSelectIcon(IconData selectValue) {
+    setState(() {
+      widget.transactionCategory.icon = selectValue;
+    });
+  }
+}
+
+class TestTransactionCategoryEdit extends StatelessWidget {
+  const TestTransactionCategoryEdit({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return TransactionCategoryEdit(transactionCategory: TransactionCategoryModel.fromJson({}));
   }
 }

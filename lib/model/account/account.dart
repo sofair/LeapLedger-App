@@ -6,8 +6,8 @@ class AccountModel {
   late int id;
   @JsonKey(defaultValue: '')
   late String name;
-  @JsonKey(defaultValue: '')
-  late String icon;
+  @JsonKey(fromJson: Json.iconDataFormJson, toJson: Json.iconDataToJson)
+  late IconData icon;
   @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
   late DateTime createdAt;
   @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)

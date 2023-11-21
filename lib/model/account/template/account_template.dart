@@ -6,8 +6,8 @@ class AccountTemplateModel {
   late int id;
   @JsonKey(defaultValue: '')
   late String name;
-  @JsonKey(defaultValue: '')
-  late String icon;
+  @JsonKey(fromJson: Json.iconDataFormJson, toJson: Json.iconDataToJson)
+  late IconData icon;
 
   AccountTemplateModel();
 

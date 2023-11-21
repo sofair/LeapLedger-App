@@ -11,13 +11,7 @@ class AccountEdit extends StatelessWidget {
     final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     final AccountModel accountModel = args?['accountModel'] ?? AccountModel.fromJson({});
-    return BlocProvider<AccountBloc>(
-        create: (context) => AccountBloc(),
-        child: Scaffold(
-            appBar: AppBar(
-              title: const Text('编辑账户'),
-            ),
-            body: Padding(padding: const EdgeInsets.all(16.0), child: EditForm(accountModel))));
+    return BlocProvider<AccountBloc>(create: (context) => AccountBloc(), child: EditForm(accountModel));
   }
 }
 
@@ -47,41 +41,65 @@ class _EditFormState extends State<EditForm> {
             pop(context, widget._accountMode);
           }
         },
-        child: buildForm());
+        child: Scaffold(
+            appBar: AppBar(
+              title: const Text('编辑账本'),
+              actions: <Widget>[
+                IconButton(
+                  icon: const Icon(
+                    Icons.save,
+                    size: 24,
+                  ),
+                  onPressed: () => BlocProvider.of<AccountBloc>(context).add(AccountSaveEvent(widget._accountMode)),
+                ),
+              ],
+            ),
+            body: buildForm()));
   }
 
   Widget buildForm() {
     return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                stringForm('账户名称', widget._accountMode.name, (text) => widget._accountMode.name = text)
-              ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                BlocProvider.of<AccountBloc>(context).add(AccountSaveEvent(widget._accountMode));
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
-            ),
-            child: const Text(
-              '保 存',
-              style: TextStyle(
-                fontSize: 18.0,
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: <Widget>[
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(90),
+                ),
+                margin: const EdgeInsets.only(bottom: 16),
+                width: 64,
+                height: 64,
+                child: Icon(
+                  widget._accountMode.icon,
+                  size: 32,
+                  color: Colors.black87,
+                ),
               ),
-            ),
+              FormInputField.string('名称', widget._accountMode.name, (text) => widget._accountMode.name = text),
+              const SizedBox(
+                height: 16,
+              ),
+              FormSelecter.accountIcon(widget._accountMode.icon, onChanged: _onSelectIcon),
+            ],
           ),
-        ],
-      ),
-    );
+        ));
+  }
+
+  void _onSelectIcon(IconData selectValue) {
+    setState(() {
+      widget._accountMode.icon = selectValue;
+    });
+  }
+}
+
+class TestAccountEdit extends StatelessWidget {
+  const TestAccountEdit({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const AccountEdit();
   }
 }

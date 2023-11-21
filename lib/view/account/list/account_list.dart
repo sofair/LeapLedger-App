@@ -135,17 +135,8 @@ class _AccountListState extends State<_AccountList> {
         itemCount: list.length,
         itemBuilder: (_, index) {
           final account = list[index];
-          Widget? leading = account.id == currentAccount
-              ? SizedBox(
-                  width: 5, // 设置竖条的宽度
-                  child: Container(
-                    color: Colors.blue, // 设置竖条的颜色
-                    padding: EdgeInsets.zero,
-                  ),
-                )
-              : null;
           return ListTile(
-            leading: leading,
+            leading: _buildLeading(account),
             contentPadding: const EdgeInsets.only(left: 16, right: 8), // 设置左右侧填充
             horizontalTitleGap: 0,
             title: Text(
@@ -163,6 +154,27 @@ class _AccountListState extends State<_AccountList> {
         separatorBuilder: (BuildContext context, int index) {
           return Divider(color: Colors.grey.shade400, height: 1);
         });
+  }
+
+  Widget _buildLeading(AccountModel account) {
+    return Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
+      SizedBox(
+        width: 4,
+        child: Container(
+          color: account.id == currentAccount ? Colors.blue : Colors.white,
+        ),
+      ),
+      const SizedBox(
+        width: 4,
+      ),
+      Icon(
+        account.icon,
+        size: 32,
+      ),
+      const SizedBox(
+        width: 4,
+      ),
+    ]);
   }
 
   _showCustomModalBottomSheet(AccountModel account) async {
