@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:keepaccount_app/widget/common/common.dart';
+part 'form_input_field.dart';
+part 'form_button.dart';
+part 'form_selecter.dart';
 
-Widget saveButton(
-    BuildContext context, Function(BuildContext context) submitForm) {
+Widget saveButton(BuildContext context, Function(BuildContext context) submitForm) {
   return ElevatedButton(
     onPressed: () => submitForm(context),
     style: ElevatedButton.styleFrom(
@@ -16,8 +19,7 @@ Widget saveButton(
   );
 }
 
-Widget stringForm(
-    String fieldName, String initialValue, void Function(String)? onChanged) {
+Widget stringForm(String fieldName, String initialValue, void Function(String)? onChanged) {
   return TextFormField(
     initialValue: initialValue,
     decoration: InputDecoration(
