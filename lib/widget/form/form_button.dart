@@ -37,4 +37,23 @@ class FormButton {
       ),
     );
   }
+
+  static Widget mediumElevatedBtn(BuildContext context, String text, Function() submitForm) {
+    return SizedBox(
+      width: 250,
+      child: ElevatedButton(
+        style: ButtonStyle(
+            shape: MaterialStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
+        onPressed: () {
+          submitForm();
+        },
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: Theme.of(context).primaryTextTheme.titleMedium!.fontSize,
+          ),
+        ),
+      ),
+    );
+  }
 }
