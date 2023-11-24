@@ -1,4 +1,4 @@
-part of 'trans_import_tab_bloc.dart';
+part of 'enter.dart';
 
 sealed class TransImportTabState {}
 

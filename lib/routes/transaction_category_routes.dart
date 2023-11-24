@@ -5,13 +5,35 @@ class TransactionCategoryRoutes {
   static String setting = '$_base/setting';
   static String edit = '$_base/edit';
   static String fatherEdit = '$_base/father/edit';
+  static String mapping = '$_base/mapping';
   static void init() {
     Routes.routes[setting] = (context) => const TransactionCategoryTree();
     Routes.routes[edit] = (context) => TransactionCategoryEdit(
-        transactionCategory: Routes.argument<TransactionCategoryModel>(
-            context, 'transactionCategory'));
+        transactionCategory: Routes.argument<TransactionCategoryModel>(context, 'transactionCategory'));
     Routes.routes[fatherEdit] = (context) => TransactionCategoryFatherEdit(
-        Routes.argument<TransactionCategoryFatherModel>(
-            context, 'transactionCategoryFather'));
+        Routes.argument<TransactionCategoryFatherModel>(context, 'transactionCategoryFather'));
+    Routes.routes[mapping] = (context) {
+      var product = Routes.argument<ProductModel>(context, 'product');
+      var categoryTree =
+          Routes.argument<List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>>>(
+              context, 'categoryTree');
+      var ptcList = Routes.argument<List<ProductTransactionCategoryModel>>(context, 'categoryTree');
+      if (product == null || categoryTree == null) {
+        return Routes.errorWight("product和categoryTree必填");
+      }
+      return TransactionCategoryMapping(
+        product,
+        categoryTree,
+        ptcList: ptcList,
+      );
+    };
+  }
+
+  static getMappingPushArguments(
+    ProductModel product,
+    List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryTree, {
+    List<ProductTransactionCategoryModel>? ptcList,
+  }) {
+    return {'product': product, 'categoryTree': categoryTree, 'ptcList': ptcList};
   }
 }

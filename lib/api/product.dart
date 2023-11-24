@@ -4,13 +4,11 @@ class ProductApi {
   static String baseUrl = '/transaction/import/product';
   static Future<ResponseBody> getList() async {
     ResponseBody response = await ApiServer.request(Method.get, '$baseUrl/list');
-
     return response;
   }
 
   static Future<ResponseBody> getTransactionCategory(String key) async {
     ResponseBody response = await ApiServer.request(Method.get, '$baseUrl/$key/transaction/category');
-
     return response;
   }
 
@@ -24,7 +22,7 @@ class ProductApi {
   static Future<ResponseBody> mappingTransactionCategory(
       TransactionCategoryModel transactionCategory, ProductTransactionCategoryModel productTransactionCategory) async {
     ResponseBody response = await ApiServer.request(
-        Method.get, '$baseUrl/transaction/category/${productTransactionCategory.id}/mapping',
+        Method.post, '$baseUrl/transaction/category/${productTransactionCategory.id}/mapping',
         data: {'CategoryId': transactionCategory.id});
     return response;
   }
@@ -32,15 +30,15 @@ class ProductApi {
   static Future<ResponseBody> deleteTransactionCategoryMapping(
       TransactionCategoryModel transactionCategory, ProductTransactionCategoryModel productTransactionCategory) async {
     ResponseBody response = await ApiServer.request(
-        Method.get, '$baseUrl/transaction/category/${productTransactionCategory.id}/mapping',
+        Method.delete, '$baseUrl/transaction/category/${productTransactionCategory.id}/mapping',
         data: {'CategoryId': transactionCategory.id});
     return response;
   }
 
   static Future<ResponseBody> uploadBill(String productKey, String filePath) async {
-    ResponseBody response = await ApiServer.request(Method.post, '$baseUrl/transaction/category/$productKey/mapping',
+    ResponseBody response = await ApiServer.request(Method.post, '$baseUrl/$productKey/bill/import',
         data: FormData.fromMap({
-          'file': await MultipartFile.fromFile(filePath),
+          'File': await MultipartFile.fromFile(filePath),
         }));
     return response;
   }
