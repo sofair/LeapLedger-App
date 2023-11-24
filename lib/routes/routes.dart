@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:keepaccount_app/common/global.dart';
+import 'package:keepaccount_app/model/product/model.dart';
 import 'package:keepaccount_app/model/transaction/category/model.dart';
 import 'package:keepaccount_app/view/account/detail/account_detail.dart';
 
@@ -7,6 +8,7 @@ import 'package:keepaccount_app/view/account/edit/account_edit.dart';
 
 import 'package:keepaccount_app/view/account/list/account_list.dart';
 import 'package:keepaccount_app/view/account/template/list/account_template_list.dart';
+import 'package:keepaccount_app/view/transaction/category/mapping/transaction_category_mapping.dart';
 import 'package:keepaccount_app/view/user/home/user_home.dart';
 import 'package:keepaccount_app/view/user/login/user_login.dart';
 import 'package:keepaccount_app/view/transaction/category/edit/transaction_category_edit.dart';
@@ -35,7 +37,7 @@ class Routes {
       case UserRoutes.home:
         return LeftSlideRoute(page: UserHome());
       default:
-        return MaterialPageRoute(builder: (_) => const Scaffold(body: Center(child: Text('Route not found'))));
+        return errorRoute('Route not found');
     }
   }
 
@@ -58,5 +60,13 @@ class Routes {
       return args[key] as T?;
     }
     return null;
+  }
+
+  static Route<dynamic> errorRoute(String msg) {
+    return MaterialPageRoute(builder: (_) => errorWight(msg));
+  }
+
+  static Widget errorWight(String msg) {
+    return Scaffold(body: Center(child: Text(msg)));
   }
 }
