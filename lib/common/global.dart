@@ -3,6 +3,8 @@ import 'package:keepaccount_app/config/config.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:keepaccount_app/util/enter.dart';
 
+part 'constant.dart';
+
 class Global {
   static SharedPreferencesCache cache = SharedPreferencesCache();
 

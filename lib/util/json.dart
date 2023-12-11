@@ -9,6 +9,14 @@ class Json {
     return dateTime != null ? dateTime.millisecondsSinceEpoch ~/ 1000 - 28800 : 0;
   }
 
+  static DateTime? optionDateTimeFromJson(dynamic timestamp) {
+    return DateTime.fromMillisecondsSinceEpoch(timestamp != null ? timestamp * 1000 + 28800000 : null);
+  }
+
+  static int? optionDateTimeToJson(DateTime? dateTime) {
+    return dateTime != null ? dateTime.millisecondsSinceEpoch ~/ 1000 - 28800 : null;
+  }
+
   static const _defaultIconData = Icons.payment_outlined;
 
   static final Map<IconData, String> _reverseIconMap =
