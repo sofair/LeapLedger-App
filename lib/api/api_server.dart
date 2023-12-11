@@ -1,7 +1,8 @@
 import 'dart:collection';
 import 'dart:core';
 import 'dart:io';
-import 'package:dio/dio.dart';
+import 'package:dio/dio.dart'
+    show Dio, BaseOptions, Options, Response, InterceptorsWrapper, DioException, FormData, MultipartFile;
 import 'package:keepaccount_app/api/model/model.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
 import 'package:keepaccount_app/common/current.dart';
@@ -59,7 +60,6 @@ class ApiServer {
           response = await dio.delete(path, data: data, options: options);
       }
     } on DioException catch (e) {
-      print(e.response);
       return e.response;
     } catch (e) {
       return null;
@@ -78,7 +78,7 @@ class ApiServer {
     Response? response = await _issueRequest(method, path, data, options);
     //处理响应
     if (response == null || response.statusCode == null) {
-      throw getResponseBodyAndShowError(null, errorMsg: "服务器错误");
+      return getResponseBodyAndShowError(null, errorMsg: "服务器错误");
     }
     int code = response.statusCode!;
     if (code >= 200 && code < 300) {
