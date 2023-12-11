@@ -1,347 +1,314 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:keepaccount_app/api/model/model.dart';
 import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/transaction_filter_model.dart';
-import 'package:keepaccount_app/widget/amount_display.dart';
-import 'package:material_segmented_control/material_segmented_control.dart';
-part 'single_choice.dart';
+import 'package:keepaccount_app/model/transaction/category/model.dart';
+import 'package:keepaccount_app/model/transaction/model.dart';
+import 'package:keepaccount_app/util/enter.dart';
+import 'package:keepaccount_app/view/transaction/flow/bloc/enter.dart';
+import 'package:keepaccount_app/view/transaction/flow/widget/enter.dart';
+import 'package:keepaccount_app/widget/amount/enter.dart';
+import 'package:shimmer/shimmer.dart';
 
 class TransactionFlow extends StatefulWidget {
+  const TransactionFlow({super.key});
+
   @override
-  _TransactionFlowState createState() => _TransactionFlowState();
+  State<TransactionFlow> createState() => _TransactionFlowState();
 }
 
+enum PageStatus { loading, loaded, refreshing, moreDataFetching, noMoreData }
+
 class _TransactionFlowState extends State<TransactionFlow> {
-  List<Map<String, dynamic>> _transactionList = [
-    {'type': '支出', 'amount': -20.0, 'time': DateTime.now().subtract(Duration(days: 1))},
-    {'type': '收入', 'amount': 100.0, 'time': DateTime.now().subtract(Duration(days: 2))},
-    {'type': '支出', 'amount': -50.0, 'time': DateTime.now().subtract(Duration(days: 3))},
-    {'type': '收入', 'amount': 80.0, 'time': DateTime.now().subtract(Duration(days: 4))},
-    {'type': '支出', 'amount': -30.0, 'time': DateTime.now().subtract(Duration(days: 5))},
-    {'type': '收入', 'amount': 60.0, 'time': DateTime.now().subtract(Duration(days: 6))},
-    {'type': '支出', 'amount': -20.0, 'time': DateTime.now().subtract(Duration(days: 1))},
-    {'type': '收入', 'amount': 100.0, 'time': DateTime.now().subtract(Duration(days: 2))},
-    {'type': '支出', 'amount': -50.0, 'time': DateTime.now().subtract(Duration(days: 3))},
-    {'type': '收入', 'amount': 80.0, 'time': DateTime.now().subtract(Duration(days: 4))},
-    {'type': '支出', 'amount': -30.0, 'time': DateTime.now().subtract(Duration(days: 5))},
-    {'type': '收入', 'amount': 60.0, 'time': DateTime.now().subtract(Duration(days: 6))},
-  ];
-  final List<String> _parents = ['Parent 1', 'Parent 2', 'Parent 3'];
-
-  final Map<String, List<String>> _children = {
-    'Parent 1': ['Child 1-1', 'Child 1-2', 'Child 1-3'],
-    'Parent 2': ['Child 2-1', 'Child 2-2', 'Child 2-3'],
-    'Parent 3': ['Child 3-1', 'Child 3-2', 'Child 3-3']
-  };
-  List<String> _parentItems = [
-    "Parent Item 1",
-    "Parent Item 2",
-    "Parent Item 3",
-  ];
-  Map<String, List<String>> _childItems = {
-    "Parent Item 1": ["Child Item 1", "Child Item 2", "Child Item 3"],
-    "Parent Item 2": ["Child Item 4", "Child Item 5"],
-    "Parent Item 3": ["Child Item 6", "Child Item 7", "Child Item 8"],
-  };
-  Map<String, bool> _isExpanded = {};
-
-  String _selectedFilter = '全部';
-  final Map<String, bool> _expansionState = {};
+  final FlowConditionBloc conditionBloc = FlowConditionBloc();
+  final FlowListBloc flowListBloc = FlowListBloc();
+  PageStatus currentState = PageStatus.loading;
+  late final ScrollController _scrollController;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   void initState() {
+    flowListBloc.add(FlowListDataFetchEvent(conditionBloc.condition));
     super.initState();
-    _parents.forEach((parent) {
-      _expansionState[parent] = false;
+    _scrollController = ScrollController();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+        _onFetchMoreData();
+      }
     });
-    // 初始化每个父项的展开状态为false
-    for (int i = 0; i < _parentItems.length; i++) {
-      _isExpanded[_parentItems[i]] = false;
+    data = shimmerData;
+  }
+
+  @override
+  void dispose() {
+    flowListBloc.close();
+    conditionBloc.close();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onRefresh() async {
+    flowListBloc.add(FlowListDataFetchEvent(conditionBloc.condition));
+    _changeState(PageStatus.refreshing);
+  }
+
+  void _onFetchMoreData() {
+    if (currentState != PageStatus.noMoreData) {
+      flowListBloc.add(FlowListMoreDataFetchEvent());
+      _changeState(PageStatus.moreDataFetching);
     }
+  }
+
+  void _changeState(PageStatus status) {
+    setState(() {
+      currentState = status;
+    });
+  }
+
+  Map<IncomeExpenseStatisticApiModel, List<TransactionModel>> data = {};
+
+  Widget listener(Widget child) {
+    return BlocListener<FlowListBloc, FlowListState>(
+        listener: (context, state) {
+          if (state is FlowListLoading) {
+            data = shimmerData;
+            _changeState(PageStatus.loading);
+          } else if (state is FlowListLoaded) {
+            data = state.data;
+            if (false == state.hasMore) {
+              _changeState(PageStatus.noMoreData);
+            } else {
+              _changeState(PageStatus.loaded);
+            }
+          } else if (state is FlowListMoreDataFetched) {
+            data = state.data;
+            if (false == state.hasMore) {
+              _changeState(PageStatus.noMoreData);
+            } else {
+              _changeState(PageStatus.loaded);
+            }
+          }
+        },
+        child: BlocListener<FlowConditionBloc, FlowConditionState>(
+          listener: (context, state) {
+            if (state is FlowConditionUpdate) {
+              flowListBloc.add(FlowListDataFetchEvent(state.condition));
+            }
+          },
+          child: child,
+        ));
   }
 
   @override
   Widget build(BuildContext context) {
-    var totalIncome = _getTotalAmount('收入');
-    var totalExpense = _getTotalAmount('支出');
-
-    return CustomScrollView(slivers: [buildSliverAppBar(), buildSliverPersistentHeader(), buildList()]);
-  }
-
-  Widget buildList() {
-    return SliverList(
-      delegate: SliverChildListDelegate([
-        Padding(
-          padding: const EdgeInsets.all(5),
-          child: ExpansionTile(
-            tilePadding: const EdgeInsets.only(left: 5, top: 5),
-            leading: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '5月',
-                  style: TextStyle(fontSize: 24),
-                ),
-                Text('2023')
-              ],
+    return MultiBlocProvider(
+        providers: [
+          BlocProvider<FlowListBloc>.value(value: flowListBloc),
+          BlocProvider<FlowConditionBloc>.value(value: conditionBloc),
+        ],
+        child: listener(
+          Scaffold(
+            key: _scaffoldKey,
+            appBar: AppBar(
+              title: const Text("流水"),
+              actions: _buildActions(),
             ),
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('支出: ', style: TextStyle(fontSize: 17, color: Colors.grey.shade600)),
-                const AmountDisplay(
-                  amount: 10000,
-                  textStyle: TextStyle(fontSize: 20, color: Colors.red),
-                )
-              ],
-            ),
-            children: <Widget>[
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text('二级列表${index + 1}'),
-                  );
-                },
-                itemCount: 5,
+            backgroundColor: Colors.grey.shade200,
+            body: RefreshIndicator(
+                onRefresh: _onRefresh,
+                child: NotificationListener<ScrollNotification>(
+                    onNotification: (scrollNotification) {
+                      if (scrollNotification is ScrollEndNotification && _scrollController.position.extentAfter == 0) {
+                        _onFetchMoreData();
+                      }
+                      return false;
+                    },
+                    child: CustomScrollView(
+                      controller: _scrollController,
+                      slivers: [
+                        const SliverToBoxAdapter(
+                          child: HeaderCard(),
+                        ),
+                        ...buildMonthStatisticGroupList()
+                      ],
+                    ))),
+
+            /// 获取更多 加载中
+            bottomNavigationBar: Visibility(
+              visible: currentState == PageStatus.moreDataFetching,
+              child: Container(
+                height: 64,
+                alignment: Alignment.center,
+                child: const CupertinoActivityIndicator(),
               ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(5),
-          child: ExpansionTile(
-            tilePadding: const EdgeInsets.all(5),
-            expandedCrossAxisAlignment: CrossAxisAlignment.start,
-            leading: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '5月',
-                  style: TextStyle(fontSize: 24),
-                ),
-                Text('2023')
-              ],
             ),
-            title: Row(
-              children: [
-                Text('支出', style: TextStyle(fontSize: 20, color: Colors.grey.shade500)),
-                const AmountDisplay(
-                  amount: 10000,
-                  textStyle: TextStyle(fontSize: 24, color: Colors.red),
-                )
-              ],
-            ),
-            children: <Widget>[
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text('二级列表${index + 1}'),
-                  );
-                },
-                itemCount: 5,
-              ),
-            ],
           ),
-        )
-      ]),
-    );
+        ));
   }
 
-  Widget _buildChildren(String parent) {
-    return Column(
-      children: _children[parent]!.map((child) => ListTile(title: Text(child))).toList(),
-    );
-  }
-
-  Widget buildSliverAppBar() {
-    String title = "本月统计";
-    int totalIncome = 15300, totalExpense = 1533300;
-    TextStyle labelStyle = TextStyle(fontSize: 14, color: Colors.grey.shade600);
-    TextStyle titleStyle = TextStyle(fontSize: 14, color: Colors.grey.shade600);
-    TextPainter painter = TextPainter(
-      text: TextSpan(text: title, style: titleStyle),
-      textAlign: TextAlign.left,
-      textDirection: TextDirection.ltr,
-    );
-    painter.layout();
-    double textWeight = painter.width;
-    return SliverAppBar(
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 17),
-        textAlign: TextAlign.left,
+  List<Widget> _buildActions() {
+    return [
+      BlocProvider.value(
+        value: conditionBloc,
+        child: const AccountListBottomSheet(),
       ),
-      floating: true,
-      pinned: true,
-      expandedHeight: 120.0,
-      flexibleSpace: FlexibleSpaceBar(
-        expandedTitleScale: 1,
-        centerTitle: true,
-        collapseMode: CollapseMode.pin,
-        background: Container(
-            decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blue, Colors.grey.shade100],
+      const SizedBox(
+        width: Constant.margin,
+      ),
+      Builder(builder: (context) {
+        return TextButton(
+          style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll<Color>(Colors.white)),
+          onPressed: () {
+            showModalBottomSheet(
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                context: context,
+                builder: (BuildContext context) {
+                  return BlocProvider.value(
+                    value: conditionBloc,
+                    child: const ConditionBottomSheet(),
+                  );
+                });
+          },
+          child: const Row(
+            children: [Text("筛选"), Icon(Icons.filter_alt_outlined)],
+          ),
+        );
+      })
+    ];
+  }
+
+  List<Widget> buildMonthStatisticGroupList() {
+    List<SliverMainAxisGroup> result = [];
+    data.forEach((key, value) {
+      if (value.isNotEmpty) {
+        result.add(buildMonthStatisticGroup(key, value));
+      }
+    });
+
+    if (result.isEmpty) {
+      return [
+        const SliverToBoxAdapter(
+            child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                '空数据',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
           ),
         )),
-        title: Wrap(
-          direction: Axis.horizontal,
-          alignment: WrapAlignment.start,
-          spacing: 5,
-          runSpacing: 5,
-          children: <Widget>[
-            SizedBox(
-              width: textWeight,
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  "总支出:",
-                  style: labelStyle,
-                ),
-                AmountDisplay(
-                  amount: totalExpense,
-                  textStyle: const TextStyle(fontSize: 18, color: Colors.red),
-                ),
-                const SizedBox(
-                  width: 30,
-                ),
-                Text(
-                  "总收入:",
-                  style: labelStyle,
-                ),
-                AmountDisplay(
-                  amount: totalIncome,
-                  textStyle: const TextStyle(fontSize: 18, color: Colors.green),
-                )
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildSliverPersistentHeader() {
-    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-    const TextStyle menuItemTextStyle = TextStyle(color: Colors.lightBlue);
-    final TransactionFilterModel filter =
-        TransactionFilterModel(timeIntervalType: 'day', transactionCategoryType: 'father');
-
-    return SliverPersistentHeader(
-      pinned: true,
-      delegate: _FilterDropdownDelegate(
-        child: Container(
-          padding: const EdgeInsets.only(left: 20),
-          height: 60,
-          color: Colors.grey.shade100,
-          child: Form(
-              key: formKey,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                      width: 80,
-                      child: DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(
-                          hintText: '时间',
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.blue),
-                          ),
-                          border: InputBorder.none,
-                          // Add other decoration properties as needed
-                        ),
-                        icon: const Icon(Icons.arrow_drop_down),
-                        iconSize: 26,
-                        style: const TextStyle(fontSize: 16, color: Colors.blue),
-                        value: filter.timeIntervalType,
-                        items: const [
-                          DropdownMenuItem(value: 'day', child: Text('天', style: menuItemTextStyle)),
-                          DropdownMenuItem(value: 'week', child: Text('周', style: menuItemTextStyle)),
-                          DropdownMenuItem(value: 'month', child: Text('月', style: menuItemTextStyle)),
-                          DropdownMenuItem(value: 'year', child: Text('年', style: menuItemTextStyle)),
-                        ],
-                        onChanged: (value) {
-                          filter.timeIntervalType = value;
-                        },
-                      )),
-                  SizedBox(
-                      width: 100, // 设置容器宽度
-                      child: DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(
-                          hintText: '类别',
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.blue), // 修改选中状态下划线颜色为蓝色
-                          ),
-                          border: InputBorder.none,
-                          // Add other decoration properties as needed
-                        ),
-                        icon: const Icon(Icons.arrow_drop_down),
-                        iconSize: 26,
-                        value: filter.transactionCategoryType,
-                        items: const [
-                          DropdownMenuItem(value: 'father', child: Text('一级', style: menuItemTextStyle)),
-                          DropdownMenuItem(value: 'children', child: Text('二级', style: menuItemTextStyle)),
-                        ],
-                        onChanged: (value) {
-                          filter.transactionCategoryType = value;
-                        },
-                      )),
-                  const SizedBox(width: 130, height: 45, child: SingleChoice()),
-                ],
-              )),
-        ),
-      ),
-    );
-  }
-
-  double _getTotalAmount(String type) {
-    var total = 0.0;
-    for (var transaction in _transactionList) {
-      if (transaction['type'] == type) {
-        total += transaction['amount'];
-      }
+      ];
     }
-    return total;
+    return result;
   }
 
-  List<DropdownMenuItem<String>> _getFilterItems() {
-    return ['全部', '收入', '支出'].map((e) => DropdownMenuItem<String>(child: Text(e), value: e)).toList();
+  /// 月统计和交易列表
+  SliverMainAxisGroup buildMonthStatisticGroup(IncomeExpenseStatisticApiModel apiModel, List<TransactionModel> list) {
+    return SliverMainAxisGroup(slivers: [
+      SliverPersistentHeader(
+        pinned: true,
+        delegate: MonthStatisticHeaderDelegate(apiModel),
+      ),
+      _buildSliverList(list),
+    ]);
   }
 
-  String _formatTime(DateTime time) {
-    return '${time.year}-${time.month}-${time.day}';
+  TransactionModel? lastTrans, currentTrans;
+
+  /// 交易列表
+  Widget _buildSliverList(List<TransactionModel> list) {
+    return SliverPadding(
+      padding: const EdgeInsets.only(bottom: Constant.margin),
+      sliver: DecoratedSliver(
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(Constant.radius), bottomRight: Radius.circular(Constant.radius))),
+        sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+          (_, int index) {
+            if (index % 2 == 1) {
+              return _buildShimmer(_buildListTile(list[index ~/ 2]));
+            } else {
+              lastTrans = currentTrans;
+              currentTrans = list[(index + 1) ~/ 2];
+              return _buildShimmer(_buildDivider());
+            }
+          },
+          childCount: list.length * 2,
+        )),
+      ),
+    );
   }
-}
 
-class _FilterDropdownDelegate extends SliverPersistentHeaderDelegate {
-  final Widget child;
+  /// 单条交易
+  Widget _buildListTile(TransactionModel model) {
+    return ListTile(
+      dense: true,
+      titleAlignment: ListTileTitleAlignment.center,
+      leading: Icon(model.categoryIcon),
+      title: Text(
+        model.categoryName,
+      ),
+      subtitle: Text("${model.categoryFatherName}  ${DateFormat('HH:mm:ss').format(model.tradeTime)}"),
+      trailing: SameHightAmount(
+        amount: model.amount,
+        incomeExpense: model.incomeExpense,
+        textStyle: const TextStyle(fontSize: 18, color: Colors.black),
+        displayModel: IncomeExpenseDisplayModel.symbols,
+      ),
+    );
+  }
 
-  _FilterDropdownDelegate({required this.child});
+  /// 列表分割线
+  Widget _buildDivider() {
+    if (currentTrans != null &&
+        lastTrans != null &&
+        Time.isSameDayComparison(currentTrans!.tradeTime, lastTrans!.tradeTime)) {
+      return ConstantWidget.divider.list;
+    } else {
+      return Padding(
+          padding: const EdgeInsets.only(left: Constant.padding),
+          child: currentTrans != null
+              ? Text(DateFormat("dd日").format(currentTrans!.tradeTime))
+              : ConstantWidget.divider.list);
+    }
+  }
 
-  @override
-  double get maxExtent => 56;
-
-  @override
-  double get minExtent => 56;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: Colors.white,
+  /// Shimmer
+  final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryShimmerData = [];
+  final Map<IncomeExpenseStatisticApiModel, List<TransactionModel>> shimmerData = {
+    IncomeExpenseStatisticApiModel(): [
+      TransactionModel.fromJson({}),
+      TransactionModel.fromJson({}),
+      TransactionModel.fromJson({}),
+      TransactionModel.fromJson({})
+    ],
+    IncomeExpenseStatisticApiModel()
+      ..startTime = Time.getLastMonth()
+      ..endTime = Time.getLastMonth(): [
+      TransactionModel.fromJson({}),
+      TransactionModel.fromJson({}),
+      TransactionModel.fromJson({}),
+      TransactionModel.fromJson({})
+    ]
+  };
+  Widget _buildShimmer(Widget child) {
+    if (currentState != PageStatus.loading && currentState != PageStatus.refreshing) {
+      return child;
+    }
+    return Shimmer.fromColors(
+      baseColor: ConstantColor.shimmerBaseColor,
+      highlightColor: ConstantColor.shimmerHighlightColor,
       child: child,
     );
-  }
-
-  @override
-  bool shouldRebuild(covariant _FilterDropdownDelegate oldDelegate) {
-    return false;
   }
 }

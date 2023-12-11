@@ -5,11 +5,23 @@ class TransactionModel {
   @JsonKey(defaultValue: 0)
   late int id;
   @JsonKey(defaultValue: 0)
+  late int userId;
+  @JsonKey(defaultValue: '')
+  late String userName;
+  @JsonKey(defaultValue: 0)
   late int accountId;
   @JsonKey(defaultValue: '')
-  late String incomeExpense;
+  late String accountName;
+  @JsonKey(defaultValue: IncomeExpense.income)
+  late IncomeExpense incomeExpense;
   @JsonKey(defaultValue: 0)
   late int categoryId;
+  @JsonKey(fromJson: Json.iconDataFormJson, toJson: Json.iconDataToJson)
+  late IconData categoryIcon;
+  @JsonKey(defaultValue: '')
+  late String categoryName;
+  @JsonKey(defaultValue: '')
+  late String categoryFatherName;
   @JsonKey(defaultValue: 0)
   late int amount;
   @JsonKey(defaultValue: '')
