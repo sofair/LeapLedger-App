@@ -19,4 +19,68 @@ class FormInputField {
       },
     );
   }
+
+  static Widget general<T>({
+    String? fieldName,
+    T? initialValue,
+    void Function(T?)? onChanged,
+    void Function(T?)? onSave,
+    String? Function(T?)? validator,
+    InputDecoration? decoration,
+    bool enabled = true,
+  }) {
+    assert(decoration == null || fieldName == null);
+    late final T? Function(String? value) handleValue;
+    late final String? initialValueString;
+    late final TextInputType type;
+    switch (T) {
+      case String:
+        handleValue = ((String? value) => value) as T? Function(String? value);
+        initialValueString = initialValue as String?;
+        type = TextInputType.text;
+        break;
+      case int:
+        handleValue = Data.stringToInt as T? Function(String? value);
+        initialValueString = Data.intToString(initialValue as int?);
+        type = TextInputType.number;
+        break;
+      case double:
+        handleValue = Data.stringToDouble as T? Function(String? value);
+        initialValueString = Data.doubleToString(initialValue as double?);
+        type = TextInputType.number;
+        break;
+      default:
+        // 默认当作字符串
+        handleValue = ((String? value) => value) as T? Function(String? value);
+        initialValueString = initialValue as String?;
+        type = TextInputType.text;
+        break;
+    }
+    return TextFormField(
+      enabled: enabled,
+      initialValue: initialValueString,
+      keyboardType: type,
+      decoration: decoration ??
+          InputDecoration(
+            labelText: fieldName,
+            border: const OutlineInputBorder(),
+          ),
+      onChanged: (String? value) {
+        if (onChanged != null) {
+          onChanged(handleValue(value));
+        }
+      },
+      onSaved: (String? value) {
+        if (onSave != null) {
+          onSave(handleValue(value));
+        }
+      },
+      validator: (value) {
+        if (validator != null) {
+          return validator(handleValue(value));
+        }
+        return null;
+      },
+    );
+  }
 }
