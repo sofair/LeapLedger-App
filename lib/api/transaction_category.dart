@@ -3,7 +3,7 @@ part of 'api_server.dart';
 class TransactionCategoryApi {
   static String baseUrl = '/transaction/category';
   static TransactionCategoryApiData dataFormatFunc = TransactionCategoryApiData();
-  static Future<ResponseBody> getTree(String type) async {
+  static Future<ResponseBody> getTree({IncomeExpense? type}) async {
     int accountId = UserBloc.currentAccount.id;
 
     ResponseBody response =

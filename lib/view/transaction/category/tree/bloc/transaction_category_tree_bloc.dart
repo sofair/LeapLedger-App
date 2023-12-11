@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'package:bloc/bloc.dart';
 import 'package:keepaccount_app/api/api_server.dart';
 
@@ -34,7 +33,7 @@ class TransactionCategoryTreeBloc extends Bloc<TransactionCategoryTreeEvent, Tra
 
     List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> list;
     list = await ApiServer.getData(
-      () => TransactionCategoryApi.getTree(event.incomeExpense.name),
+      () => TransactionCategoryApi.getTree(type: event.incomeExpense),
       TransactionCategoryApi.dataFormatFunc.getTreeDataToList,
     );
 
