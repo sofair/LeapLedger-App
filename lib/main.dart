@@ -4,9 +4,8 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
 import 'package:keepaccount_app/routes/routes.dart';
 import 'package:keepaccount_app/util/enter.dart';
-import 'package:keepaccount_app/view/account/template/list/account_template_list.dart';
 import 'package:keepaccount_app/view/navigation/navigation.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'common/global.dart';
 import 'package:keepaccount_app/common/current.dart';
@@ -21,7 +20,7 @@ Future<void> init() async {
   await initCache();
   Routes.init();
   await Global.init();
-  Global.cache.clear();
+  //Global.cache.clear();
   await Current.init();
 }
 
@@ -43,9 +42,18 @@ class MyApp extends StatelessWidget {
           ),
         ],
         child: MaterialApp(
+          supportedLocales: const [
+            Locale('zh', 'CN'),
+          ],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           navigatorKey: Global.navigatorKey,
           title: 'Flutter Demo',
           theme: ThemeData(
+            primaryColor: ConstantColor.primaryColor,
             dividerColor: Colors.transparent,
             floatingActionButtonTheme: const FloatingActionButtonThemeData(
               backgroundColor: Colors.blue,
@@ -53,9 +61,13 @@ class MyApp extends StatelessWidget {
               // smallSizeConstraints: BoxConstraints(minWidth: 100),
               // extendedSizeConstraints: BoxConstraints(minWidth: 100),
             ),
+
             //useMaterial3: true,
           ),
-          home: Navigation(),
+          home: Builder(builder: (context) {
+            UserBloc.checkUserState(context);
+            return const Navigation();
+          }),
           builder: EasyLoading.init(),
           routes: Routes.routes,
           onGenerateRoute: Routes.generateRoute,
