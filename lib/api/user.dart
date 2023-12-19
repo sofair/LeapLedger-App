@@ -45,4 +45,9 @@ class UserApi {
     ResponseBody response = await ApiServer.request(Method.put, '$baseUrl/current', data: user.toJson());
     return response;
   }
+
+  static Future<UserHomeApiModel> getHome({required int accountId}) async {
+    ResponseBody response = await ApiServer.request(Method.get, '$baseUrl/home', data: {"AccountId": accountId});
+    return UserHomeApiModel.fromJson(response.data);
+  }
 }

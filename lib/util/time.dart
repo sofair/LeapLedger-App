@@ -10,6 +10,12 @@ class Time {
     return DateTime(date.year, date.month - 1, date.day);
   }
 
+  static DateTime getFirstSecondOfMonth({DateTime? date}) {
+    date ??= DateTime.now();
+    DateTime endOfMonth = DateTime(date.year, date.month, 1, 0, 0, 0);
+    return endOfMonth;
+  }
+
   static DateTime getLastSecondOfMonth({DateTime? date}) {
     date ??= DateTime.now();
     DateTime lastDayOfMonth = DateTime(date.year, date.month + 1, 0);

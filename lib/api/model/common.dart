@@ -12,6 +12,8 @@ class CommonCaptchaModel {
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
+
+///金额笔数接口数据模型
 class AmountCountApiModel {
   @JsonKey(defaultValue: 0)
   late int amount;
@@ -27,6 +29,7 @@ class AmountCountApiModel {
   }
 }
 
+///收支统计接口数据模型
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class IncomeExpenseStatisticApiModel {
   late AmountCountApiModel income;
@@ -39,11 +42,25 @@ class IncomeExpenseStatisticApiModel {
   DateTime? startTime;
   @JsonKey(fromJson: Json.optionDateTimeFromJson, toJson: Json.optionDateTimeToJson)
   DateTime? endTime;
-  IncomeExpenseStatisticApiModel({AmountCountApiModel? income, AmountCountApiModel? expense}) {
+  IncomeExpenseStatisticApiModel(
+      {AmountCountApiModel? income, AmountCountApiModel? expense, this.startTime, this.endTime}) {
     this.income = income ?? AmountCountApiModel(0, 0);
     this.expense = expense ?? AmountCountApiModel(0, 0);
   }
   factory IncomeExpenseStatisticApiModel.fromJson(Map<String, dynamic> json) =>
       _$IncomeExpenseStatisticApiModelFromJson(json);
   Map<String, dynamic> toJson() => _$IncomeExpenseStatisticApiModelToJson(this);
+}
+
+///日金额统计接口数据模型
+@JsonSerializable(fieldRename: FieldRename.pascal)
+class DayAmountStatisticApiModel {
+  late int amount;
+
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
+  DateTime date;
+  DayAmountStatisticApiModel({this.amount = 0, required this.date});
+
+  factory DayAmountStatisticApiModel.fromJson(Map<String, dynamic> json) => _$DayAmountStatisticApiModelFromJson(json);
+  Map<String, dynamic> toJson() => _$DayAmountStatisticApiModelToJson(this);
 }

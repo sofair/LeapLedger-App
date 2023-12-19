@@ -67,3 +67,19 @@ class TransactionQueryConditionApiModel {
   @override
   int get hashCode => super.hashCode;
 }
+
+@JsonSerializable(fieldRename: FieldRename.pascal)
+class TransactionCategoryAmountRankApiModel extends AmountCountApiModel {
+  TransactionCategoryModel category;
+
+  TransactionCategoryAmountRankApiModel({
+    required int amount,
+    required int count,
+    required this.category,
+  }) : super(amount, count);
+  factory TransactionCategoryAmountRankApiModel.fromJson(Map<String, dynamic> json) =>
+      _$TransactionCategoryAmountRankApiModelFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$TransactionCategoryAmountRankApiModelToJson(this);
+}
