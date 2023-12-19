@@ -17,7 +17,7 @@ class TransactionCategoryRoutes {
       var categoryTree =
           Routes.argument<List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>>>(
               context, 'categoryTree');
-      var ptcList = Routes.argument<List<ProductTransactionCategoryModel>>(context, 'categoryTree');
+      var ptcList = Routes.argument<List<ProductTransactionCategoryModel>>(context, 'ptcList');
       if (product == null || categoryTree == null) {
         return Routes.errorWight("product和categoryTree必填");
       }

@@ -10,7 +10,7 @@ class Json {
   }
 
   static DateTime? optionDateTimeFromJson(dynamic timestamp) {
-    return DateTime.fromMillisecondsSinceEpoch(timestamp != null ? timestamp * 1000 + 28800000 : null);
+    return timestamp != null ? DateTime.fromMillisecondsSinceEpoch(timestamp * 1000 + 28800000) : null;
   }
 
   static int? optionDateTimeToJson(DateTime? dateTime) {

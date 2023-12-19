@@ -35,11 +35,10 @@ class ProductApi {
     return response;
   }
 
-  static Future<ResponseBody> uploadBill(String productKey, String filePath) async {
+  static Future<ResponseBody> uploadBill(String productKey, String filePath, {int? accountId}) async {
+    accountId ??= UserBloc.currentAccount.id;
     ResponseBody response = await ApiServer.request(Method.post, '$baseUrl/$productKey/bill/import',
-        data: FormData.fromMap({
-          'File': await MultipartFile.fromFile(filePath),
-        }));
+        data: FormData.fromMap({'File': await MultipartFile.fromFile(filePath), 'AccountId': accountId}));
     return response;
   }
 }

@@ -92,11 +92,6 @@ class TransactionCategoryMappingBloc extends Bloc<TransactionCategoryMappingEven
     }
   }
 
-  uploadFile(TransactionCategoryMappingUploadBillEvent event, Emitter<TransactionCategoryMappingState> emit) async {
-    ResponseBody responseBody = await ProductApi.uploadBill(product.uniqueKey, event.filePath);
-    if (responseBody.isSuccess) {}
-  }
-
   _emitLoaded(Emitter<TransactionCategoryMappingState> emit, {IncomeExpense? type}) {
     if (type == null || type == IncomeExpense.expense) {
       var emitUnmapped = unmapped.where((element) => element.incomeExpense == IncomeExpense.expense).toList();

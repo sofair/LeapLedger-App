@@ -6,15 +6,18 @@ class TransactionCategoryApi {
   static Future<ResponseBody> getTree({IncomeExpense? type}) async {
     int accountId = UserBloc.currentAccount.id;
 
-    ResponseBody response =
-        await ApiServer.request(Method.get, '$baseUrl/tree', data: {'AccountId': accountId, 'IncomeExpense': type});
+    ResponseBody response = await ApiServer.request(
+      Method.get,
+      '$baseUrl/tree',
+      data: {'AccountId': accountId, 'IncomeExpense': type?.name},
+    );
     if (response.isSuccess && response.data['Tree'] is List) {
       response.data['Tree'] = response.data['Tree'].map((value) {
-        value['IncomeExpense'] = type;
+        value['IncomeExpense'] = type?.name;
         value['AccountId'] = accountId;
         if (value['Children'] is List) {
           value['Children'] = value['Children'].map((value) {
-            value['IncomeExpense'] = type;
+            value['IncomeExpense'] = type?.name;
             value['AccountId'] = accountId;
             return value;
           }).toList();
