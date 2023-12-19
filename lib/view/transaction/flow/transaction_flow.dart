@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:keepaccount_app/api/model/model.dart';
 import 'package:keepaccount_app/common/global.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 import 'package:keepaccount_app/model/transaction/category/model.dart';
 import 'package:keepaccount_app/model/transaction/model.dart';
 import 'package:keepaccount_app/util/enter.dart';
@@ -13,7 +14,9 @@ import 'package:keepaccount_app/widget/amount/enter.dart';
 import 'package:shimmer/shimmer.dart';
 
 class TransactionFlow extends StatefulWidget {
-  const TransactionFlow({super.key});
+  final TransactionQueryConditionApiModel? condition;
+  final AccountModel? account;
+  const TransactionFlow({this.condition, this.account, super.key});
 
   @override
   State<TransactionFlow> createState() => _TransactionFlowState();
@@ -22,13 +25,14 @@ class TransactionFlow extends StatefulWidget {
 enum PageStatus { loading, loaded, refreshing, moreDataFetching, noMoreData }
 
 class _TransactionFlowState extends State<TransactionFlow> {
-  final FlowConditionBloc conditionBloc = FlowConditionBloc();
+  late final FlowConditionBloc conditionBloc;
   final FlowListBloc flowListBloc = FlowListBloc();
   PageStatus currentState = PageStatus.loading;
   late final ScrollController _scrollController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   void initState() {
+    conditionBloc = FlowConditionBloc(condition: widget.condition, currentAccount: widget.account);
     flowListBloc.add(FlowListDataFetchEvent(conditionBloc.condition));
     super.initState();
     _scrollController = ScrollController();
