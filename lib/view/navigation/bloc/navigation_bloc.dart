@@ -19,7 +19,6 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
   }
 
   _navigateToFlowPage(NavigateToFlowPage event, Emitter<NavigationState> emit) {
-    currentDisplayPage = TabPage.flow;
     emit(InFlowPage());
   }
 

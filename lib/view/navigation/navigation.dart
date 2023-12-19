@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keepaccount_app/api/model/model.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
 import 'package:keepaccount_app/routes/routes.dart';
+import 'package:keepaccount_app/util/enter.dart';
 import 'package:keepaccount_app/view/home/home.dart';
 import 'package:keepaccount_app/widget/dialog/enter.dart';
 
@@ -37,6 +38,12 @@ class _NavigationState extends State<Navigation> {
           listener: (context, state) {
             if (state is InUserHomePage) {
               _scaffoldKey.currentState!.openEndDrawer();
+            } else if (state is InFlowPage) {
+              var condition = TransactionQueryConditionApiModel(
+                  accountId: UserBloc.currentAccount.id,
+                  startTime: Time.getFirstSecondOfMonth(),
+                  endTime: DateTime.now());
+              TransactionRoutes.pushFlow(context, condition: condition, account: UserBloc.currentAccount);
             }
           },
         ));
@@ -51,7 +58,8 @@ class _NavigationState extends State<Navigation> {
           if (state is InHomePage) {
             return buildPageByType(TabPage.home);
           } else if (state is InFlowPage) {
-            return buildPageByType(TabPage.flow);
+            var page = BlocProvider.of<NavigationBloc>(context).currentDisplayPage;
+            return buildPageByType(page);
           } else if (state is InUserHomePage) {
             var page = BlocProvider.of<NavigationBloc>(context).currentDisplayPage;
             return buildPageByType(page);
@@ -75,9 +83,6 @@ class _NavigationState extends State<Navigation> {
     switch (page) {
       case TabPage.home:
         return const Home();
-      case TabPage.flow:
-        return TransactionFlow();
-
       case TabPage.share:
         return const Center(
           child: Text("group"),
@@ -105,6 +110,8 @@ class _DemoBottomAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
+      height: 52,
+      padding: EdgeInsets.zero,
       shape: shape,
       color: Colors.blue,
       child: IconTheme(
