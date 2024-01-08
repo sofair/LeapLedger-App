@@ -8,7 +8,6 @@ import 'package:keepaccount_app/routes/routes.dart';
 
 import 'package:keepaccount_app/view/transaction/category/tree/bloc/transaction_category_tree_bloc.dart';
 import 'package:keepaccount_app/widget/common/common.dart';
-import 'package:keepaccount_app/widget/dialog.dart';
 part 'widget/drag_and_drop_lists.dart';
 
 class TransactionCategoryTree extends StatelessWidget {

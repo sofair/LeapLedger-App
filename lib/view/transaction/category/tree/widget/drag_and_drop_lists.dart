@@ -146,13 +146,13 @@ class _DragAndDropListsState extends State<_DragAndDropLists> with AutomaticKeep
   }
 
   _deleteFather(TransactionCategoryFatherModel fahter) {
-    showDeleteConfirmationDialog(context, () {
+    CommonDialog.showDeleteConfirmationDialog(context, () {
       BlocProvider.of<TransactionCategoryTreeBloc>(context).add(DeleteFatherEvent(fahter.id));
     });
   }
 
   _deleteChild(TransactionCategoryModel child) {
-    showDeleteConfirmationDialog(context, () {
+    CommonDialog.showDeleteConfirmationDialog(context, () {
       BlocProvider.of<TransactionCategoryTreeBloc>(context).add(DeleteChildEvent(child.id));
     });
   }
