@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:keepaccount_app/bloc/captcha/captcha_bloc.dart';
 import 'package:keepaccount_app/bloc/email/captcha/email_captcha_bloc.dart';
 import 'package:keepaccount_app/common/global.dart';
@@ -13,3 +14,5 @@ part 'common_captcha.dart';
 part 'common_email_captcha.dart';
 part 'common_shimmer.dart';
 part 'common_icon_selecter.dart';
+part 'common_toast.dart';
+part 'common_dialog.dart';
