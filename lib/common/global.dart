@@ -32,9 +32,19 @@ class Global {
   }
 }
 
-enum IncomeExpense { income, expense }
+enum IncomeExpense {
+  income(label: "收入"),
+  expense(label: "支出");
+
+  final String label;
+  const IncomeExpense({
+    required this.label,
+  });
+}
 
 // ignore: constant_identifier_names
 const INCOME = "income", EXPENSE = "expense";
 
 enum UserAction { register, updatePassword, forgetPassword }
+
+enum TransactionEditMode { add, update }

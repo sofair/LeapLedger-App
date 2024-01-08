@@ -3,6 +3,7 @@ import 'package:keepaccount_app/api/api_server.dart';
 import 'package:keepaccount_app/api/model/model.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
 import 'package:keepaccount_app/common/global.dart';
+import 'package:keepaccount_app/model/transaction/model.dart';
 import 'package:keepaccount_app/util/enter.dart';
 
 part 'home_event.dart';
@@ -11,37 +12,47 @@ part 'home_state.dart';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc() : super(HomeInitial()) {
     on<HomeFetchDataEvent>(_fetchData);
+    on<HomeStatisticUpdateEvent>(_updateStatistic);
   }
 
-  late UserHomeApiModel data;
-  static final startTime = Time.getFirstSecondOfMonth(date: DateTime.now()),
-      endTime = Time.getLastSecondOfMonth(date: DateTime.now());
+  /// 日统计列表
+  late List<DayAmountStatisticApiModel> dayStatistic;
+
+  /// 类型统计排行
+  List<TransactionCategoryAmountRankApiModel> rankingList = [];
+
+  /// 首页数据
+  late UserHomeApiModel homeData;
+  static DateTime startTime = Time.getFirstSecondOfMonth(date: DateTime.now());
+  static DateTime endTime = Time.getLastSecondOfMonth(date: DateTime.now());
   _fetchData(HomeFetchDataEvent event, emit) async {
+    startTime = Time.getFirstSecondOfMonth(date: DateTime.now());
+    endTime = Time.getLastSecondOfMonth(date: DateTime.now());
     await Future.wait([
-      Future(() async {
-        data = await UserApi.getHome(accountId: UserBloc.currentAccount.id);
-        if (data.headerCard != null) {
-          emit(HomeHeaderLoaded(data.headerCard!));
-        }
-        if (data.timePeriodStatistics != null) {
-          emit(HomeTimePeriodStatisticsLoaded(data.timePeriodStatistics!));
-        }
-      }),
+      Future(() => _fetchHomeData(event, emit)),
       Future(() => _fetchDayStatistic(event, emit)),
       Future(() => _fetchTransactionCategoryAmountRank(event, emit))
     ]);
   }
 
-  _fetchDayStatistic(HomeFetchDataEvent event, emit) async {
-    var dayStatistic = await TransactionApi.getDayStatistic(
-        accountId: UserBloc.currentAccount.id, startTime: startTime, endTime: endTime);
-    if (dayStatistic.isNotEmpty) {
-      emit(HomeStatisticsLineChart(dayStatistic));
+  _fetchHomeData(HomeFetchDataEvent event, emit) async {
+    homeData = await UserApi.getHome(accountId: UserBloc.currentAccount.id);
+    if (homeData.headerCard != null) {
+      emit(HomeHeaderLoaded(homeData.headerCard!));
+    }
+    if (homeData.timePeriodStatistics != null) {
+      emit(HomeTimePeriodStatisticsLoaded(homeData.timePeriodStatistics!));
     }
   }
 
+  _fetchDayStatistic(HomeFetchDataEvent event, emit) async {
+    dayStatistic = await TransactionApi.getDayStatistic(
+        accountId: UserBloc.currentAccount.id, startTime: startTime, endTime: endTime);
+    emit(HomeStatisticsLineChart(dayStatistic));
+  }
+
   _fetchTransactionCategoryAmountRank(HomeFetchDataEvent event, emit) async {
-    var rankingList = await TransactionApi.getCategoryAmountRank(
+    rankingList = await TransactionApi.getCategoryAmountRank(
       accountId: UserBloc.currentAccount.id,
       ie: IncomeExpense.expense,
       limit: 9,
@@ -49,5 +60,51 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       endTime: endTime,
     );
     emit(HomeCategoryAmountRank(rankingList));
+  }
+
+  _updateStatistic(HomeStatisticUpdateEvent event, emit) async {
+    var wait = _fetchTransactionCategoryAmountRank(HomeFetchDataEvent(), emit);
+    _handleTransInHomeData(emit, oldTrans: event.oldTrnas, newTrans: event.newTrans);
+    _handleTransInDayStatistic(emit, oldTrans: event.oldTrnas, newTrans: event.newTrans);
+    await wait;
+  }
+
+  _handleTransInHomeData(emit, {TransactionEditModel? oldTrans, TransactionEditModel? newTrans}) {
+    bool needUpdate = false;
+    if (homeData.headerCard != null) {
+      needUpdate = oldTrans != null && homeData.headerCard!.handleTransEditModel(editModel: oldTrans, isAdd: false);
+      needUpdate =
+          needUpdate || newTrans != null && homeData.headerCard!.handleTransEditModel(editModel: newTrans, isAdd: true);
+      if (needUpdate) {
+        emit(HomeHeaderLoaded(homeData.headerCard!));
+      }
+    }
+    if (homeData.timePeriodStatistics != null) {
+      needUpdate = oldTrans != null && homeData.timePeriodStatistics!.handleTrans(trans: oldTrans, isAdd: false);
+      needUpdate =
+          needUpdate || newTrans != null && homeData.timePeriodStatistics!.handleTrans(trans: newTrans, isAdd: true);
+      if (needUpdate) {
+        emit(HomeTimePeriodStatisticsLoaded(homeData.timePeriodStatistics!));
+      }
+    }
+  }
+
+  _handleTransInDayStatistic(emit, {TransactionEditModel? oldTrans, TransactionEditModel? newTrans}) {
+    bool needUpdate = false;
+    if (oldTrans != null && oldTrans.tradeTime.isAfter(startTime) && oldTrans.tradeTime.isBefore(endTime)) {
+      if (dayStatistic.length + 1 >= oldTrans.tradeTime.day) {
+        dayStatistic[oldTrans.tradeTime.day].amount -= oldTrans.amount;
+        needUpdate = true;
+      }
+    }
+    if (newTrans != null && newTrans.tradeTime.isAfter(startTime) && newTrans.tradeTime.isBefore(endTime)) {
+      if (dayStatistic.length + 1 >= newTrans.tradeTime.day) {
+        dayStatistic[newTrans.tradeTime.day].amount += newTrans.amount;
+        needUpdate = true;
+      }
+    }
+    if (needUpdate) {
+      emit(HomeStatisticsLineChart(dayStatistic));
+    }
   }
 }

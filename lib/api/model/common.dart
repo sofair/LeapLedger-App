@@ -23,9 +23,25 @@ class AmountCountApiModel {
   AmountCountApiModel(this.amount, this.count);
   factory AmountCountApiModel.fromJson(Map<String, dynamic> json) => _$AmountCountApiModelFromJson(json);
   Map<String, dynamic> toJson() => _$AmountCountApiModelToJson(this);
-  add(AmountCountApiModel addData) {
-    amount += addData.amount;
-    count += addData.count;
+
+  add(AmountCountApiModel model) {
+    amount += model.amount;
+    count += model.count;
+  }
+
+  sub(AmountCountApiModel model) {
+    amount -= model.amount;
+    count -= model.count;
+  }
+
+  addTransEditModel(TransactionEditModel model) {
+    amount += model.amount;
+    count += 1;
+  }
+
+  subTransEditModel(TransactionEditModel model) {
+    amount -= model.amount;
+    count -= 1;
   }
 }
 
@@ -50,6 +66,71 @@ class IncomeExpenseStatisticApiModel {
   factory IncomeExpenseStatisticApiModel.fromJson(Map<String, dynamic> json) =>
       _$IncomeExpenseStatisticApiModelFromJson(json);
   Map<String, dynamic> toJson() => _$IncomeExpenseStatisticApiModelToJson(this);
+
+  bool handleTransEditModel({required TransactionEditModel trans, required bool isAdd}) {
+    if (startTime != null && startTime!.isAfter(trans.tradeTime) ||
+        endTime != null && endTime!.isBefore(trans.tradeTime)) {
+      return false;
+    }
+    if (isAdd) {
+      if (trans.incomeExpense == IncomeExpense.income) {
+        income.addTransEditModel(trans);
+      } else {
+        expense.addTransEditModel(trans);
+      }
+    } else {
+      if (trans.incomeExpense == IncomeExpense.income) {
+        income.subTransEditModel(trans);
+      } else {
+        expense.subTransEditModel(trans);
+      }
+    }
+    return true;
+  }
+}
+
+@JsonSerializable(fieldRename: FieldRename.pascal)
+class IncomeExpenseStatisticWithTimeApiModel {
+  late AmountCountApiModel income;
+  late AmountCountApiModel expense;
+  Duration? get timeDuration => endTime.difference(startTime);
+  int get dayAverageIncome => timeDuration != null && income.amount != 0 ? income.amount ~/ timeDuration!.inDays : 0;
+  int get dayAverageExpense => timeDuration != null && expense.amount != 0 ? expense.amount ~/ timeDuration!.inDays : 0;
+
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
+  late DateTime startTime;
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
+  late DateTime endTime;
+  IncomeExpenseStatisticWithTimeApiModel(
+      {AmountCountApiModel? income, AmountCountApiModel? expense, required this.startTime, required this.endTime}) {
+    this.income = income ?? AmountCountApiModel(0, 0);
+    this.expense = expense ?? AmountCountApiModel(0, 0);
+  }
+
+  factory IncomeExpenseStatisticWithTimeApiModel.fromJson(Map<String, dynamic> json) =>
+      _$IncomeExpenseStatisticWithTimeApiModelFromJson(json);
+  Map<String, dynamic> toJson() => _$IncomeExpenseStatisticWithTimeApiModelToJson(this);
+
+  /// 处理交易 以更新统计数据
+  bool handleTransEditModel({required TransactionEditModel editModel, required bool isAdd}) {
+    if (startTime.isAfter(editModel.tradeTime) || endTime.isBefore(editModel.tradeTime)) {
+      return false;
+    }
+    if (isAdd) {
+      if (editModel.incomeExpense == IncomeExpense.income) {
+        income.addTransEditModel(editModel);
+      } else {
+        expense.addTransEditModel(editModel);
+      }
+    } else {
+      if (editModel.incomeExpense == IncomeExpense.income) {
+        income.subTransEditModel(editModel);
+      } else {
+        expense.subTransEditModel(editModel);
+      }
+    }
+    return true;
+  }
 }
 
 ///日金额统计接口数据模型

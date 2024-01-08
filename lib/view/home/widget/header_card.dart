@@ -9,8 +9,12 @@ class HeaderCard extends StatefulWidget {
 
 class _HeaderCardState extends State<HeaderCard> {
   UserHomeHeaderCardApiModel? _data;
-  final UserHomeHeaderCardApiModel _shimmeData =
-      UserHomeHeaderCardApiModel(income: AmountCountApiModel(0, 0), expense: AmountCountApiModel(0, 0));
+  final UserHomeHeaderCardApiModel _shimmeData = UserHomeHeaderCardApiModel(
+    income: AmountCountApiModel(0, 0),
+    expense: AmountCountApiModel(0, 0),
+    startTime: HomeBloc.startTime,
+    endTime: HomeBloc.endTime,
+  );
   final TransactionQueryConditionApiModel _condition = TransactionQueryConditionApiModel(
     accountId: UserBloc.currentAccount.id,
     startTime: HomeBloc.startTime,
@@ -44,14 +48,8 @@ class _HeaderCardState extends State<HeaderCard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  '本月支出',
-                  style: TextStyle(fontSize: ConstantFontSize.headline),
-                ),
-                _buildDate(
-                  data.startTime ?? Time.getFirstSecondOfPreviousMonths(numberOfMonths: 0, date: DateTime.now()),
-                  data.endTime ?? Time.getLastMonth(date: DateTime.now()),
-                ),
+                const Text('本月支出', style: TextStyle(fontSize: ConstantFontSize.headline)),
+                _buildDate(data.startTime, data.endTime),
               ],
             ),
             UnequalHeightAmountTextSpan(

@@ -66,6 +66,31 @@ class TransactionQueryConditionApiModel {
 
   @override
   int get hashCode => super.hashCode;
+
+  bool checkTrans(TransactionModel trans) {
+    if (accountId != trans.accountId) {
+      return false;
+    }
+    if (startTime.isAfter(trans.tradeTime) || endTime.isBefore(trans.tradeTime)) {
+      return false;
+    }
+    if (userIds != null && false == userIds!.contains(trans.userId)) {
+      return false;
+    }
+    if (categoryIds != null && false == categoryIds!.contains(trans.categoryId)) {
+      return false;
+    }
+    if (incomeExpense != null && incomeExpense != trans.incomeExpense) {
+      return false;
+    }
+    if (minimumAmount != null && minimumAmount! > trans.amount) {
+      return false;
+    }
+    if (maximumAmount != null && maximumAmount! < trans.amount) {
+      return false;
+    }
+    return true;
+  }
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)

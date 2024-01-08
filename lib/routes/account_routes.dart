@@ -14,4 +14,27 @@ class AccountRoutes {
       templateList: (context) => const AccountTemplateList(),
     });
   }
+
+  static Future<AccountModel?> showAccountListButtomSheet(
+    BuildContext context, {
+    required AccountModel currentAccount,
+  }) async {
+    AccountModel? result;
+    await showModalBottomSheet(
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      context: context,
+      builder: (_) => BlocProvider(
+        create: (context) => AccountListBloc(),
+        child: AccountListBottomSheet(
+          currentAccount: currentAccount,
+        ),
+      ),
+    ).then((value) {
+      if (value is AccountModel) {
+        result = value;
+      }
+    });
+    return result;
+  }
 }

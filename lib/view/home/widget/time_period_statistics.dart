@@ -14,16 +14,16 @@ class _TimePeriodStatisticsState extends State<TimePeriodStatistics> {
   @override
   void initState() {
     _shimmeData = UserHomeTimePeriodStatisticsApiModel(
-      todayData: IncomeExpenseStatisticApiModel(startTime: today, endTime: today),
-      yearData: IncomeExpenseStatisticApiModel(
+      todayData: IncomeExpenseStatisticWithTimeApiModel(startTime: today, endTime: today),
+      yearData: IncomeExpenseStatisticWithTimeApiModel(
         startTime: today.subtract(const Duration(days: 1)),
         endTime: today.subtract(const Duration(days: 1)),
       ),
-      weekData: IncomeExpenseStatisticApiModel(
+      weekData: IncomeExpenseStatisticWithTimeApiModel(
         startTime: today.subtract(Duration(days: today.weekday - 1)),
         endTime: today.subtract(Duration(days: 7 - today.weekday)),
       ),
-      yesterdayData: IncomeExpenseStatisticApiModel(
+      yesterdayData: IncomeExpenseStatisticWithTimeApiModel(
         startTime: DateTime(today.year, 1, 1),
         endTime: DateTime(today.year + 1, 1, 1).subtract(const Duration(days: 1)),
       ),
@@ -64,27 +64,23 @@ class _TimePeriodStatisticsState extends State<TimePeriodStatistics> {
             )));
   }
 
-  Widget _buildListTile({required IconData icon, required String title, required IncomeExpenseStatisticApiModel data}) {
+  Widget _buildListTile(
+      {required IconData icon, required String title, required IncomeExpenseStatisticWithTimeApiModel data}) {
     String date;
     Function() onTap;
-    if (data.startTime != null && data.endTime != null) {
-      DateTime startTime = data.startTime!;
-      DateTime endTime = data.endTime!;
-      if (Time.isSameDayComparison(startTime, endTime)) {
-        date = DateFormat("yyyy年MM月dd日").format(startTime);
-      } else {
-        date = "${DateFormat("MM月dd日").format(startTime)}-${DateFormat("MM月dd日").format(endTime)}";
-      }
-      onTap = () {
-        _Func._pushTransactionFlow(
-            context,
-            TransactionQueryConditionApiModel(
-                accountId: UserBloc.currentAccount.id, startTime: startTime, endTime: endTime));
-      };
+    DateTime startTime = data.startTime;
+    DateTime endTime = data.endTime;
+    if (Time.isSameDayComparison(startTime, endTime)) {
+      date = DateFormat("yyyy年MM月dd日").format(startTime);
     } else {
-      date = "";
-      onTap = () {};
+      date = "${DateFormat("MM月dd日").format(startTime)}-${DateFormat("MM月dd日").format(endTime)}";
     }
+    onTap = () {
+      _Func._pushTransactionFlow(
+          context,
+          TransactionQueryConditionApiModel(
+              accountId: UserBloc.currentAccount.id, startTime: startTime, endTime: endTime));
+    };
     return GestureDetector(
         onTap: () => onTap(),
         child: SizedBox(

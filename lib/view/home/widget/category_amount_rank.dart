@@ -11,15 +11,19 @@ enum PageStatus { loading, expanding, contracting, noData }
 
 class _CategoryAmountRankState extends State<CategoryAmountRank> {
   final GlobalKey<AnimatedListState> listKey = GlobalKey<AnimatedListState>();
+
+  /// 排行数据
   List<TransactionCategoryAmountRankApiModel> _rankingList = [];
-  List<TransactionCategoryAmountRankApiModel> presentData = [];
+
+  /// 当前展示数据
+  List<TransactionCategoryAmountRankApiModel> _presentData = [];
   final int initialQuantity = 3;
   PageStatus currentStatus = PageStatus.loading;
   int maxAmount = 0;
   initPresentData() {
-    presentData = [];
+    _presentData = [];
     for (int index = 0; index < initialQuantity && index < _rankingList.length; index++) {
-      presentData.add(_rankingList[index]);
+      _presentData.add(_rankingList[index]);
     }
   }
 
@@ -29,7 +33,11 @@ class _CategoryAmountRankState extends State<CategoryAmountRank> {
       listener: (context, state) {
         if (state is HomeCategoryAmountRank) {
           setState(() {
-            currentStatus = PageStatus.contracting;
+            if (state.rankingList.isNotEmpty) {
+              currentStatus = PageStatus.contracting;
+            } else {
+              currentStatus = PageStatus.noData;
+            }
             _rankingList = state.rankingList;
             var first = _rankingList.firstOrNull;
             maxAmount = first != null ? first.amount : 0;
@@ -50,8 +58,8 @@ class _CategoryAmountRankState extends State<CategoryAmountRank> {
                   alignment: Alignment.bottomCenter,
                   child: Column(
                       children: List.generate(
-                    presentData.length,
-                    (index) => _buildListTile(presentData[index], index + 1),
+                    _presentData.length,
+                    (index) => _buildListTile(_presentData[index], index + 1),
                   )),
                 ),
               ),
@@ -111,7 +119,7 @@ class _CategoryAmountRankState extends State<CategoryAmountRank> {
             //点击展开
             setState(() {
               currentStatus = PageStatus.expanding;
-              presentData = _rankingList;
+              _presentData = _rankingList;
             });
           },
           child: const Row(
@@ -137,7 +145,10 @@ class _CategoryAmountRankState extends State<CategoryAmountRank> {
           ),
         );
       default:
-        return ConstantWidget.noTransactionDataText;
+        return SizedBox(
+          height: 64,
+          child: Center(child: TransactionRoutes.getNoDataRichText(context)),
+        );
     }
   }
 }

@@ -29,6 +29,31 @@ class TransactionCategoryRoutes {
     };
   }
 
+  static RichText getNoDataRichText(BuildContext context) {
+    return RichText(
+      textScaler: MediaQuery.of(context).textScaler,
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        children: [
+          const TextSpan(
+              text: '交易类型未设置!\n\n',
+              style: TextStyle(
+                color: Colors.black,
+              )),
+          TextSpan(
+              text: '点击设置',
+              style: const TextStyle(
+                color: Colors.blue,
+              ),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  Navigator.pushNamed(context, TransactionCategoryRoutes.setting);
+                }),
+        ],
+      ),
+    );
+  }
+
   static getMappingPushArguments(
     ProductModel product,
     List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryTree, {

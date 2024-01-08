@@ -3,36 +3,54 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:keepaccount_app/api/model/model.dart';
+import 'package:keepaccount_app/bloc/transaction/transaction_bloc.dart';
 import 'package:keepaccount_app/common/global.dart';
 import 'package:keepaccount_app/model/account/model.dart';
 import 'package:keepaccount_app/model/transaction/category/model.dart';
 import 'package:keepaccount_app/model/transaction/model.dart';
+import 'package:keepaccount_app/routes/routes.dart';
 import 'package:keepaccount_app/util/enter.dart';
 import 'package:keepaccount_app/view/transaction/flow/bloc/enter.dart';
 import 'package:keepaccount_app/view/transaction/flow/widget/enter.dart';
 import 'package:keepaccount_app/widget/amount/enter.dart';
 import 'package:shimmer/shimmer.dart';
 
-class TransactionFlow extends StatefulWidget {
+class TransactionFlow extends StatelessWidget {
   final TransactionQueryConditionApiModel? condition;
   final AccountModel? account;
   const TransactionFlow({this.condition, this.account, super.key});
 
   @override
-  State<TransactionFlow> createState() => _TransactionFlowState();
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(providers: [
+      BlocProvider<FlowListBloc>(create: (context) => FlowListBloc()),
+      BlocProvider<FlowConditionBloc>(
+          create: (context) => FlowConditionBloc(condition: condition, currentAccount: account)),
+    ], child: _TransactionFlow(condition: condition, account: account));
+  }
+}
+
+class _TransactionFlow extends StatefulWidget {
+  final TransactionQueryConditionApiModel? condition;
+  final AccountModel? account;
+  const _TransactionFlow({this.condition, this.account, super.key});
+
+  @override
+  State<_TransactionFlow> createState() => _TransactionFlowState();
 }
 
 enum PageStatus { loading, loaded, refreshing, moreDataFetching, noMoreData }
 
-class _TransactionFlowState extends State<TransactionFlow> {
+class _TransactionFlowState extends State<_TransactionFlow> {
   late final FlowConditionBloc conditionBloc;
-  final FlowListBloc flowListBloc = FlowListBloc();
+  late final FlowListBloc flowListBloc;
   PageStatus currentState = PageStatus.loading;
   late final ScrollController _scrollController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   void initState() {
-    conditionBloc = FlowConditionBloc(condition: widget.condition, currentAccount: widget.account);
+    flowListBloc = BlocProvider.of<FlowListBloc>(context);
+    conditionBloc = BlocProvider.of<FlowConditionBloc>(context);
     flowListBloc.add(FlowListDataFetchEvent(conditionBloc.condition));
     super.initState();
     _scrollController = ScrollController();
@@ -70,85 +88,100 @@ class _TransactionFlowState extends State<TransactionFlow> {
     });
   }
 
-  Map<IncomeExpenseStatisticApiModel, List<TransactionModel>> data = {};
+  Map<IncomeExpenseStatisticWithTimeApiModel, List<TransactionModel>> data = {};
 
   Widget listener(Widget child) {
-    return BlocListener<FlowListBloc, FlowListState>(
-        listener: (context, state) {
-          if (state is FlowListLoading) {
-            data = shimmerData;
-            _changeState(PageStatus.loading);
-          } else if (state is FlowListLoaded) {
-            data = state.data;
-            if (false == state.hasMore) {
-              _changeState(PageStatus.noMoreData);
-            } else {
-              _changeState(PageStatus.loaded);
-            }
-          } else if (state is FlowListMoreDataFetched) {
-            data = state.data;
-            if (false == state.hasMore) {
-              _changeState(PageStatus.noMoreData);
-            } else {
-              _changeState(PageStatus.loaded);
-            }
+    // 列表bloc
+    child = BlocListener<FlowListBloc, FlowListState>(
+      listener: (context, state) {
+        if (state is FlowListLoading) {
+          data = shimmerData;
+          _changeState(PageStatus.loading);
+        } else if (state is FlowListLoaded) {
+          data = state.data;
+          if (false == state.hasMore) {
+            _changeState(PageStatus.noMoreData);
+          } else {
+            _changeState(PageStatus.loaded);
           }
-        },
-        child: BlocListener<FlowConditionBloc, FlowConditionState>(
-          listener: (context, state) {
-            if (state is FlowConditionUpdate) {
-              flowListBloc.add(FlowListDataFetchEvent(state.condition));
-            }
-          },
-          child: child,
-        ));
+        } else if (state is FlowListMoreDataFetched) {
+          data = state.data;
+          if (false == state.hasMore) {
+            _changeState(PageStatus.noMoreData);
+          } else {
+            _changeState(PageStatus.loaded);
+          }
+        }
+      },
+      child: child,
+    );
+    // 条件bloc
+    child = BlocListener<FlowConditionBloc, FlowConditionState>(
+      listener: (context, state) {
+        if (state is FlowConditionUpdate) {
+          flowListBloc.add(FlowListDataFetchEvent(state.condition));
+        }
+      },
+      child: child,
+    );
+    print("state");
+    // 交易bloc
+    child = BlocListener<TransactionBloc, TransactionState>(
+      listener: (context, state) {
+        print(state);
+        if (state is TransactionAddSuccess) {
+          flowListBloc.add(FlowListTransactionAddEvent(state.trans));
+        } else if (state is TransactionUpdateSuccess) {
+          flowListBloc.add(FlowListTransactionUpdateEvent(state.oldTrans, state.newTrans));
+        } else if (state is TransactionDeleteSuccess) {
+          flowListBloc.add(FlowListTransactionDeleteEvent(state.delTrans));
+        }
+      },
+      child: child,
+    );
+    return child;
   }
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-        providers: [
-          BlocProvider<FlowListBloc>.value(value: flowListBloc),
-          BlocProvider<FlowConditionBloc>.value(value: conditionBloc),
-        ],
-        child: listener(
-          Scaffold(
-            key: _scaffoldKey,
-            appBar: AppBar(
-              title: const Text("流水"),
-              actions: _buildActions(),
-            ),
-            backgroundColor: Colors.grey.shade200,
-            body: RefreshIndicator(
-                onRefresh: _onRefresh,
-                child: NotificationListener<ScrollNotification>(
-                    onNotification: (scrollNotification) {
-                      if (scrollNotification is ScrollEndNotification && _scrollController.position.extentAfter == 0) {
-                        _onFetchMoreData();
-                      }
-                      return false;
-                    },
-                    child: CustomScrollView(
-                      controller: _scrollController,
-                      slivers: [
-                        const SliverToBoxAdapter(
-                          child: HeaderCard(),
-                        ),
-                        ...buildMonthStatisticGroupList()
-                      ],
-                    ))),
+    return listener(
+      Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          title: const Text("流水"),
+          actions: _buildActions(),
+        ),
+        backgroundColor: Colors.grey.shade200,
+        body: RefreshIndicator(
+            onRefresh: _onRefresh,
+            child: NotificationListener<ScrollNotification>(
+                onNotification: (scrollNotification) {
+                  if (scrollNotification is ScrollEndNotification && _scrollController.position.extentAfter == 0) {
+                    _onFetchMoreData();
+                  }
+                  return false;
+                },
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    const SliverToBoxAdapter(
+                      child: HeaderCard(),
+                    ),
+                    ...buildMonthStatisticGroupList()
+                  ],
+                ))),
 
-            /// 获取更多 加载中
-            bottomNavigationBar: Visibility(
-              visible: currentState == PageStatus.moreDataFetching,
-              child: Container(
-                height: 64,
-                alignment: Alignment.center,
-                child: const CupertinoActivityIndicator(),
-              ),
-            ),
+        /// 获取更多 加载中
+        bottomNavigationBar: Visibility(
+          visible: currentState == PageStatus.moreDataFetching,
+          child: Container(
+            height: 64,
+            alignment: Alignment.center,
+            child: const CupertinoActivityIndicator(),
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   List<Widget> _buildActions() {
@@ -193,33 +226,22 @@ class _TransactionFlowState extends State<TransactionFlow> {
 
     if (result.isEmpty) {
       return [
-        const SliverToBoxAdapter(
-            child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                '空数据',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-        )),
+        SliverToBoxAdapter(
+          child: Center(child: TransactionRoutes.getNoDataRichText(context)),
+        ),
       ];
     }
     return result;
   }
 
   /// 月统计和交易列表
-  SliverMainAxisGroup buildMonthStatisticGroup(IncomeExpenseStatisticApiModel apiModel, List<TransactionModel> list) {
+  SliverMainAxisGroup buildMonthStatisticGroup(
+      IncomeExpenseStatisticWithTimeApiModel apiModel, List<TransactionModel> list) {
+    final fonstScale = MediaQuery.of(context).textScaler.scale(MonthStatisticHeaderDelegate.baseFontHeight);
     return SliverMainAxisGroup(slivers: [
       SliverPersistentHeader(
         pinned: true,
-        delegate: MonthStatisticHeaderDelegate(apiModel),
+        delegate: MonthStatisticHeaderDelegate(apiModel, fonstScale),
       ),
       _buildSliverList(list),
     ]);
@@ -256,6 +278,8 @@ class _TransactionFlowState extends State<TransactionFlow> {
   /// 单条交易
   Widget _buildListTile(TransactionModel model) {
     return ListTile(
+      onTap: () =>
+          TransactionRoutes.pushDetailBottomSheet(context, account: conditionBloc.currentAccount, transaction: model),
       dense: true,
       titleAlignment: ListTileTitleAlignment.center,
       leading: Icon(model.categoryIcon),
@@ -289,16 +313,17 @@ class _TransactionFlowState extends State<TransactionFlow> {
 
   /// Shimmer
   final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryShimmerData = [];
-  final Map<IncomeExpenseStatisticApiModel, List<TransactionModel>> shimmerData = {
-    IncomeExpenseStatisticApiModel(): [
+  final Map<IncomeExpenseStatisticWithTimeApiModel, List<TransactionModel>> shimmerData = {
+    IncomeExpenseStatisticWithTimeApiModel(startTime: Time.getLastMonth(), endTime: Time.getLastMonth()): [
       TransactionModel.fromJson({}),
       TransactionModel.fromJson({}),
       TransactionModel.fromJson({}),
       TransactionModel.fromJson({})
     ],
-    IncomeExpenseStatisticApiModel()
-      ..startTime = Time.getLastMonth()
-      ..endTime = Time.getLastMonth(): [
+    IncomeExpenseStatisticWithTimeApiModel(
+      startTime: Time.getFirstSecondOfPreviousMonths(numberOfMonths: 1),
+      endTime: Time.getFirstSecondOfPreviousMonths(numberOfMonths: 1),
+    ): [
       TransactionModel.fromJson({}),
       TransactionModel.fromJson({}),
       TransactionModel.fromJson({}),

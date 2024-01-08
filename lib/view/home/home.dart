@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keepaccount_app/bloc/transaction/transaction_bloc.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
 
 import 'package:keepaccount_app/common/global.dart';
@@ -16,22 +17,30 @@ class Home extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: Constant.padding, vertical: 0),
           color: ConstantColor.greyBackground,
           child: Builder(
-              builder: (context) => UserBloc.listenerCurrentAccountIdUpdate(
-                    () {
-                      BlocProvider.of<HomeBloc>(context).add(HomeFetchDataEvent());
+              builder: (context) => BlocListener<TransactionBloc, TransactionState>(
+                    listener: (context, state) {
+                      if (state is TransactionStatisticUpdate) {
+                        BlocProvider.of<HomeBloc>(context)
+                            .add(HomeStatisticUpdateEvent(state.oldTrans, state.newTrans));
+                      }
                     },
-                    const SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SafeArea(
-                            child: HeaderCard(),
-                          ),
-                          HomeNavigation(),
-                          TimePeriodStatistics(),
-                          StatisticsLineChart(),
-                          CategoryAmountRank(),
-                        ],
+                    child: UserBloc.listenerCurrentAccountIdUpdate(
+                      () {
+                        BlocProvider.of<HomeBloc>(context).add(HomeFetchDataEvent());
+                      },
+                      const SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SafeArea(
+                              child: HeaderCard(),
+                            ),
+                            HomeNavigation(),
+                            TimePeriodStatistics(),
+                            StatisticsLineChart(),
+                            CategoryAmountRank(),
+                          ],
+                        ),
                       ),
                     ),
                   ))),

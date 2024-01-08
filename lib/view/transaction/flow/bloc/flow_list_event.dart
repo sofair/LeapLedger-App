@@ -15,3 +15,19 @@ class FlowListMoreDataFetchEvent extends FlowListEvent {
 class FlowListUpdateConditionEvent extends FlowListEvent {
   FlowListUpdateConditionEvent();
 }
+
+class FlowListTransactionAddEvent extends FlowListEvent {
+  final TransactionModel trans;
+  FlowListTransactionAddEvent(this.trans);
+}
+
+class FlowListTransactionUpdateEvent extends FlowListEvent {
+  final TransactionModel oldTrans;
+  final TransactionModel newTrans;
+  FlowListTransactionUpdateEvent(this.oldTrans, this.newTrans);
+}
+
+class FlowListTransactionDeleteEvent extends FlowListEvent {
+  final TransactionModel trans;
+  FlowListTransactionDeleteEvent(this.trans);
+}

@@ -10,19 +10,24 @@ ProductModel _$ProductModelFromJson(Map<String, dynamic> json) => ProductModel()
   ..uniqueKey = json['UniqueKey'] as String? ?? ''
   ..name = json['Name'] as String? ?? '';
 
-Map<String, dynamic> _$ProductModelToJson(ProductModel instance) => <String, dynamic>{
+Map<String, dynamic> _$ProductModelToJson(ProductModel instance) =>
+    <String, dynamic>{
       'UniqueKey': instance.uniqueKey,
       'Name': instance.name,
     };
 
-ProductTransactionCategoryModel _$ProductTransactionCategoryModelFromJson(Map<String, dynamic> json) =>
+ProductTransactionCategoryModel _$ProductTransactionCategoryModelFromJson(
+        Map<String, dynamic> json) =>
     ProductTransactionCategoryModel()
       ..id = json['Id'] as int? ?? 0
       ..uniqueKey = json['UniqueKey'] as String? ?? ''
       ..name = json['Name'] as String? ?? ''
-      ..incomeExpense = $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ?? IncomeExpense.income;
+      ..incomeExpense =
+          $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ??
+              IncomeExpense.income;
 
-Map<String, dynamic> _$ProductTransactionCategoryModelToJson(ProductTransactionCategoryModel instance) =>
+Map<String, dynamic> _$ProductTransactionCategoryModelToJson(
+        ProductTransactionCategoryModel instance) =>
     <String, dynamic>{
       'Id': instance.id,
       'UniqueKey': instance.uniqueKey,
@@ -35,16 +40,19 @@ const _$IncomeExpenseEnumMap = {
   IncomeExpense.expense: 'expense',
 };
 
-ProductTransactionCategoryMappingModel _$ProductTransactionCategoryMappingModelFromJson(Map<String, dynamic> json) =>
-    ProductTransactionCategoryMappingModel()
-      ..accountId = json['AccountId'] as int? ?? 0
-      ..ptcId = json['PtcId'] as int? ?? 0
-      ..categoryId = json['CategoryId'] as int? ?? 0
-      ..productKey = json['ProductKey'] as int? ?? 0
-      ..createdAt = Json.dateTimeFromJson(json['CreatedAt'])
-      ..updatedAt = Json.dateTimeFromJson(json['UpdatedAt']);
+ProductTransactionCategoryMappingModel
+    _$ProductTransactionCategoryMappingModelFromJson(
+            Map<String, dynamic> json) =>
+        ProductTransactionCategoryMappingModel()
+          ..accountId = json['AccountId'] as int? ?? 0
+          ..ptcId = json['PtcId'] as int? ?? 0
+          ..categoryId = json['CategoryId'] as int? ?? 0
+          ..productKey = json['ProductKey'] as int? ?? 0
+          ..createdAt = Json.dateTimeFromJson(json['CreatedAt'])
+          ..updatedAt = Json.dateTimeFromJson(json['UpdatedAt']);
 
-Map<String, dynamic> _$ProductTransactionCategoryMappingModelToJson(ProductTransactionCategoryMappingModel instance) =>
+Map<String, dynamic> _$ProductTransactionCategoryMappingModelToJson(
+        ProductTransactionCategoryMappingModel instance) =>
     <String, dynamic>{
       'AccountId': instance.accountId,
       'PtcId': instance.ptcId,

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keepaccount_app/api/model/model.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
+import 'package:keepaccount_app/common/global.dart';
 import 'package:keepaccount_app/routes/routes.dart';
 import 'package:keepaccount_app/util/enter.dart';
 import 'package:keepaccount_app/view/home/home.dart';
 import 'package:keepaccount_app/widget/dialog/enter.dart';
 
 import 'bloc/navigation_bloc.dart';
-import 'package:keepaccount_app/view/transaction/flow/transaction_flow.dart';
 
 part 'widget/user_drawer.dart';
 part 'widget/user_drawer_header.dart';
@@ -69,7 +69,12 @@ class _NavigationState extends State<Navigation> {
           return Container();
         },
       ),
-      floatingActionButton: FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          TransactionRoutes.pushEdit(context, mode: TransactionEditMode.add);
+        },
+        child: const Icon(Icons.add),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: const _DemoBottomAppBar(
         fabLocation: FloatingActionButtonLocation.centerDocked,
@@ -110,29 +115,28 @@ class _DemoBottomAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
-      height: 52,
+      height: 64,
       padding: EdgeInsets.zero,
       shape: shape,
       color: Colors.blue,
-      child: IconTheme(
-        data: IconThemeData(color: Theme.of(context).colorScheme.onPrimary),
-        child: Row(
-          children: <Widget>[
-            _textIcon('首页', Icons.home_filled, TabPage.home, () {
-              BlocProvider.of<NavigationBloc>(context).add(NavigateToHomePage());
-            }),
-            _textIcon('流水', Icons.compare_arrows, TabPage.flow, () {
-              BlocProvider.of<NavigationBloc>(context).add(NavigateToFlowPage());
-            }),
-            if (centerLocations.contains(fabLocation)) const Spacer(),
-            _textIcon('共享', Icons.people, TabPage.share, () {
-              BlocProvider.of<NavigationBloc>(context).add(NavigateToSharePage());
-            }),
-            _textIcon('我的', Icons.person, TabPage.userHome, () {
-              BlocProvider.of<NavigationBloc>(context).add(NavigateToUserHomePage());
-            }),
-          ],
-        ),
+      notchMargin: 4,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          _textIcon('首页', Icons.home_filled, TabPage.home, () {
+            BlocProvider.of<NavigationBloc>(context).add(NavigateToHomePage());
+          }),
+          _textIcon('流水', Icons.compare_arrows, TabPage.flow, () {
+            BlocProvider.of<NavigationBloc>(context).add(NavigateToFlowPage());
+          }),
+          if (centerLocations.contains(fabLocation)) const Spacer(),
+          _textIcon('共享', Icons.people, TabPage.share, () {
+            BlocProvider.of<NavigationBloc>(context).add(NavigateToSharePage());
+          }),
+          _textIcon('我的', Icons.person, TabPage.userHome, () {
+            BlocProvider.of<NavigationBloc>(context).add(NavigateToUserHomePage());
+          }),
+        ],
       ),
     );
   }

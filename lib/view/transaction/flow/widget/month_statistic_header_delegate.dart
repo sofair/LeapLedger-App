@@ -1,10 +1,16 @@
 part of 'enter.dart';
 
 class MonthStatisticHeaderDelegate extends SliverPersistentHeaderDelegate {
-  const MonthStatisticHeaderDelegate(this.data);
+  MonthStatisticHeaderDelegate(this.data, this.fontHeight) {
+    height = fontHeight + 4.5 + Constant.padding * 2 + Constant.margin;
+  }
+  static const double baseFontHeight = ConstantFontSize.headline * 2 + 8;
+  static TextStyle amountStyle =
+      const TextStyle(color: Color.fromRGBO(0, 0, 0, 1), fontSize: ConstantFontSize.headline);
+  final double fontHeight;
+  late final double height;
 
-  final IncomeExpenseStatisticApiModel data;
-  static TextStyle amountStyle = const TextStyle(color: Colors.black, fontSize: 16);
+  final IncomeExpenseStatisticWithTimeApiModel data;
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
@@ -30,54 +36,68 @@ class MonthStatisticHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   _buildWidget() {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
-          mainAxisSize: MainAxisSize.max,
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               flex: 4,
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    DateFormat("M月").format(data.startTime ?? DateTime.now()),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    DateFormat("M月").format(data.startTime),
+                    style: const TextStyle(fontSize: ConstantFontSize.headline, fontWeight: FontWeight.bold),
                   ),
-                  Text(DateFormat("yyyy").format(data.startTime ?? DateTime.now()))
+                  Text(DateFormat("yyyy").format(data.startTime))
                 ],
               ),
             ),
             Expanded(
-                flex: 8,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Column(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        buildItem(const Text("收入："), data.income.amount),
-                        buildItem(const Text("支出："), data.expense.amount),
-                      ],
-                    ),
-                    const SizedBox(
-                      width: Constant.padding,
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        buildItem(const Text("结余："), data.income.amount - data.expense.amount),
-                        buildItem(const Text("日均支出："), data.dayAverageExpense),
-                      ],
-                    ),
-                  ],
-                )),
+              flex: 8,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      buildItem(
+                          const Text(
+                            "收入：",
+                            style: TextStyle(fontSize: ConstantFontSize.body),
+                          ),
+                          data.income.amount),
+                      buildItem(
+                          const Text(
+                            "支出：",
+                            style: TextStyle(fontSize: ConstantFontSize.body),
+                          ),
+                          data.expense.amount),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: Constant.padding,
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      buildItem(const Text("结余："), data.income.amount - data.expense.amount),
+                      buildItem(const Text("日均支出："), data.dayAverageExpense),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
         const SizedBox(
@@ -90,21 +110,22 @@ class MonthStatisticHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   buildItem(Text text, int amount) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         text,
         SameHightAmount(
           amount: amount,
-          textStyle: const TextStyle(color: Colors.black, fontSize: 12),
+          textStyle: const TextStyle(color: Colors.black, fontSize: ConstantFontSize.bodySmall),
         )
       ],
     );
   }
 
   @override
-  double get maxExtent => 44.5 + Constant.padding * 2 + Constant.margin;
+  double get maxExtent => height;
 
   @override
-  double get minExtent => 44.5 + Constant.padding * 2 + Constant.margin;
+  double get minExtent => height;
   @override
   bool shouldRebuild(covariant MonthStatisticHeaderDelegate oldDelegate) => data != oldDelegate.data;
 }

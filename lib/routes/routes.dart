@@ -1,17 +1,27 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keepaccount_app/api/model/model.dart';
-
+import 'package:keepaccount_app/bloc/transaction/transaction_bloc.dart';
+import 'package:keepaccount_app/common/global.dart';
 import 'package:keepaccount_app/model/account/model.dart';
+
 import 'package:keepaccount_app/model/product/model.dart';
 import 'package:keepaccount_app/model/transaction/category/model.dart';
+import 'package:keepaccount_app/model/transaction/model.dart';
 import 'package:keepaccount_app/view/account/detail/account_detail.dart';
 
 import 'package:keepaccount_app/view/account/edit/account_edit.dart';
 
 import 'package:keepaccount_app/view/account/list/account_list.dart';
+import 'package:keepaccount_app/view/account/list/account_list_bottom_sheet.dart';
+import 'package:keepaccount_app/view/account/list/bloc/account_list_bloc.dart';
 import 'package:keepaccount_app/view/account/template/list/account_template_list.dart';
 import 'package:keepaccount_app/view/transaction/category/mapping/transaction_category_mapping.dart';
+import 'package:keepaccount_app/view/transaction/detail/transaction_detail_bottom_sheet.dart';
+import 'package:keepaccount_app/view/transaction/edit/transaction_edit.dart';
 import 'package:keepaccount_app/view/transaction/flow/transaction_flow.dart';
+
 import 'package:keepaccount_app/view/user/home/user_home.dart';
 import 'package:keepaccount_app/view/user/login/user_login.dart';
 import 'package:keepaccount_app/view/transaction/category/edit/transaction_category_edit.dart';
@@ -27,7 +37,7 @@ part 'account_routes.dart';
 part 'transaction_category_routes.dart';
 part 'transaction_import_routes.dart';
 part 'user_routes.dart';
-part 'transaction.dart';
+part 'transaction_routes.dart';
 
 class Routes {
   static const String home = 'home';

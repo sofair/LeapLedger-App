@@ -54,6 +54,31 @@ Map<String, dynamic> _$IncomeExpenseStatisticApiModelToJson(
       'EndTime': Json.optionDateTimeToJson(instance.endTime),
     };
 
+IncomeExpenseStatisticWithTimeApiModel
+    _$IncomeExpenseStatisticWithTimeApiModelFromJson(
+            Map<String, dynamic> json) =>
+        IncomeExpenseStatisticWithTimeApiModel(
+          income: json['Income'] == null
+              ? null
+              : AmountCountApiModel.fromJson(
+                  json['Income'] as Map<String, dynamic>),
+          expense: json['Expense'] == null
+              ? null
+              : AmountCountApiModel.fromJson(
+                  json['Expense'] as Map<String, dynamic>),
+          startTime: Json.dateTimeFromJson(json['StartTime']),
+          endTime: Json.dateTimeFromJson(json['EndTime']),
+        );
+
+Map<String, dynamic> _$IncomeExpenseStatisticWithTimeApiModelToJson(
+        IncomeExpenseStatisticWithTimeApiModel instance) =>
+    <String, dynamic>{
+      'Income': instance.income,
+      'Expense': instance.expense,
+      'StartTime': Json.dateTimeToJson(instance.startTime),
+      'EndTime': Json.dateTimeToJson(instance.endTime),
+    };
+
 DayAmountStatisticApiModel _$DayAmountStatisticApiModelFromJson(
         Map<String, dynamic> json) =>
     DayAmountStatisticApiModel(
@@ -105,29 +130,29 @@ UserHomeHeaderCardApiModel _$UserHomeHeaderCardApiModelFromJson(
           ? null
           : AmountCountApiModel.fromJson(
               json['Expense'] as Map<String, dynamic>),
-    )
-      ..startTime = Json.optionDateTimeFromJson(json['StartTime'])
-      ..endTime = Json.optionDateTimeFromJson(json['EndTime']);
+      startTime: Json.dateTimeFromJson(json['StartTime']),
+      endTime: Json.dateTimeFromJson(json['EndTime']),
+    );
 
 Map<String, dynamic> _$UserHomeHeaderCardApiModelToJson(
         UserHomeHeaderCardApiModel instance) =>
     <String, dynamic>{
       'Income': instance.income,
       'Expense': instance.expense,
-      'StartTime': Json.optionDateTimeToJson(instance.startTime),
-      'EndTime': Json.optionDateTimeToJson(instance.endTime),
+      'StartTime': Json.dateTimeToJson(instance.startTime),
+      'EndTime': Json.dateTimeToJson(instance.endTime),
     };
 
 UserHomeTimePeriodStatisticsApiModel
     _$UserHomeTimePeriodStatisticsApiModelFromJson(Map<String, dynamic> json) =>
         UserHomeTimePeriodStatisticsApiModel(
-          todayData: IncomeExpenseStatisticApiModel.fromJson(
+          todayData: IncomeExpenseStatisticWithTimeApiModel.fromJson(
               json['TodayData'] as Map<String, dynamic>),
-          yesterdayData: IncomeExpenseStatisticApiModel.fromJson(
+          yesterdayData: IncomeExpenseStatisticWithTimeApiModel.fromJson(
               json['YesterdayData'] as Map<String, dynamic>),
-          weekData: IncomeExpenseStatisticApiModel.fromJson(
+          weekData: IncomeExpenseStatisticWithTimeApiModel.fromJson(
               json['WeekData'] as Map<String, dynamic>),
-          yearData: IncomeExpenseStatisticApiModel.fromJson(
+          yearData: IncomeExpenseStatisticWithTimeApiModel.fromJson(
               json['YearData'] as Map<String, dynamic>),
         );
 

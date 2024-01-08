@@ -4,8 +4,26 @@ class TransactionApi {
   static String baseUrl = '/transaction';
   static TransactionCategoryApiData dataFormatFunc = TransactionCategoryApiData();
 
-  static Future<ResponseBody> add(TransactionModel model) async {
-    return await ApiServer.request(Method.post, baseUrl, data: model.toJson());
+  static Future<TransactionModel?> add(TransactionEditModel model) async {
+    ResponseBody response = await ApiServer.request(Method.post, baseUrl, data: model.toJson());
+    if (false == response.isSuccess) {
+      return null;
+    }
+    return TransactionModel.fromJson(response.data);
+  }
+
+  static Future<TransactionModel?> update(TransactionEditModel model) async {
+    assert(model.id != null);
+    ResponseBody response = await ApiServer.request(Method.put, "$baseUrl/${model.id!}", data: model.toJson());
+    if (false == response.isSuccess) {
+      return null;
+    }
+    return TransactionModel.fromJson(response.data);
+  }
+
+  static Future<ResponseBody> delete(int id) async {
+    ResponseBody response = await ApiServer.request(Method.delete, "$baseUrl/$id");
+    return response;
   }
 
   static Future<List<TransactionModel>> getList(
@@ -46,13 +64,13 @@ class TransactionApi {
     return result;
   }
 
-  static Future<List<IncomeExpenseStatisticApiModel>> getMonthStatistic(
+  static Future<List<IncomeExpenseStatisticWithTimeApiModel>> getMonthStatistic(
       TransactionQueryConditionApiModel condition) async {
     var responseBody = await ApiServer.request(Method.get, '$baseUrl/month/statistic', data: condition.toJson());
-    List<IncomeExpenseStatisticApiModel> result = [];
+    List<IncomeExpenseStatisticWithTimeApiModel> result = [];
     if (responseBody.isSuccess) {
       for (Map<String, dynamic> data in responseBody.data['List']) {
-        result.add(IncomeExpenseStatisticApiModel.fromJson(data));
+        result.add(IncomeExpenseStatisticWithTimeApiModel.fromJson(data));
       }
     }
     return result;

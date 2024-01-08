@@ -3,8 +3,8 @@ part of 'api_server.dart';
 class TransactionCategoryApi {
   static String baseUrl = '/transaction/category';
   static TransactionCategoryApiData dataFormatFunc = TransactionCategoryApiData();
-  static Future<ResponseBody> getTree({IncomeExpense? type}) async {
-    int accountId = UserBloc.currentAccount.id;
+  static Future<ResponseBody> getTree({IncomeExpense? type, int? accountId}) async {
+    accountId ??= UserBloc.currentAccount.id;
 
     ResponseBody response = await ApiServer.request(
       Method.get,
@@ -77,5 +77,18 @@ class TransactionCategoryApiData {
       }
     }
     return result;
+  }
+
+  List<TransactionCategoryModel> getCategoryListByTree(ResponseBody response) {
+    List<TransactionCategoryModel> categoryList = [];
+    if (response.isSuccess && response.data['Tree'] != null) {
+      for (LinkedHashMap<String, dynamic> data in response.data['Tree']) {
+        TransactionCategoryFatherModel father = TransactionCategoryFatherModel.fromJson(data);
+        for (Map<String, dynamic> child in data['Children']) {
+          categoryList.add(TransactionCategoryModel.fromJson(child)..fatherId = father.id);
+        }
+      }
+    }
+    return categoryList;
   }
 }

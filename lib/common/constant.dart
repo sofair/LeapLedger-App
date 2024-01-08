@@ -6,12 +6,20 @@ class Constant {
   static const double padding = 16.0;
   static const double largePadding = 24.0;
   static const double margin = 8.0;
+
+  static const double buttomLetterSpacing = 4.0;
+
+  static const int maxAmount = 99999999; //最大金额为100万减一 存储单位为分
+  static const int minYear = 2000;
+  static const int maxYear = 2050;
+  static DateTime minDateTime = DateTime(minYear);
+  static DateTime maxDateTime = DateTime(maxYear);
 }
 
 class ConstantFontSize {
   const ConstantFontSize();
+  static const double largeHeadline = 18;
   static const double headline = 16;
-
   static const double body = 14;
   static const double bodySmall = 12;
 }
@@ -19,7 +27,6 @@ class ConstantFontSize {
 class ConstantWidget {
   // ignore: library_private_types_in_public_api
   static const _ConstantWidgetDivider divider = _ConstantWidgetDivider();
-  static const noTransactionDataText = Text("快去记一笔吧!");
 }
 
 class ConstantDecoration {
@@ -56,5 +63,8 @@ class ConstantColor {
   static const Color shimmerBaseColor = Color.fromRGBO(224, 224, 224, 1);
   static const Color shimmerHighlightColor = Color.fromRGBO(245, 245, 245, 1);
   static const Color greyBackground = Color.fromRGBO(245, 245, 245, 1);
+
+  static const Color greyButton = Color.fromRGBO(238, 238, 238, 1);
+
   static const Color listDividerColor = Color.fromRGBO(238, 238, 238, 1);
 }

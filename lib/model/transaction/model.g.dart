@@ -49,3 +49,29 @@ const _$IncomeExpenseEnumMap = {
   IncomeExpense.income: 'income',
   IncomeExpense.expense: 'expense',
 };
+
+TransactionEditModel _$TransactionEditModelFromJson(
+        Map<String, dynamic> json) =>
+    TransactionEditModel(
+      id: json['Id'] as int?,
+      userId: json['UserId'] as int,
+      accountId: json['AccountId'] as int,
+      categoryId: json['CategoryId'] as int,
+      incomeExpense: $enumDecode(_$IncomeExpenseEnumMap, json['IncomeExpense']),
+      amount: json['Amount'] as int,
+      remark: json['Remark'] as String,
+      tradeTime: Json.dateTimeFromJson(json['TradeTime']),
+    );
+
+Map<String, dynamic> _$TransactionEditModelToJson(
+        TransactionEditModel instance) =>
+    <String, dynamic>{
+      'Id': instance.id,
+      'UserId': instance.userId,
+      'AccountId': instance.accountId,
+      'CategoryId': instance.categoryId,
+      'IncomeExpense': _$IncomeExpenseEnumMap[instance.incomeExpense]!,
+      'Amount': instance.amount,
+      'Remark': instance.remark,
+      'TradeTime': Json.dateTimeToJson(instance.tradeTime),
+    };

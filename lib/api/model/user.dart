@@ -19,11 +19,13 @@ class UserHomeApiModel {
   Map<String, dynamic> toJson() => _$UserHomeApiModelToJson(this);
 }
 
+///首页头部Card接口数据模型
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class UserHomeHeaderCardApiModel extends IncomeExpenseStatisticApiModel {
-  UserHomeHeaderCardApiModel({AmountCountApiModel? income, AmountCountApiModel? expense})
+class UserHomeHeaderCardApiModel extends IncomeExpenseStatisticWithTimeApiModel {
+  UserHomeHeaderCardApiModel(
+      {AmountCountApiModel? income, AmountCountApiModel? expense, required super.startTime, required super.endTime})
       : super(income: income, expense: expense);
-  int? get days => startTime != null && endTime != null ? endTime!.difference(startTime!).inDays : null;
+  int? get days => endTime.difference(startTime).inDays;
   int get dayExpenseAmountaverage {
     if (days == null || expense.amount <= 0) {
       return 0;
@@ -40,10 +42,10 @@ class UserHomeHeaderCardApiModel extends IncomeExpenseStatisticApiModel {
 
 ///首页时间段统计接口数据模型
 class UserHomeTimePeriodStatisticsApiModel {
-  late IncomeExpenseStatisticApiModel todayData;
-  late IncomeExpenseStatisticApiModel yesterdayData;
-  late IncomeExpenseStatisticApiModel weekData;
-  late IncomeExpenseStatisticApiModel yearData;
+  late IncomeExpenseStatisticWithTimeApiModel todayData;
+  late IncomeExpenseStatisticWithTimeApiModel yesterdayData;
+  late IncomeExpenseStatisticWithTimeApiModel weekData;
+  late IncomeExpenseStatisticWithTimeApiModel yearData;
   UserHomeTimePeriodStatisticsApiModel({
     required this.todayData,
     required this.yesterdayData,
@@ -53,4 +55,21 @@ class UserHomeTimePeriodStatisticsApiModel {
   factory UserHomeTimePeriodStatisticsApiModel.fromJson(Map<String, dynamic> json) =>
       _$UserHomeTimePeriodStatisticsApiModelFromJson(json);
   Map<String, dynamic> toJson() => _$UserHomeTimePeriodStatisticsApiModelToJson(this);
+
+  bool handleTrans({required TransactionEditModel trans, required bool isAdd}) {
+    bool result = false;
+    if (todayData.handleTransEditModel(editModel: trans, isAdd: isAdd)) {
+      result = true;
+    }
+    if (yesterdayData.handleTransEditModel(editModel: trans, isAdd: isAdd)) {
+      result = true;
+    }
+    if (weekData.handleTransEditModel(editModel: trans, isAdd: isAdd)) {
+      result = true;
+    }
+    if (yearData.handleTransEditModel(editModel: trans, isAdd: isAdd)) {
+      result = true;
+    }
+    return result;
+  }
 }
