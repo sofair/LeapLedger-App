@@ -23,6 +23,7 @@ class UnequalHeightAmountTextSpan extends StatelessWidget {
     List<String> parts = formattedAmount.split('.');
     double? tailFontSize = tailReduction ? textStyle.fontSize! * 2 / 3 : textStyle.fontSize;
     return RichText(
+      textScaler: MediaQuery.of(context).textScaler,
       text: TextSpan(
         children: [
           if (title != null)

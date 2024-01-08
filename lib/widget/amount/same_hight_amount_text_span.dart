@@ -44,6 +44,7 @@ class SameHightAmountTextSpan extends StatelessWidget {
     String formattedAmount = amountInDollars.toStringAsFixed(2);
     List<String> parts = formattedAmount.split('.');
     return RichText(
+      textScaler: MediaQuery.of(context).textScaler,
       text: TextSpan(
         text: prefix + (dollarSign ? '￥${parts[0]}' : parts[0]),
         style: _textStyle,
