@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:keepaccount_app/bloc/transaction/transaction_bloc.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
 import 'package:keepaccount_app/routes/routes.dart';
 import 'package:keepaccount_app/util/enter.dart';
@@ -40,6 +41,9 @@ class MyApp extends StatelessWidget {
           RepositoryProvider<UserBloc>(
             create: (context) => UserBloc(),
           ),
+          RepositoryProvider<TransactionBloc>(
+            create: (context) => TransactionBloc(),
+          ),
         ],
         child: MaterialApp(
           supportedLocales: const [
@@ -53,6 +57,10 @@ class MyApp extends StatelessWidget {
           navigatorKey: Global.navigatorKey,
           title: 'Flutter Demo',
           theme: ThemeData(
+            colorScheme: const ColorScheme.light(
+              primary: ConstantColor.primaryColor,
+              secondary: ConstantColor.secondaryColor,
+            ),
             primaryColor: ConstantColor.primaryColor,
             dividerColor: Colors.transparent,
             floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -61,13 +69,9 @@ class MyApp extends StatelessWidget {
               // smallSizeConstraints: BoxConstraints(minWidth: 100),
               // extendedSizeConstraints: BoxConstraints(minWidth: 100),
             ),
-
-            //useMaterial3: true,
+            useMaterial3: true,
           ),
-          home: Builder(builder: (context) {
-            UserBloc.checkUserState(context);
-            return const Navigation();
-          }),
+          home: const Navigation(),
           builder: EasyLoading.init(),
           routes: Routes.routes,
           onGenerateRoute: Routes.generateRoute,
