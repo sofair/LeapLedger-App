@@ -30,6 +30,7 @@ class HeaderCard extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(0),
         backgroundColor: Colors.white,
+        side: BorderSide.none,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero));
   }
 }

@@ -124,7 +124,10 @@ class TabView extends StatelessWidget {
                             style: const TextStyle(fontSize: 12),
                           ),
                           padding: const EdgeInsets.all(0),
-                          backgroundColor: Colors.grey.shade300)))
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: ConstantDecoration.borderRadius,
+                          ),
+                          backgroundColor: ConstantColor.greyButton)))
               : [],
         ),
         trailing: IconButton(

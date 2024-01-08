@@ -58,12 +58,14 @@ class PtcCard extends StatelessWidget {
 
   Widget buildItem(ProductTransactionCategoryModel model) {
     return Chip(
-        label: Text(
-          model.name,
-          style: const TextStyle(fontSize: 12),
-        ),
-        padding: const EdgeInsets.all(0),
-        backgroundColor: Colors.white,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero));
+      elevation: 0,
+      label: Text(
+        model.name,
+        style: const TextStyle(fontSize: 12),
+      ),
+      padding: const EdgeInsets.all(0),
+      backgroundColor: Colors.white,
+      side: BorderSide.none,
+    );
   }
 }
