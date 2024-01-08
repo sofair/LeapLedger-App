@@ -7,3 +7,4 @@ part 'same_hight_amount.dart';
 part 'same_hight_amount_text_span.dart';
 part 'amount_input.dart';
 part 'unequal_height_amount_text_span.dart';
+part 'amount_keyboard.dart';
