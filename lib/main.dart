@@ -21,7 +21,7 @@ Future<void> init() async {
   await initCache();
   Routes.init();
   await Global.init();
-  //Global.cache.clear();
+  //await Global.init().then((value) => Global.cache.clear());
   await Current.init();
 }
 
