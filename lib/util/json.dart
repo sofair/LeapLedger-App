@@ -21,7 +21,7 @@ class Json {
 
   static final Map<IconData, String> _reverseIconMap =
       Map.fromEntries(_iconMap.entries.map((entry) => MapEntry(entry.value, entry.key)));
-  static iconDataFormJson(dynamic iconString) {
+  static IconData iconDataFormJson(dynamic iconString) {
     if (iconString == null) {
       return _defaultIconData;
     }
@@ -30,6 +30,17 @@ class Json {
 
   static String iconDataToJson(IconData icon) {
     return _reverseIconMap[icon] ?? "";
+  }
+
+  static IconData? optionIconDataFormJson(dynamic iconString) {
+    if (iconString == null) {
+      return null;
+    }
+    return _iconMap[iconString];
+  }
+
+  static String? optionIconDataToJson(IconData? icon) {
+    return icon == null ? null : _reverseIconMap[icon];
   }
 }
 

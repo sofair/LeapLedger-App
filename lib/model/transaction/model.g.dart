@@ -75,3 +75,39 @@ Map<String, dynamic> _$TransactionEditModelToJson(
       'Remark': instance.remark,
       'TradeTime': Json.dateTimeToJson(instance.tradeTime),
     };
+
+TransactionShareModel _$TransactionShareModelFromJson(
+        Map<String, dynamic> json) =>
+    TransactionShareModel(
+      id: json['Id'] as int? ?? 0,
+      amount: json['Amount'] as int? ?? 0,
+      incomeExpense:
+          $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ??
+              IncomeExpense.income,
+      userName: json['UserName'] as String? ?? '',
+      accountName: json['AccountName'] as String? ?? '',
+      categoryIcon: Json.optionIconDataFormJson(json['CategoryIcon']),
+      categoryName: json['CategoryName'] as String? ?? '',
+      categoryFatherName: json['CategoryFatherName'] as String? ?? '',
+      remark: json['Remark'] as String? ?? '',
+      tradeTime: Json.dateTimeFromJson(json['TradeTime']),
+      createTime: Json.dateTimeFromJson(json['CreateTime']),
+      updateTime: Json.dateTimeFromJson(json['UpdateTime']),
+    );
+
+Map<String, dynamic> _$TransactionShareModelToJson(
+        TransactionShareModel instance) =>
+    <String, dynamic>{
+      'Id': instance.id,
+      'UserName': instance.userName,
+      'AccountName': instance.accountName,
+      'IncomeExpense': _$IncomeExpenseEnumMap[instance.incomeExpense]!,
+      'CategoryIcon': Json.optionIconDataToJson(instance.categoryIcon),
+      'CategoryName': instance.categoryName,
+      'CategoryFatherName': instance.categoryFatherName,
+      'Amount': instance.amount,
+      'Remark': instance.remark,
+      'TradeTime': Json.dateTimeToJson(instance.tradeTime),
+      'CreateTime': Json.dateTimeToJson(instance.createTime),
+      'UpdateTime': Json.dateTimeToJson(instance.updateTime),
+    };

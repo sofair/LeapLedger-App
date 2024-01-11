@@ -50,4 +50,31 @@ class UserApi {
     ResponseBody response = await ApiServer.request(Method.get, '$baseUrl/home', data: {"AccountId": accountId});
     return UserHomeApiModel.fromJson(response.data);
   }
+
+  static Future<UserTransactionShareConfigModel?> getTransactionShareConfig() async {
+    ResponseBody response = await ApiServer.request(Method.get, '$baseUrl/transaction/share/config');
+    if (response.isSuccess == false) {
+      return null;
+    }
+    return UserTransactionShareConfigModel.fromJson(response.data);
+  }
+
+  static Future<UserTransactionShareConfigModel?> updateTransactionShareConfig(
+      {required UserTransactionShareConfigFlag flag, required bool status}) async {
+    ResponseBody response = await ApiServer.request(Method.put, '$baseUrl/transaction/share/config', data: {
+      'Flag': flag.name,
+      'Status': status,
+    });
+    if (response.isSuccess == false) {
+      return null;
+    }
+    return UserTransactionShareConfigModel.fromJson(response.data);
+  }
+}
+
+enum UserTransactionShareConfigFlag {
+  account,
+  createTime,
+  updateTime,
+  remark,
 }

@@ -12,6 +12,7 @@ import 'package:keepaccount_app/model/product/model.dart';
 
 import 'package:keepaccount_app/model/transaction/category/model.dart';
 import 'package:keepaccount_app/model/transaction/model.dart';
+import 'package:keepaccount_app/model/user/model.dart';
 import 'package:keepaccount_app/routes/routes.dart';
 import 'package:keepaccount_app/util/enter.dart';
 import 'package:keepaccount_app/widget/toast.dart';

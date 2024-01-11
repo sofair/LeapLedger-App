@@ -20,3 +20,21 @@ Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
       'CreateTime': Json.dateTimeToJson(instance.createTime),
       'UpdateTime': Json.dateTimeToJson(instance.updateTime),
     };
+
+UserTransactionShareConfigModel _$UserTransactionShareConfigModelFromJson(
+        Map<String, dynamic> json) =>
+    UserTransactionShareConfigModel(
+      account: json['Account'] as bool,
+      createTime: json['CreateTime'] as bool,
+      remark: json['Remark'] as bool,
+      updateTime: json['UpdateTime'] as bool,
+    );
+
+Map<String, dynamic> _$UserTransactionShareConfigModelToJson(
+        UserTransactionShareConfigModel instance) =>
+    <String, dynamic>{
+      'Account': instance.account,
+      'CreateTime': instance.createTime,
+      'UpdateTime': instance.updateTime,
+      'Remark': instance.remark,
+    };

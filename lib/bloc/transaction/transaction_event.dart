@@ -25,3 +25,8 @@ class TransactionAdd extends TransactionEvent {
   final TransactionEditModel editModel;
   TransactionAdd(this.editModel);
 }
+
+class TransactionShare extends TransactionEvent {
+  final TransactionModel trans;
+  TransactionShare(this.trans);
+}

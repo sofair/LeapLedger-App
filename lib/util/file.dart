@@ -13,4 +13,28 @@ class FileOperation {
     }
     return null;
   }
+
+  static Future<bool> saveImage(Uint8List imageBytes) async {
+    if (false == (await Permission.manageExternalStorage.request()).isGranted) {
+      return false;
+    }
+
+    try {
+      Directory tempDir = await getTemporaryDirectory();
+      File file = File('${tempDir.path}/example.png');
+      await file.writeAsBytes(imageBytes);
+
+      Directory? storageDir = await getExternalStorageDirectory();
+      if (storageDir == null) {
+        return false;
+      }
+
+      String newPath = '${storageDir.path}/example.png';
+      await file.copy(newPath);
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

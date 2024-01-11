@@ -26,6 +26,14 @@ class UserDrawer extends StatelessWidget {
               Navigator.pushNamed(context, AccountRoutes.list);
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.toggle_on_outlined),
+            title: const Text('分享配置'),
+            contentPadding: const EdgeInsets.only(left: 48),
+            onTap: () {
+              Navigator.pushNamed(context, UserRoutes.configTransactionShare);
+            },
+          ),
         ],
       ),
     );

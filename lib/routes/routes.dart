@@ -21,6 +21,8 @@ import 'package:keepaccount_app/view/transaction/category/mapping/transaction_ca
 import 'package:keepaccount_app/view/transaction/detail/transaction_detail_bottom_sheet.dart';
 import 'package:keepaccount_app/view/transaction/edit/transaction_edit.dart';
 import 'package:keepaccount_app/view/transaction/flow/transaction_flow.dart';
+import 'package:keepaccount_app/view/transaction/share/transaction_share_bottom_sheet.dart';
+import 'package:keepaccount_app/view/user/config/transaction/share/user_config_transaction_share.dart';
 
 import 'package:keepaccount_app/view/user/home/user_home.dart';
 import 'package:keepaccount_app/view/user/login/user_login.dart';

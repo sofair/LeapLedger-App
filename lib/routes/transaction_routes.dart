@@ -33,6 +33,15 @@ class TransactionRoutes {
     );
   }
 
+  static void showShareDialog(BuildContext context, {required TransactionShareModel shareModel}) {
+    showDialog(
+      context: context,
+      builder: (context) => TransactionShareDialog(
+        data: shareModel,
+      ),
+    );
+  }
+
   static Future<bool> pushEdit(BuildContext context,
       {required TransactionEditMode mode, TransactionModel? transaction, AccountModel? account}) async {
     bool isFinish = false;

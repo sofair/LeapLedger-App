@@ -1,5 +1,6 @@
 part of 'model.dart';
 
+/// 交易模型
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class TransactionModel {
   @JsonKey(defaultValue: 0)
@@ -45,8 +46,35 @@ class TransactionModel {
       amount: amount,
       remark: remark,
       tradeTime: tradeTime);
+
+  TransactionShareModel getShareModelByConfig(UserTransactionShareConfigModel config) {
+    TransactionShareModel model = TransactionShareModel(
+      id: id,
+      amount: amount,
+      tradeTime: tradeTime,
+      incomeExpense: incomeExpense,
+      categoryIcon: categoryIcon,
+      categoryName: categoryName,
+      categoryFatherName: categoryFatherName,
+      userName: userName,
+    );
+    if (config.account) {
+      model.accountName = accountName;
+    }
+    if (config.createTime) {
+      model.createTime = createTime;
+    }
+    if (config.updateTime) {
+      model.updateTime = updateTime;
+    }
+    if (config.remark) {
+      model.remark = remark;
+    }
+    return model;
+  }
 }
 
+/// 交易编辑模型
 @JsonSerializable(fieldRename: FieldRename.pascal)
 class TransactionEditModel {
   late int? id;
@@ -92,4 +120,49 @@ class TransactionEditModel {
       tradeTime: tradeTime,
     );
   }
+}
+
+/// 交易分享模型
+@JsonSerializable(fieldRename: FieldRename.pascal)
+class TransactionShareModel {
+  @JsonKey(defaultValue: 0)
+  late int id;
+  @JsonKey(defaultValue: '')
+  late String? userName;
+  @JsonKey(defaultValue: '')
+  late String? accountName;
+  @JsonKey(defaultValue: IncomeExpense.income)
+  late IncomeExpense incomeExpense;
+  @JsonKey(fromJson: Json.optionIconDataFormJson, toJson: Json.optionIconDataToJson)
+  late IconData? categoryIcon;
+  @JsonKey(defaultValue: '')
+  late String? categoryName;
+  @JsonKey(defaultValue: '')
+  late String? categoryFatherName;
+  @JsonKey(defaultValue: 0)
+  late int amount;
+  @JsonKey(defaultValue: '')
+  late String? remark;
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
+  late DateTime? tradeTime;
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
+  late DateTime? createTime;
+  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
+  late DateTime? updateTime;
+  TransactionShareModel({
+    required this.id,
+    required this.amount,
+    required this.incomeExpense,
+    this.userName,
+    this.accountName,
+    this.categoryIcon,
+    this.categoryName,
+    this.categoryFatherName,
+    this.remark,
+    this.tradeTime,
+    this.createTime,
+    this.updateTime,
+  });
+  factory TransactionShareModel.fromJson(Map<String, dynamic> json) => _$TransactionShareModelFromJson(json);
+  Map<String, dynamic> toJson() => _$TransactionShareModelToJson(this);
 }

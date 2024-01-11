@@ -54,6 +54,8 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
           setState(() {
             setTransactionData(state.transaction);
           });
+        } else if (state is TransactionShareLoaded) {
+          TransactionRoutes.showShareDialog(context, shareModel: state.shareModel);
         }
       },
       child: Container(
@@ -192,5 +194,9 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
     });
   }
 
-  void _onShare() {}
+  void _onShare() {
+    if (transaction != null) {
+      BlocProvider.of<TransactionBloc>(context).add(TransactionShare(transaction!));
+    }
+  }
 }

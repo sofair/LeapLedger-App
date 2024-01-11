@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:keepaccount_app/api/api_server.dart';
+import 'package:keepaccount_app/bloc/user/config/user_config_bloc.dart';
 import 'package:keepaccount_app/common/global.dart';
 import 'package:keepaccount_app/model/account/model.dart';
 import 'package:keepaccount_app/model/transaction/model.dart';
@@ -14,6 +15,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     on<TransactionAdd>(_handleAdd);
     on<TransactionUpdate>(_handleUpdate);
     on<TransactionDelete>(_handleDelete);
+    on<TransactionShare>(_handleShare);
   }
   _handleAdd(TransactionAdd event, emit) async {
     var editModel = event.editModel;
@@ -90,5 +92,16 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     }
     emit(TransactionDataVerificationSuccess());
     return true;
+  }
+
+  _handleShare(TransactionShare event, emit) async {
+    if (UserConfigBloc.transShareConfig == null) {
+      await UserConfigBloc.loadTransShareConfig();
+    }
+    var shareConfig = UserConfigBloc.transShareConfig;
+    if (shareConfig == null) {
+      return;
+    }
+    emit(TransactionShareLoaded(event.trans.getShareModelByConfig(shareConfig)));
   }
 }
