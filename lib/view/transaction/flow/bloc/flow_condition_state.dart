@@ -18,7 +18,7 @@ final class FlowConditionCategoryLoaded extends FlowConditionState {
 }
 
 final class FlowConditionAccountLoaded extends FlowConditionState {
-  final List<AccountModel> data;
+  final List<AccountDetailModel> data;
   FlowConditionAccountLoaded(this.data);
 }
 

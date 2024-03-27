@@ -31,11 +31,11 @@ class AccountDetail extends StatelessWidget {
             // ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text('更新日期：${DateFormat('yyyy-MM-dd HH:mm:ss').format(account.updatedAt)}'),
+              child: Text('更新日期：${DateFormat('yyyy-MM-dd HH:mm:ss').format(account.updateTime)}'),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text('创建日期：${DateFormat('yyyy-MM-dd HH:mm:ss').format(account.createdAt)}'),
+              child: Text('创建日期：${DateFormat('yyyy-MM-dd HH:mm:ss').format(account.createTime)}'),
             ),
             // Padding(
             //   padding: const EdgeInsets.all(16.0),

@@ -8,13 +8,13 @@ class FlowConditionBloc extends Bloc<FlowConditionEvent, FlowConditionState> {
   );
 
   late TransactionQueryConditionApiModel condition;
-  late AccountModel currentAccount;
+  late AccountDetailModel currentAccount;
   Map<int, List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>>> _categoryCache = {};
-  List<AccountModel> accountList = [];
+  List<AccountDetailModel> accountList = [];
 
   ///condition和currentAccount要么都传 要么都不传
   ///不传时会取默认值
-  FlowConditionBloc({TransactionQueryConditionApiModel? condition, AccountModel? currentAccount})
+  FlowConditionBloc({TransactionQueryConditionApiModel? condition, AccountDetailModel? currentAccount})
       : assert(condition == null && currentAccount == null || condition != null && currentAccount != null),
         assert(condition?.accountId == currentAccount?.id),
         super(FlowConditionInitial()) {

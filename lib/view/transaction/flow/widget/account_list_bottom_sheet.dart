@@ -22,9 +22,9 @@ class _AccountListBottomSheetState extends State<AccountListBottomSheet> {
     super.dispose();
   }
 
-  late AccountModel currentAccount;
+  late AccountDetailModel currentAccount;
   late FlowConditionBloc bloc;
-  List<AccountModel> list = [];
+  List<AccountDetailModel> list = [];
   @override
   Widget build(BuildContext context) {
     return BlocListener<FlowConditionBloc, FlowConditionState>(
@@ -55,7 +55,6 @@ class _AccountListBottomSheetState extends State<AccountListBottomSheet> {
 
   _showButtomSheet() {
     showModalBottomSheet(
-        backgroundColor: Colors.transparent,
         context: context,
         builder: (BuildContext context) {
           return Container(
@@ -113,7 +112,7 @@ class _AccountListBottomSheetState extends State<AccountListBottomSheet> {
         });
   }
 
-  void onUpdateAccount(AccountModel account) {
+  void onUpdateAccount(AccountDetailModel account) {
     var bloc = BlocProvider.of<FlowConditionBloc>(context);
     bloc.add(FlowConditionAccountUpdateEvent(account));
     setState(() {

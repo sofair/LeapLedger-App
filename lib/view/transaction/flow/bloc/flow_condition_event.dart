@@ -18,7 +18,7 @@ class FlowConditionDataUpdateEvent extends FlowConditionEvent {
 }
 
 class FlowConditionAccountUpdateEvent extends FlowConditionEvent {
-  final AccountModel account;
+  final AccountDetailModel account;
   FlowConditionAccountUpdateEvent(this.account);
 }
 

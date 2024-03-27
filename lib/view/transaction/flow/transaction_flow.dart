@@ -17,7 +17,7 @@ import 'package:shimmer/shimmer.dart';
 
 class TransactionFlow extends StatelessWidget {
   final TransactionQueryConditionApiModel? condition;
-  final AccountModel? account;
+  final AccountDetailModel? account;
   const TransactionFlow({this.condition, this.account, super.key});
 
   @override
@@ -32,7 +32,7 @@ class TransactionFlow extends StatelessWidget {
 
 class _TransactionFlow extends StatefulWidget {
   final TransactionQueryConditionApiModel? condition;
-  final AccountModel? account;
+  final AccountDetailModel? account;
   const _TransactionFlow({this.condition, this.account, super.key});
 
   @override
@@ -124,11 +124,9 @@ class _TransactionFlowState extends State<_TransactionFlow> {
       },
       child: child,
     );
-    print("state");
     // 交易bloc
     child = BlocListener<TransactionBloc, TransactionState>(
       listener: (context, state) {
-        print(state);
         if (state is TransactionAddSuccess) {
           flowListBloc.add(FlowListTransactionAddEvent(state.trans));
         } else if (state is TransactionUpdateSuccess) {
@@ -198,7 +196,6 @@ class _TransactionFlowState extends State<_TransactionFlow> {
           style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll<Color>(Colors.white)),
           onPressed: () {
             showModalBottomSheet(
-                backgroundColor: Colors.transparent,
                 isScrollControlled: true,
                 context: context,
                 builder: (BuildContext context) {
@@ -227,7 +224,9 @@ class _TransactionFlowState extends State<_TransactionFlow> {
     if (result.isEmpty) {
       return [
         SliverToBoxAdapter(
-          child: Center(child: TransactionRoutes.getNoDataRichText(context)),
+          child: Center(
+              child:
+                  NoData.transactionText(context, account: BlocProvider.of<FlowConditionBloc>(context).currentAccount)),
         ),
       ];
     }

@@ -1,97 +1,152 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keepaccount_app/bloc/account/account_bloc.dart';
+import 'package:keepaccount_app/common/global.dart';
 import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/view/account/bloc/account_bloc.dart';
+import 'package:keepaccount_app/routes/routes.dart';
+import 'package:keepaccount_app/widget/common/common.dart';
 import 'package:keepaccount_app/widget/form/form.dart';
+import 'package:keepaccount_app/widget/icon/enter.dart';
 
-class AccountEdit extends StatelessWidget {
-  const AccountEdit({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
-    final AccountModel accountModel = args?['accountModel'] ?? AccountModel.fromJson({});
-    return BlocProvider<AccountBloc>(create: (context) => AccountBloc(), child: EditForm(accountModel));
-  }
+enum AccountEditMode {
+  add,
+  update,
 }
 
-class EditForm extends StatefulWidget {
-  final AccountModel _accountMode;
-  const EditForm(
-    this._accountMode, {
-    Key? key,
-  }) : super(key: key);
-
+class AccountEdit extends StatefulWidget {
+  const AccountEdit({super.key, this.account});
+  final AccountModel? account;
   @override
-  // ignore: library_private_types_in_public_api
-  _EditFormState createState() => _EditFormState();
+  AccountEditState createState() => AccountEditState();
 }
 
-class _EditFormState extends State<EditForm> {
+class AccountEditState extends State<AccountEdit> {
   final _formKey = GlobalKey<FormState>();
-  void pop(BuildContext context, AccountModel? result) {
-    Navigator.pop(context, result);
+  late AccountModel account;
+  late final AccountEditMode mode;
+  @override
+  void initState() {
+    if (widget.account == null) {
+      account = AccountModel.fromJson({});
+      mode = AccountEditMode.add;
+    } else {
+      account = widget.account!;
+      mode = AccountEditMode.update;
+    }
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<AccountBloc, AccountState>(
-        listener: (context, state) {
-          if (state is AccountSaveSuccessState) {
-            pop(context, widget._accountMode);
+        listener: (context, state) async {
+          if (state is AccountSaveSuccess) {
+            if (mode == AccountEditMode.add) {
+              await Navigator.push(context, TransactionCategoryRoutes.getTemplateRoute(context, account: state.account))
+                  .then((value) => Navigator.pop<AccountDetailModel>(context, state.account));
+            } else {
+              Navigator.pop<AccountDetailModel>(context, state.account);
+            }
           }
         },
         child: Scaffold(
             appBar: AppBar(
-              title: const Text('编辑账本'),
+              title: Text(mode == AccountEditMode.add ? "添加账本" : "编辑账本"),
               actions: <Widget>[
                 IconButton(
-                  icon: const Icon(
-                    Icons.save,
-                    size: 24,
-                  ),
-                  onPressed: () => BlocProvider.of<AccountBloc>(context).add(AccountSaveEvent(widget._accountMode)),
-                ),
+                    icon: const Icon(
+                      Icons.save,
+                      size: 24,
+                    ),
+                    onPressed: _onSave),
               ],
             ),
-            body: buildForm()));
+            body: Padding(
+              padding: const EdgeInsets.all(Constant.padding),
+              child: buildForm(),
+            )));
   }
 
   Widget buildForm() {
     return Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: <Widget>[
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(90),
-                ),
-                margin: const EdgeInsets.only(bottom: 16),
-                width: 64,
-                height: 64,
-                child: Icon(
-                  widget._accountMode.icon,
-                  size: 32,
-                  color: Colors.black87,
-                ),
-              ),
-              FormInputField.string('名称', widget._accountMode.name, (text) => widget._accountMode.name = text),
-              const SizedBox(
-                height: 16,
-              ),
-              FormSelecter.accountIcon(widget._accountMode.icon, onChanged: _onSelectIcon),
-            ],
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          _buildRadio(),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: Constant.padding),
+            child: CircularIcon(icon: account.icon),
           ),
-        ));
+          FormInputField.string('名称', account.name, (text) => account.name = text),
+          const SizedBox(
+            height: 16,
+          ),
+          FormSelecter.accountIcon(account.icon, onChanged: _onSelectIcon),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRadio() {
+    return SizedBox(
+      width: MediaQuery.sizeOf(context).width,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            "类型：",
+            style: TextStyle(color: ConstantColor.secondaryTextColor, fontSize: ConstantFontSize.body),
+          ),
+          SizedBox(
+            width: 100,
+            child: RadioListTile<AccountType>(
+              contentPadding: EdgeInsets.zero,
+              title: const Text("独立"),
+              value: AccountType.independent,
+              groupValue: account.type,
+              onChanged: _onClickRadio,
+            ),
+          ),
+          SizedBox(
+            width: 100,
+            child: RadioListTile<AccountType>(
+              title: const Text("共享"),
+              contentPadding: EdgeInsets.zero,
+              value: AccountType.share,
+              groupValue: account.type,
+              onChanged: _onClickRadio,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onClickRadio(AccountType? value) {
+    if (value == null) {
+      return;
+    }
+    setState(() {
+      account.type = value;
+    });
   }
 
   void _onSelectIcon(IconData selectValue) {
     setState(() {
-      widget._accountMode.icon = selectValue;
+      account.icon = selectValue;
     });
+  }
+
+  void _onSave() {
+    if (account.name.isEmpty) {
+      CommonToast.tipToast("请填写账本名称");
+      return;
+    }
+    BlocProvider.of<AccountBloc>(context).add(AccountSaveEvent(account));
   }
 }
 

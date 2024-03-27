@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:keepaccount_app/bloc/account/account_bloc.dart';
 import 'package:keepaccount_app/bloc/transaction/transaction_bloc.dart';
 import 'package:keepaccount_app/bloc/user/config/user_config_bloc.dart';
 import 'package:keepaccount_app/bloc/user/user_bloc.dart';
+import 'package:keepaccount_app/model/user/model.dart';
 import 'package:keepaccount_app/routes/routes.dart';
 import 'package:keepaccount_app/util/enter.dart';
-import 'package:keepaccount_app/view/navigation/navigation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:keepaccount_app/view/navigation/navigation.dart';
 
 import 'common/global.dart';
 import 'package:keepaccount_app/common/current.dart';
@@ -40,8 +42,9 @@ class MyApp extends StatelessWidget {
     return MultiRepositoryProvider(
         providers: [
           RepositoryProvider<UserBloc>(create: (context) => UserBloc()),
-          RepositoryProvider<TransactionBloc>(create: (context) => TransactionBloc()),
           RepositoryProvider<UserConfigBloc>(create: (context) => UserConfigBloc()),
+          RepositoryProvider<AccountBloc>(create: (context) => AccountBloc()),
+          RepositoryProvider<TransactionBloc>(create: (context) => TransactionBloc()),
         ],
         child: MaterialApp(
           supportedLocales: const [
@@ -67,9 +70,24 @@ class MyApp extends StatelessWidget {
               // smallSizeConstraints: BoxConstraints(minWidth: 100),
               // extendedSizeConstraints: BoxConstraints(minWidth: 100),
             ),
+            bottomSheetTheme: const BottomSheetThemeData(
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.white,
+            ),
             useMaterial3: true,
           ),
-          home: const Navigation(),
+          home: MultiBlocListener(listeners: [
+            BlocListener<AccountBloc, AccountState>(
+              listener: (context, state) {
+                if (state is AccountDeleteSuccess) {
+                  BlocProvider.of<UserBloc>(context).add(UpdateCurrentInfoEvent(state.currentInfo));
+                } else if (state is AccountSaveSuccess) {
+                  BlocProvider.of<UserBloc>(context).add(UpdateCurrentInfoEvent(
+                      UserCurrentModel(currentAccount: state.account, currentShareAccount: state.account)));
+                }
+              },
+            )
+          ], child: const Navigation()),
           builder: EasyLoading.init(),
           routes: Routes.routes,
           onGenerateRoute: Routes.generateRoute,

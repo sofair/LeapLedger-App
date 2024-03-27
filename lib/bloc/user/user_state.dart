@@ -4,7 +4,9 @@ abstract class UserState {}
 
 class UserInitial extends UserState {}
 
-class UpdateCurrentAccount extends UserState {}
+class CurrentAccountChanged extends UserState {}
+
+class CurrentShareAccountChanged extends UserState {}
 
 //登录
 class UserLoginedState extends UserState {}
@@ -33,3 +35,14 @@ class UserUpdatePasswordFail extends UserState {}
 class UserUpdateInfoSuccess extends UserState {}
 
 class UserUpdateInfoFail extends UserState {}
+
+/*好友*/
+class UserFriendLoaded extends UserState {
+  List<UserInfoModel> list;
+  UserFriendLoaded(this.list);
+}
+
+class UserSearchFinish extends UserState {
+  List<UserInfoModel> list;
+  UserSearchFinish(this.list);
+}

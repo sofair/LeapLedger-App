@@ -50,16 +50,8 @@ class AmountCountApiModel {
 class IncomeExpenseStatisticApiModel {
   late AmountCountApiModel income;
   late AmountCountApiModel expense;
-  Duration? get timeDuration => startTime != null && endTime != null ? endTime!.difference(startTime!) : null;
-  int get dayAverageIncome => timeDuration != null && income.amount != 0 ? income.amount ~/ timeDuration!.inDays : 0;
-  int get dayAverageExpense => timeDuration != null && expense.amount != 0 ? expense.amount ~/ timeDuration!.inDays : 0;
 
-  @JsonKey(fromJson: Json.optionDateTimeFromJson, toJson: Json.optionDateTimeToJson)
-  DateTime? startTime;
-  @JsonKey(fromJson: Json.optionDateTimeFromJson, toJson: Json.optionDateTimeToJson)
-  DateTime? endTime;
-  IncomeExpenseStatisticApiModel(
-      {AmountCountApiModel? income, AmountCountApiModel? expense, this.startTime, this.endTime}) {
+  IncomeExpenseStatisticApiModel({AmountCountApiModel? income, AmountCountApiModel? expense}) {
     this.income = income ?? AmountCountApiModel(0, 0);
     this.expense = expense ?? AmountCountApiModel(0, 0);
   }
@@ -68,10 +60,6 @@ class IncomeExpenseStatisticApiModel {
   Map<String, dynamic> toJson() => _$IncomeExpenseStatisticApiModelToJson(this);
 
   bool handleTransEditModel({required TransactionEditModel trans, required bool isAdd}) {
-    if (startTime != null && startTime!.isAfter(trans.tradeTime) ||
-        endTime != null && endTime!.isBefore(trans.tradeTime)) {
-      return false;
-    }
     if (isAdd) {
       if (trans.incomeExpense == IncomeExpense.income) {
         income.addTransEditModel(trans);

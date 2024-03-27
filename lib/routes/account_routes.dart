@@ -3,16 +3,31 @@ part of 'routes.dart';
 class AccountRoutes {
   static String baseUrl = 'account';
   static String list = '$baseUrl/list';
-  static String edit = '$baseUrl/edit';
   static String detail = '$baseUrl/detail';
   static String templateList = '$baseUrl/template/list';
+  static String userInvitation = '$baseUrl/user/invitation';
+
+  static get accountUser => null;
   static void init() {
     Routes.routes.addAll({
       list: (context) => Routes.buildloginPermissionRoute(context, const AccountList()),
-      edit: (context) => const AccountEdit(),
       detail: (context) => const AccountDetail(),
       templateList: (context) => const AccountTemplateList(),
     });
+  }
+
+  static Future<T?> pushNamed<T extends Object?>(BuildContext context, String routeName, {Object? arguments}) {
+    return Navigator.of(context).pushNamed<T>(routeName, arguments: arguments);
+  }
+
+  static Future<AccountModel?> pushEdit(BuildContext context, {AccountModel? account}) async {
+    AccountModel? result;
+    await Navigator.of(context).push(RightSlideRoute(page: AccountEdit(account: account))).then((value) {
+      if (value is AccountModel) {
+        result = value;
+      }
+    });
+    return result;
   }
 
   static Future<AccountModel?> showAccountListButtomSheet(
@@ -21,14 +36,10 @@ class AccountRoutes {
   }) async {
     AccountModel? result;
     await showModalBottomSheet(
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       context: context,
-      builder: (_) => BlocProvider(
-        create: (context) => AccountListBloc(),
-        child: AccountListBottomSheet(
-          currentAccount: currentAccount,
-        ),
+      builder: (_) => AccountListBottomSheet(
+        currentAccount: currentAccount,
       ),
     ).then((value) {
       if (value is AccountModel) {
@@ -36,5 +47,141 @@ class AccountRoutes {
       }
     });
     return result;
+  }
+
+  static void showOperationBottomSheet(
+    BuildContext context, {
+    required AccountDetailModel account,
+  }) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (_) => AccountOperationBottomSheet(
+        account: account,
+      ),
+    );
+  }
+
+  static Future<AccountUserInvitationModle?> pushAccountUserInvitation(
+    BuildContext context, {
+    required AccountModel account,
+  }) async {
+    AccountUserInvitationModle? result;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AccountUserInvitation(account: account)),
+    ).then((value) {
+      if (value is AccountUserInvitationModle) {
+        result = value;
+      }
+    });
+    return result;
+  }
+
+  static Future<AccountMappingModel?> pushAccountMappingButtomSheet(BuildContext context,
+      {required AccountModel mainAccount, AccountMappingModel? mapping}) async {
+    AccountMappingModel? result;
+    await showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (_) => AccountMappingBottomSheet(mainAccount: mainAccount, mapping: mapping),
+    ).then((value) {
+      if (value is AccountMappingModel) {
+        result = value;
+      }
+    });
+    return result;
+  }
+
+  static AccountUserDetailNavigator userDetail(BuildContext context,
+      {required AccountUserModel accountUser,
+      required AccountDetailModel accoount,
+      void Function(AccountUserModel)? onEdit}) {
+    return AccountUserDetailNavigator(
+      context,
+      account: accoount,
+      accountUser: accountUser,
+      onEdit: onEdit,
+    );
+  }
+
+  static AccountUserEditNavigator userEdit(BuildContext context,
+      {required AccountUserModel accountUser, required AccountDetailModel accoount}) {
+    return AccountUserEditNavigator(context, account: accoount, accountUser: accountUser);
+  }
+
+  static AccountUserInviteNavigator userInvite(BuildContext context,
+      {required AccountDetailModel account, required UserInfoModel userInfo}) {
+    return AccountUserInviteNavigator(context, account: account, userInfo: userInfo);
+  }
+}
+
+class AccountRouterGuard {
+  static bool userInvite({required AccountDetailModel account, UserInfoModel? userInfo}) {
+    if (account.isReader) {
+      return false;
+    }
+    return true;
+  }
+
+  static bool userEdit({required AccountDetailModel account, AccountUserModel? accountUser}) {
+    if (account.isCreator) {
+      return true;
+    }
+    return false;
+  }
+}
+
+class AccountUserDetailNavigator extends RouterNavigator {
+  final AccountUserModel accountUser;
+  final AccountDetailModel account;
+  final void Function(AccountUserModel)? onEdit;
+  AccountUserDetailNavigator(BuildContext context, {required this.accountUser, required this.account, this.onEdit})
+      : super(context: context);
+
+  Future<bool> showModalBottomSheet() async {
+    return await _modalBottomSheetShow(
+        context, AccountUserDetailButtomSheet(accountUser: accountUser, account: account));
+  }
+}
+
+class AccountUserEditNavigator extends RouterNavigator {
+  final AccountDetailModel account;
+  final AccountUserModel accountUser;
+
+  AccountUserEditNavigator(BuildContext context, {required this.account, required this.accountUser})
+      : super(context: context);
+
+  @override
+  bool get guard => AccountRouterGuard.userEdit(account: account, accountUser: accountUser);
+
+  Future<bool> showDialog() async {
+    return await _showDialog(context, AccountUserEditDialog(account: account, accountUser: accountUser));
+  }
+
+  @override
+  _then(value) {
+    if (value is AccountUserModel) {
+      result = value;
+    }
+  }
+
+  AccountUserModel? result;
+  AccountUserModel? getResult() {
+    return result;
+  }
+}
+
+class AccountUserInviteNavigator extends RouterNavigator {
+  final AccountDetailModel account;
+  final UserInfoModel userInfo;
+
+  AccountUserInviteNavigator(BuildContext context, {required this.account, required this.userInfo})
+      : super(context: context);
+  @override
+  bool get guard => AccountRouterGuard.userInvite(account: account, userInfo: userInfo);
+
+  Future<bool> showDialog() async {
+    return await _showDialog(context, AccountUserInviteDialog(account: account, userInfo: userInfo));
   }
 }

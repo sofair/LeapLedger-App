@@ -7,6 +7,10 @@ class UserLoginEvent extends UserEvent {
   UserLoginEvent(this.userAccount, this.password, this.captcha);
 }
 
+class UserLogoutEvent extends UserEvent {
+  UserLogoutEvent();
+}
+
 class UserRegisterEvent extends UserEvent {
   final String email, username, password, captcha;
   UserRegisterEvent(this.email, this.username, this.password, this.captcha);
@@ -24,7 +28,42 @@ class UserInfoUpdateEvent extends UserEvent {
   UserInfoUpdateEvent(this.model);
 }
 
+class UpdateCurrentInfoEvent extends UserEvent {
+  final UserCurrentModel data;
+  UpdateCurrentInfoEvent(this.data);
+}
+
 class SetCurrentAccount extends UserEvent {
-  final AccountModel account;
+  final AccountDetailModel account;
   SetCurrentAccount(this.account);
+}
+
+class SetCurrentShareAccount extends UserEvent {
+  final AccountDetailModel account;
+  SetCurrentShareAccount(this.account);
+}
+
+class UserFriendListFetch extends UserEvent {
+  UserFriendListFetch();
+}
+
+class UserSearchEvent extends UserEvent {
+  final int offset, limit;
+  late final int? id;
+  late final String username;
+  UserSearchEvent({required this.offset, required this.limit, this.id, required this.username});
+  UserSearchEvent.formInputUsername({this.offset = 0, this.limit = 20, required String inputStr}) {
+    List<String> parts = inputStr.split("#");
+    if (parts.length == 2) {
+      id = int.tryParse(parts[1]);
+      if (id != null) {
+        username = parts[0];
+      } else {
+        username = inputStr;
+      }
+    } else {
+      username = inputStr;
+      id = null;
+    }
+  }
 }

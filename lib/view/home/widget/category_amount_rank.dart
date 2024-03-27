@@ -147,7 +147,7 @@ class _CategoryAmountRankState extends State<CategoryAmountRank> {
       default:
         return SizedBox(
           height: 64,
-          child: Center(child: TransactionRoutes.getNoDataRichText(context)),
+          child: Center(child: NoData.transactionText(context, account: UserBloc.currentAccount)),
         );
     }
   }

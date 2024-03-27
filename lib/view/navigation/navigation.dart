@@ -6,6 +6,8 @@ import 'package:keepaccount_app/common/global.dart';
 import 'package:keepaccount_app/routes/routes.dart';
 import 'package:keepaccount_app/util/enter.dart';
 import 'package:keepaccount_app/view/home/home.dart';
+import 'package:keepaccount_app/view/share/home/share_home.dart';
+import 'package:keepaccount_app/widget/common/common.dart';
 import 'package:keepaccount_app/widget/dialog/enter.dart';
 
 import 'bloc/navigation_bloc.dart';
@@ -22,38 +24,52 @@ class Navigation extends StatefulWidget {
 }
 
 class _NavigationState extends State<Navigation> {
+  late final NavigationBloc _bloc;
   @override
   void initState() {
     UserBloc.checkUserState(context);
+    _bloc = NavigationBloc(UserBloc.currentAccount);
     super.initState();
   }
 
-  TabPage currentPage = TabPage.home;
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-        create: (context) => NavigationBloc(),
-        child: BlocListener<NavigationBloc, NavigationState>(
-          child: buildScaffold(),
-          listener: (context, state) {
-            if (state is InUserHomePage) {
-              _scaffoldKey.currentState!.openEndDrawer();
-            } else if (state is InFlowPage) {
-              var condition = TransactionQueryConditionApiModel(
-                  accountId: UserBloc.currentAccount.id,
-                  startTime: Time.getFirstSecondOfMonth(),
-                  endTime: DateTime.now());
-              TransactionRoutes.pushFlow(context, condition: condition, account: UserBloc.currentAccount);
-            }
-          },
+    return BlocProvider<NavigationBloc>.value(
+        value: _bloc,
+        child: MultiBlocListener(
+          listeners: [
+            BlocListener<UserBloc, UserState>(
+              listenWhen: (_, state) => state is CurrentAccountChanged,
+              listener: (context, state) {
+                if (state is CurrentAccountChanged) {
+                  _bloc.add(ChangeAccountEvent(UserBloc.currentAccount));
+                }
+              },
+            ),
+            BlocListener<NavigationBloc, NavigationState>(
+              listener: (context, state) {
+                if (state is NavigationAccountChannged) {
+                  setState(() {});
+                } else if (state is InUserHomePage) {
+                  _scaffoldKey.currentState!.openEndDrawer();
+                } else if (state is InFlowPage) {
+                  var condition = TransactionQueryConditionApiModel(
+                      accountId: _bloc.account.id, startTime: Time.getFirstSecondOfMonth(), endTime: DateTime.now());
+                  TransactionRoutes.pushFlow(context, condition: condition, account: UserBloc.currentAccount);
+                }
+              },
+            )
+          ],
+          child: _buildScaffold(),
         ));
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  Widget buildScaffold() {
+  Widget _buildScaffold() {
     return Scaffold(
       key: _scaffoldKey,
       body: BlocBuilder<NavigationBloc, NavigationState>(
+        buildWhen: (_, state) => state is! NavigationAccountChannged,
         builder: (context, state) {
           if (state is InHomePage) {
             return buildPageByType(TabPage.home);
@@ -70,9 +86,7 @@ class _NavigationState extends State<Navigation> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          TransactionRoutes.pushEdit(context, mode: TransactionEditMode.add);
-        },
+        onPressed: _onAdd,
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -84,13 +98,22 @@ class _NavigationState extends State<Navigation> {
     );
   }
 
+  _onAdd() {
+    if (false == TransactionRouterGuard.edit(mode: TransactionEditMode.add, account: _bloc.account)) {
+      CommonToast.tipToast("当前账本为只读权限，不可新增交易");
+      return;
+    }
+
+    TransactionRoutes.editNavigator(context, mode: TransactionEditMode.add, account: _bloc.account).push();
+  }
+
   Widget buildPageByType(TabPage page) {
     switch (page) {
       case TabPage.home:
         return const Home();
       case TabPage.share:
         return const Center(
-          child: Text("group"),
+          child: ShareHome(),
         );
       default:
         return Container();

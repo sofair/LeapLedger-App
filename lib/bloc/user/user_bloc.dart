@@ -12,24 +12,36 @@ import 'package:keepaccount_app/routes/routes.dart';
 part 'user_event.dart';
 part 'user_state.dart';
 
-class CaptchaData {
-  String pic = "", email = "";
-}
-
 class UserBloc extends Bloc<UserEvent, UserState> {
-  bool isLogin = false;
   static UserModel user = UserModel.fromJson({});
-  static AccountModel currentAccount = AccountModel.fromJson({});
-  static String username = '', email = '', token = '';
-  static CaptchaData captcha = CaptchaData();
+  static AccountDetailModel currentAccount = AccountDetailModel.fromJson({});
+  static AccountDetailModel currentShareAccount = AccountDetailModel.fromJson({});
+  static String token = '';
+
+  static bool get isLogin => token != "" && user.isValid;
 
   UserBloc() : super(UserInitial()) {
     getToCache();
-    on<SetCurrentAccount>(_setCurrentAccountId);
+    on<SetCurrentAccount>((event, emit) async {
+      await _setCurrentAccount(event.account, emit);
+    });
+    on<SetCurrentShareAccount>((event, emit) async {
+      await _setCurrentShareAccount(event.account, emit);
+    });
     on<UserLoginEvent>(_login);
+    on<UserLogoutEvent>(_logout);
     on<UserRegisterEvent>(_register);
     on<UserPasswordUpdateEvent>(_updatePassword);
     on<UserInfoUpdateEvent>(_updateInfo);
+    on<UpdateCurrentInfoEvent>((event, emit) async {
+      await _updateCurrentInfo(event.data, emit);
+    });
+    on<UserFriendListFetch>(_fetchFriendList);
+    on<UserSearchEvent>(_searchUser);
+  }
+
+  static UserBloc of(BuildContext context) {
+    return BlocProvider.of<UserBloc>(context);
   }
 
   void _login(UserLoginEvent event, Emitter<UserState> emit) async {
@@ -42,17 +54,25 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       event.captcha,
     );
     if (response.isSuccess) {
-      currentAccount = AccountModel.fromJson(response.data['CurrentAccount']);
+      UserBloc.currentAccount = AccountDetailModel.fromJson(response.data['CurrentAccount']);
+      UserBloc.currentShareAccount = AccountDetailModel.fromJson(response.data['CurrentShareAccount']);
       token = response.data['Token'];
       user = UserModel.fromJson(response.data['User']);
-      username = user.username;
-      email = user.email;
       UserBloc.saveToCache();
       emit(UserLoginedState());
-      emit(UpdateCurrentAccount());
+      emit(CurrentAccountChanged());
+      emit(CurrentShareAccountChanged());
     } else {
       emit(UserLoginFailState(response.msg));
     }
+  }
+
+  void _logout(UserLogoutEvent event, Emitter<UserState> emit) async {
+    UserBloc.user = UserModel.fromJson({});
+    UserBloc.currentAccount = AccountDetailModel.fromJson({});
+    UserBloc.currentShareAccount = AccountDetailModel.fromJson({});
+    token = "";
+    UserBloc.saveToCache();
   }
 
   void _register(UserRegisterEvent event, Emitter<UserState> emit) async {
@@ -60,9 +80,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     var password = sha256.convert(bytes).toString();
     var response = await UserApi.register(event.username, password, event.email, event.captcha);
     if (response.isSuccess) {
-      username = event.username;
-      email = event.email;
       token = response.data['Token'];
+      user = UserModel.fromJson(response.data['User']);
       UserBloc.saveToCache();
       emit(UserRegisterSuccessState());
     } else {
@@ -78,7 +97,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         var password = sha256.convert(bytes).toString();
         response = await UserApi.forgetPassword(event.email, password, event.captcha);
       default:
-        var bytes = utf8.encode(email + event.password);
+        var bytes = utf8.encode(user.email + event.password);
         var password = sha256.convert(bytes).toString();
         response = await UserApi.updatePassword(password, event.captcha);
     }
@@ -92,48 +111,91 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   }
 
   void _updateInfo(UserInfoUpdateEvent event, Emitter<UserState> emit) async {
-    var responseBody = await UserApi.updateInfo(event.model);
-    String oldUserName = username;
-    if (event.model.username != null) {
-      username = event.model.username!;
+    if (event.model.username == null) {
+      emit(UserUpdateInfoFail());
+      return;
     }
+    var responseBody = await UserApi.updateInfo(event.model);
     if (responseBody.isSuccess) {
-      saveToCache();
+      user.username = event.model.username!;
+      UserBloc.saveToCache();
       emit(UserUpdateInfoSuccess());
     } else {
-      username = oldUserName;
       emit(UserUpdateInfoFail());
     }
   }
 
-  void _setCurrentAccountId(SetCurrentAccount event, Emitter<UserState> emit) async {
-    UserBloc.currentAccount = event.account;
-    emit(UpdateCurrentAccount());
-    UserBloc.saveToCache();
-    await UserApi.setCurrentAccount(event.account.id);
+  _updateCurrentInfo(UserCurrentModel data, Emitter<UserState> emit) async {
+    var needSaveCache = false;
+    if (false == data.currentAccount.isSame(currentAccount)) {
+      UserBloc.currentAccount = data.currentAccount.copy();
+      emit(CurrentAccountChanged());
+      needSaveCache = true;
+    }
+    if (false == data.currentShareAccount.isSame(currentShareAccount)) {
+      UserBloc.currentShareAccount = data.currentShareAccount.copy();
+      emit(CurrentShareAccountChanged());
+      needSaveCache = true;
+    }
+    if (needSaveCache) {
+      UserBloc.saveToCache();
+    }
   }
 
-  // Remaining methods unchanged
+  _setCurrentAccount(AccountDetailModel account, Emitter<UserState> emit) async {
+    if (UserBloc.currentAccount.isSame(account)) {
+      return;
+    }
+    UserBloc.currentAccount = account.copy();
+    emit(CurrentAccountChanged());
+    UserBloc.saveToCache();
+    await UserApi.setCurrentAccount(account.id);
+  }
+
+  _setCurrentShareAccount(AccountDetailModel account, Emitter<UserState> emit) async {
+    if (UserBloc.currentShareAccount.isSame(account)) {
+      return;
+    }
+    UserBloc.currentShareAccount = account.copy();
+    emit(CurrentShareAccountChanged());
+    saveToCache();
+    await UserApi.setCurrentShareAccount(account.id);
+  }
+
+  /// 用户搜索
+  _searchUser(UserSearchEvent event, emit) async {
+    _friendList =
+        await UserApi.search(offset: event.offset, limit: event.limit, id: event.id, username: event.username);
+    emit(UserSearchFinish(_friendList));
+  }
+
+  /* 好友 */
+  List<UserInfoModel> _friendList = [];
+  Future<void> _fetchFriendList(UserFriendListFetch event, emit) async {
+    _friendList = await UserApi.getFriendList();
+
+    emit(UserFriendLoaded(_friendList));
+  }
 
   static saveToCache() => Global.cache.save('User', {
-        'Username': username,
+        'User': user.toJson(),
+        'CurrentShareAccount': UserBloc.currentShareAccount.toJson(),
+        'CurrentAccount': UserBloc.currentAccount.toJson(),
         'Token': token,
-        'Email': email,
-        'CurrentAccount': currentAccount.toJson(),
       });
 
   static getToCache() {
     Map<String, dynamic> prefsData = Global.cache.getData('User');
-    username = prefsData['Username'] ?? '';
+    user = UserModel.fromJson(prefsData['User'] ?? {});
+    UserBloc.currentShareAccount = AccountDetailModel.fromJson(prefsData['CurrentShareAccount'] ?? {});
+    UserBloc.currentAccount = AccountDetailModel.fromJson(prefsData['CurrentAccount'] ?? {});
     token = prefsData['Token'] ?? '';
-    email = prefsData['Email'] ?? '';
-    currentAccount = AccountModel.fromJson(prefsData['CurrentAccount'] ?? {});
   }
 
   static Widget listenerCurrentAccountIdUpdate(Function func, Widget widget) {
     return BlocListener<UserBloc, UserState>(
         listener: (_, state) {
-          if (state is UpdateCurrentAccount) {
+          if (state is CurrentAccountChanged) {
             func();
           }
         },
@@ -145,11 +207,18 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       Future.delayed(Duration.zero, () {
         Navigator.pushNamed(context, UserRoutes.login);
       });
-    } else if (currentAccount.id == 0) {
+      return false;
+    } else if (false == currentAccount.isValid) {
       //初始化账本
       Future.delayed(Duration.zero, () {
         Navigator.pushNamed(context, AccountRoutes.templateList);
       });
+      return false;
     }
+    return true;
+  }
+
+  static bool checkAccount() {
+    return currentAccount.isValid;
   }
 }

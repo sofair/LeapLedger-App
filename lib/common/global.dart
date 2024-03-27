@@ -1,9 +1,13 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:keepaccount_app/config/config.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:keepaccount_app/model/account/model.dart';
+import 'package:keepaccount_app/routes/routes.dart';
 import 'package:keepaccount_app/util/enter.dart';
 
 part 'constant.dart';
+part 'no_data.dart';
 
 class Global {
   static SharedPreferencesCache cache = SharedPreferencesCache();
@@ -13,7 +17,7 @@ class Global {
   static final GlobalKey<OverlayState> overlayKey = GlobalKey<OverlayState>();
   static OverlayEntry? overlayEntry;
   // 是否为release版
-  static bool get isRelease => bool.fromEnvironment("dart.vm.product");
+  static bool get isRelease => const bool.fromEnvironment("dart.vm.product");
   //初始化全局信息，会在APP启动时执行
   static Future init() async {
     config.init();
@@ -48,3 +52,20 @@ const INCOME = "income", EXPENSE = "expense";
 enum UserAction { register, updatePassword, forgetPassword }
 
 enum TransactionEditMode { add, update }
+
+//信息类型 常用于接口数据提交
+enum InfoType { todayTransTotal, currentMonthTransTotal, recentTrans }
+
+extension InfoTypeExtensions on InfoType {
+  String toJson() {
+    return name;
+  }
+}
+
+extension InfoTypeListExtensions on List<InfoType> {
+  List<String> toJson() {
+    return map((infoType) {
+      return infoType.name;
+    }).toList();
+  }
+}

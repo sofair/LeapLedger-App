@@ -41,8 +41,6 @@ IncomeExpenseStatisticApiModel _$IncomeExpenseStatisticApiModelFromJson(
           ? null
           : AmountCountApiModel.fromJson(
               json['Expense'] as Map<String, dynamic>),
-      startTime: Json.optionDateTimeFromJson(json['StartTime']),
-      endTime: Json.optionDateTimeFromJson(json['EndTime']),
     );
 
 Map<String, dynamic> _$IncomeExpenseStatisticApiModelToJson(
@@ -50,8 +48,6 @@ Map<String, dynamic> _$IncomeExpenseStatisticApiModelToJson(
     <String, dynamic>{
       'Income': instance.income,
       'Expense': instance.expense,
-      'StartTime': Json.optionDateTimeToJson(instance.startTime),
-      'EndTime': Json.optionDateTimeToJson(instance.endTime),
     };
 
 IncomeExpenseStatisticWithTimeApiModel

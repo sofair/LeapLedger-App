@@ -2,6 +2,11 @@ part of 'navigation_bloc.dart';
 
 abstract class NavigationEvent {}
 
+class ChangeAccountEvent extends NavigationEvent {
+  final AccountDetailModel account;
+  ChangeAccountEvent(this.account);
+}
+
 class NavigateToHomePage extends NavigationEvent {
   NavigateToHomePage();
 }

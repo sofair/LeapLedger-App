@@ -12,6 +12,6 @@ final class AccountTemplateListLoaded extends AccountTemplateListState {
 }
 
 final class AddAccountSuccess extends AccountTemplateListState {
-  final AccountModel account;
+  final AccountDetailModel account;
   AddAccountSuccess(this.account);
 }

@@ -10,44 +10,49 @@ class UserDrawerHeader extends StatefulWidget {
 class _UserDrawerHeaderState extends State<UserDrawerHeader> {
   @override
   Widget build(BuildContext context) {
-    return DrawerHeader(
-      decoration: const BoxDecoration(
-        color: Colors.blue,
+    return DividerTheme(
+      data: const DividerThemeData(
+        color: Colors.white,
       ),
-      child: Row(
-        children: <Widget>[
-          const CircleAvatar(
-              backgroundImage: null,
-              radius: 32.0,
-              child: Icon(
-                Icons.person,
-                size: 32.0,
-              )),
-          const SizedBox(width: 16.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                BlocListener<UserBloc, UserState>(
-                    listener: (_, state) {
-                      if (state is UserUpdateInfoSuccess) {
-                        setState(() {});
-                      }
-                    },
-                    child: buildUsername(context)),
-                const SizedBox(height: 8.0),
-                Text(
-                  UserBloc.email,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14.0,
+      child: DrawerHeader(
+        decoration: const BoxDecoration(
+          color: Colors.blue,
+        ),
+        child: Row(
+          children: <Widget>[
+            const CircleAvatar(
+                backgroundImage: null,
+                radius: 32.0,
+                child: Icon(
+                  Icons.person,
+                  size: 32.0,
+                )),
+            const SizedBox(width: 16.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  BlocListener<UserBloc, UserState>(
+                      listener: (_, state) {
+                        if (state is UserUpdateInfoSuccess) {
+                          setState(() {});
+                        }
+                      },
+                      child: buildUsername(context)),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    UserBloc.user.email,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.0,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -64,7 +69,7 @@ class _UserDrawerHeaderState extends State<UserDrawerHeader> {
           showDialog(
               context: context,
               builder: (BuildContext context) {
-                return EditDialog("编辑昵称", null, UserBloc.username, onSubmit);
+                return EditDialog("编辑昵称", null, UserBloc.user.username, onSubmit);
               });
         },
         child: Row(
@@ -72,7 +77,7 @@ class _UserDrawerHeaderState extends State<UserDrawerHeader> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
-              UserBloc.username,
+              UserBloc.user.username,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 24.0,

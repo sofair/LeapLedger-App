@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
 import 'package:keepaccount_app/model/product/model.dart';
 import 'package:keepaccount_app/model/transaction/category/model.dart';
 import 'package:keepaccount_app/routes/routes.dart';
@@ -8,7 +7,6 @@ import 'package:keepaccount_app/util/enter.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:keepaccount_app/widget/common/common.dart';
-import 'package:keepaccount_app/widget/form/form.dart';
 import 'bloc/enter.dart';
 
 part 'widget/ptc_card.dart';

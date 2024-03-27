@@ -37,10 +37,7 @@ class TransactionCategoryMapping extends StatelessWidget {
         child: Scaffold(
             appBar: AppBar(
               title: const Text("交易类型关联"),
-              bottom: const TabBar(tabs: [
-                Tab(text: "支出"),
-                Tab(text: "收入"),
-              ]),
+              bottom: const TabBar(tabs: [Tab(text: "支出"), Tab(text: "收入")]),
             ),
             body: Container(
               padding: const EdgeInsets.all(8),

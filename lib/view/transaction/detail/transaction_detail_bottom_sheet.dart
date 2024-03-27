@@ -14,7 +14,7 @@ class TransactionDetailBottomSheet extends StatefulWidget {
       : assert(transaction != null || transactionId != null);
   final TransactionModel? transaction;
   final int? transactionId;
-  final AccountModel account;
+  final AccountDetailModel account;
   @override
   State<TransactionDetailBottomSheet> createState() => _TransactionDetailBottomSheetState();
 }
@@ -64,7 +64,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
             Positioned(
               top: Constant.margin,
               right: Constant.margin,
-              child: _buildButtonGroup(),
+              child: _buildHeaderButtonGroup(),
             ),
             Column(
               mainAxisSize: MainAxisSize.min,
@@ -75,7 +75,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
     );
   }
 
-  Widget _buildButtonGroup() {
+  Widget _buildHeaderButtonGroup() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.end,
@@ -105,10 +105,10 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
     return Column(mainAxisSize: MainAxisSize.min, children: [
       _buildListTile(
         leading: "金额",
-        trailingWidget: SameHightAmountTextSpan(
-          amount: data.amount,
+        trailingWidget: Text.rich(AmountTextSpan.sameHeight(
+          data.amount,
           textStyle: const TextStyle(fontSize: ConstantFontSize.body, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
+        )),
       ),
       ConstantWidget.divider.list,
       _buildListTile(
@@ -130,7 +130,10 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
         leading: "备注",
         trailing: data.remark.isEmpty ? "无" : data.remark,
       ),
-      _buildButtomGroup(),
+      Offstage(
+        offstage: TransactionRouterGuard.edit(mode: TransactionEditMode.update, account: widget.account),
+        child: _buildButtomButtonGroup(),
+      )
     ]);
   }
 
@@ -144,7 +147,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
     );
   }
 
-  Widget _buildButtomGroup() {
+  Widget _buildButtomButtonGroup() {
     return Row(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
       OutlinedButton(
         onPressed: _onDelete,
@@ -183,15 +186,12 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
   }
 
   _onUpdate() async {
-    TransactionRoutes.pushEdit(
-      context,
-      mode: TransactionEditMode.update,
-      transaction: widget.transaction,
-    ).then((bool isFinish) {
-      if (isFinish) {
-        Navigator.pop(context);
-      }
-    });
+    var page = TransactionRoutes.editNavigator(context,
+        mode: TransactionEditMode.update, account: widget.account, transaction: widget.transaction);
+    await page.push();
+    if (page.getReturn() && mounted) {
+      Navigator.pop(context);
+    }
   }
 
   void _onShare() {

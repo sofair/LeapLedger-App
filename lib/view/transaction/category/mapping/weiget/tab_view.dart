@@ -139,7 +139,6 @@ class TabView extends StatelessWidget {
   _showCustomModalBottomSheet(
       BuildContext context, List<ProductTransactionCategoryModel> unmapped, TransactionCategoryModel model) async {
     return showModalBottomSheet(
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       context: context,
       builder: (_) {

@@ -2,6 +2,10 @@ part of 'navigation_bloc.dart';
 
 abstract class NavigationState {}
 
+class NavigationAccountChannged extends NavigationState {
+  NavigationAccountChannged();
+}
+
 class InHomePage extends NavigationState {
   InHomePage();
 }

@@ -61,4 +61,12 @@ class TransactionCategoryRoutes {
   }) {
     return {'product': product, 'categoryTree': categoryTree, 'ptcList': ptcList};
   }
+
+  static Route<TransactionCategoryTemplate> getTemplateRoute(BuildContext context, {required AccountModel account}) {
+    return MaterialPageRoute(
+      builder: (context) => TransactionCategoryTemplate(
+        account: account,
+      ),
+    );
+  }
 }

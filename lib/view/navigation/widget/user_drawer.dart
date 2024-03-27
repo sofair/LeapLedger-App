@@ -34,6 +34,23 @@ class UserDrawer extends StatelessWidget {
               Navigator.pushNamed(context, UserRoutes.configTransactionShare);
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.send_outlined),
+            title: const Text('邀请'),
+            contentPadding: const EdgeInsets.only(left: 48),
+            onTap: () {
+              Navigator.pushNamed(context, UserRoutes.accountInvitation);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout_outlined),
+            title: const Text('退出'),
+            contentPadding: const EdgeInsets.only(left: 48),
+            onTap: () {
+              BlocProvider.of<UserBloc>(context).add(UserLogoutEvent());
+              Navigator.popAndPushNamed(context, UserRoutes.login);
+            },
+          ),
         ],
       ),
     );
