@@ -70,5 +70,17 @@ const Map<String, IconData> _iconMap = {
   'handshake': Icons.handshake_outlined,
   'content_paste': Icons.content_paste_outlined,
   'receipt_long': Icons.receipt_long_outlined,
-  'auto_stories': Icons.auto_stories_outlined
+  'auto_stories': Icons.auto_stories_outlined,
+  'restaurant': Icons.restaurant_outlined,
+  'run_circle': Icons.run_circle_outlined,
+  'home': Icons.home_outlined,
+  'directions_bus': Icons.directions_bus_outlined,
+  'casino': Icons.casino_outlined,
+  'apartment': Icons.apartment_outlined,
+  'local_hospital': Icons.local_hospital_outlined,
+  'movie_outlined': Icons.movie_outlined,
+  'home_outlined': Icons.home_outlined,
+  'medical_information': Icons.medical_information_outlined,
+  'luggage': Icons.luggage_outlined,
+  'grid_view': Icons.grid_view_outlined,
 };
