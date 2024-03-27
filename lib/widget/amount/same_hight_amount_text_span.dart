@@ -1,5 +1,7 @@
 part of 'enter.dart';
 
+/// 弃用 改用 [AmountTextSpan.sameHeight]
+@Deprecated("use AmountTextSpan")
 class SameHightAmountTextSpan extends StatelessWidget {
   final int amount;
   late final TextStyle _textStyle;
@@ -39,13 +41,12 @@ class SameHightAmountTextSpan extends StatelessWidget {
   }
 
   @override
-  RichText build(BuildContext context) {
+  Text build(BuildContext context) {
     double amountInDollars = amount / 100.0;
     String formattedAmount = amountInDollars.toStringAsFixed(2);
     List<String> parts = formattedAmount.split('.');
-    return RichText(
-      textScaler: MediaQuery.of(context).textScaler,
-      text: TextSpan(
+    return Text.rich(
+      TextSpan(
         text: prefix + (dollarSign ? '￥${parts[0]}' : parts[0]),
         style: _textStyle,
         children: [
@@ -55,6 +56,70 @@ class SameHightAmountTextSpan extends StatelessWidget {
           )
         ],
       ),
+    );
+  }
+}
+
+class AmountTextSpan extends TextSpan {
+  const AmountTextSpan({
+    String? text,
+    List<TextSpan>? children,
+    TextStyle? style,
+    MouseCursor? mouseCursor,
+    PointerEnterEventListener? onEnter,
+    PointerExitEventListener? onExit,
+    String? semanticsLabel,
+    Locale? locale,
+    bool? spellOut,
+  }) : super(
+          text: text,
+          children: children,
+          style: style,
+          mouseCursor: mouseCursor,
+          onEnter: onEnter,
+          onExit: onExit,
+          semanticsLabel: semanticsLabel,
+          locale: locale,
+          spellOut: spellOut,
+        );
+
+  factory AmountTextSpan.sameHeight(int amount,
+      {TextStyle? textStyle,
+      bool dollarSign = false,
+      IncomeExpense? incomeExpense,
+      IncomeExpenseDisplayModel? displayModel}) {
+    String text = '';
+    if (displayModel == IncomeExpenseDisplayModel.color) {
+      text = "";
+      if (incomeExpense == IncomeExpense.income) {
+        textStyle = textStyle != null
+            ? textStyle.merge(const TextStyle(color: ConstantColor.incomeAmount))
+            : const TextStyle(color: ConstantColor.incomeAmount);
+      } else if (incomeExpense == IncomeExpense.expense) {
+        textStyle = textStyle != null
+            ? textStyle.merge(const TextStyle(color: ConstantColor.expenseAmount))
+            : const TextStyle(color: ConstantColor.expenseAmount);
+      }
+    } else if (displayModel == IncomeExpenseDisplayModel.symbols) {
+      if (incomeExpense == IncomeExpense.income) {
+        text = "+";
+      } else if (incomeExpense == IncomeExpense.expense) {
+        text = "-";
+      }
+    }
+
+    double amountInDollars = amount / 100.0;
+    String formattedAmount = amountInDollars.toStringAsFixed(2);
+    List<String> parts = formattedAmount.split('.');
+    return AmountTextSpan(
+      text: text + (dollarSign ? '￥${parts[0]}' : parts[0]),
+      style: textStyle,
+      children: [
+        TextSpan(
+          text: '.${parts[1]}',
+          style: textStyle,
+        ),
+      ],
     );
   }
 }

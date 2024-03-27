@@ -2,6 +2,7 @@ part of 'enter.dart';
 
 enum IncomeExpenseDisplayModel { color, symbols }
 
+/// 弃用 改用 [AmountTextSpan.sameHeight]
 class SameHightAmount extends StatelessWidget {
   final int amount;
   late final TextStyle _textStyle;
@@ -57,22 +58,6 @@ class SameHightAmount extends StatelessWidget {
           )
         ],
       ),
-    );
-  }
-
-  static buildTextSpan(String prefix, bool dollarSign, TextStyle _textStyle, int amount) {
-    double amountInDollars = amount / 100.0;
-    String formattedAmount = amountInDollars.toStringAsFixed(2);
-    List<String> parts = formattedAmount.split('.');
-    return TextSpan(
-      text: prefix + (dollarSign ? '￥${parts[0]}' : parts[0]),
-      style: _textStyle,
-      children: [
-        TextSpan(
-          text: '.${parts[1]}',
-          style: _textStyle,
-        )
-      ],
     );
   }
 }
