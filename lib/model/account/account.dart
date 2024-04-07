@@ -266,7 +266,7 @@ class AccountUserInvitationModle {
 class AccountMappingModel {
   int id;
   AccountModel mainAccount;
-  AccountModel relatedAccount;
+  AccountDetailModel relatedAccount;
   @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
   DateTime updateTime;
   @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)

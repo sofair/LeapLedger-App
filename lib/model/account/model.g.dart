@@ -10,13 +10,15 @@ AccountModel _$AccountModelFromJson(Map<String, dynamic> json) => AccountModel(
       id: json['Id'] as int? ?? 0,
       name: json['Name'] as String? ?? '',
       icon: Json.iconDataFormJson(json['Icon']),
-      type: $enumDecodeNullable(_$AccountTypeEnumMap, json['Type'], unknownValue: AccountType.independent) ??
+      type: $enumDecodeNullable(_$AccountTypeEnumMap, json['Type'],
+              unknownValue: AccountType.independent) ??
           AccountType.independent,
       createTime: Json.dateTimeFromJson(json['CreateTime']),
       updateTime: Json.dateTimeFromJson(json['UpdateTime']),
     );
 
-Map<String, dynamic> _$AccountModelToJson(AccountModel instance) => <String, dynamic>{
+Map<String, dynamic> _$AccountModelToJson(AccountModel instance) =>
+    <String, dynamic>{
       'Id': instance.id,
       'Name': instance.name,
       'Icon': Json.iconDataToJson(instance.icon),
@@ -30,22 +32,26 @@ const _$AccountTypeEnumMap = {
   AccountType.share: 'share',
 };
 
-AccountDetailModel _$AccountDetailModelFromJson(Map<String, dynamic> json) => AccountDetailModel(
+AccountDetailModel _$AccountDetailModelFromJson(Map<String, dynamic> json) =>
+    AccountDetailModel(
       id: json['Id'] as int? ?? 0,
       name: json['Name'] as String? ?? '',
       icon: Json.iconDataFormJson(json['Icon']),
-      type: $enumDecodeNullable(_$AccountTypeEnumMap, json['Type'], unknownValue: AccountType.independent) ??
+      type: $enumDecodeNullable(_$AccountTypeEnumMap, json['Type'],
+              unknownValue: AccountType.independent) ??
           AccountType.independent,
       createTime: Json.dateTimeFromJson(json['CreateTime']),
       updateTime: Json.dateTimeFromJson(json['UpdateTime']),
       creatorId: json['CreatorId'] as int? ?? 0,
       creatorName: json['CreatorName'] as String? ?? '',
-      role: $enumDecodeNullable(_$AccountRoleEnumMap, json['Role'], unknownValue: AccountRole.reader) ??
+      role: $enumDecodeNullable(_$AccountRoleEnumMap, json['Role'],
+              unknownValue: AccountRole.reader) ??
           AccountRole.reader,
       joinTime: Json.dateTimeFromJson(json['JoinTime']),
     );
 
-Map<String, dynamic> _$AccountDetailModelToJson(AccountDetailModel instance) => <String, dynamic>{
+Map<String, dynamic> _$AccountDetailModelToJson(AccountDetailModel instance) =>
+    <String, dynamic>{
       'Id': instance.id,
       'Name': instance.name,
       'Icon': Json.iconDataToJson(instance.icon),
@@ -65,16 +71,18 @@ const _$AccountRoleEnumMap = {
   AccountRole.reader: 'reader',
 };
 
-AccountUserModel _$AccountUserModelFromJson(Map<String, dynamic> json) => AccountUserModel(
+AccountUserModel _$AccountUserModelFromJson(Map<String, dynamic> json) =>
+    AccountUserModel(
+      id: json['Id'] as int?,
       accountId: json['AccountId'] as int,
       userId: json['UserId'] as int,
-      id: json['Id'] as int?,
       info: UserInfoModel.fromJson(json['Info'] as Map<String, dynamic>),
       role: $enumDecode(_$AccountRoleEnumMap, json['Role']),
       createTime: Json.dateTimeFromJson(json['CreateTime']),
     );
 
-Map<String, dynamic> _$AccountUserModelToJson(AccountUserModel instance) => <String, dynamic>{
+Map<String, dynamic> _$AccountUserModelToJson(AccountUserModel instance) =>
+    <String, dynamic>{
       'Id': instance.id,
       'UserId': instance.userId,
       'AccountId': instance.accountId,
@@ -83,7 +91,8 @@ Map<String, dynamic> _$AccountUserModelToJson(AccountUserModel instance) => <Str
       'CreateTime': Json.dateTimeToJson(instance.createTime),
     };
 
-AccountUserInvitationModle _$AccountUserInvitationModleFromJson(Map<String, dynamic> json) =>
+AccountUserInvitationModle _$AccountUserInvitationModleFromJson(
+        Map<String, dynamic> json) =>
     AccountUserInvitationModle(
       account: AccountModel.fromJson(json['Account'] as Map<String, dynamic>),
       id: json['Id'] as int,
@@ -94,7 +103,9 @@ AccountUserInvitationModle _$AccountUserInvitationModleFromJson(Map<String, dyna
       createTime: Json.dateTimeFromJson(json['CreateTime']),
     );
 
-Map<String, dynamic> _$AccountUserInvitationModleToJson(AccountUserInvitationModle instance) => <String, dynamic>{
+Map<String, dynamic> _$AccountUserInvitationModleToJson(
+        AccountUserInvitationModle instance) =>
+    <String, dynamic>{
       'Account': instance.account,
       'Id': instance.id,
       'Invitee': instance.invitee,
@@ -110,15 +121,20 @@ const _$AccountUserInvitationStatusEnumMap = {
   AccountUserInvitationStatus.refuse: 2,
 };
 
-AccountMappingModel _$AccountMappingModelFromJson(Map<String, dynamic> json) => AccountMappingModel(
+AccountMappingModel _$AccountMappingModelFromJson(Map<String, dynamic> json) =>
+    AccountMappingModel(
       id: json['Id'] as int,
-      mainAccount: AccountModel.fromJson(json['MainAccount'] as Map<String, dynamic>),
-      relatedAccount: AccountModel.fromJson(json['RelatedAccount'] as Map<String, dynamic>),
+      mainAccount:
+          AccountModel.fromJson(json['MainAccount'] as Map<String, dynamic>),
+      relatedAccount: AccountDetailModel.fromJson(
+          json['RelatedAccount'] as Map<String, dynamic>),
       updateTime: Json.dateTimeFromJson(json['UpdateTime']),
       createTime: Json.dateTimeFromJson(json['CreateTime']),
     );
 
-Map<String, dynamic> _$AccountMappingModelToJson(AccountMappingModel instance) => <String, dynamic>{
+Map<String, dynamic> _$AccountMappingModelToJson(
+        AccountMappingModel instance) =>
+    <String, dynamic>{
       'Id': instance.id,
       'MainAccount': instance.mainAccount,
       'RelatedAccount': instance.relatedAccount,
@@ -126,12 +142,16 @@ Map<String, dynamic> _$AccountMappingModelToJson(AccountMappingModel instance) =
       'CreateTime': Json.dateTimeToJson(instance.createTime),
     };
 
-AccountTemplateModel _$AccountTemplateModelFromJson(Map<String, dynamic> json) => AccountTemplateModel()
-  ..id = json['Id'] as int? ?? 0
-  ..name = json['Name'] as String? ?? ''
-  ..icon = Json.iconDataFormJson(json['Icon']);
+AccountTemplateModel _$AccountTemplateModelFromJson(
+        Map<String, dynamic> json) =>
+    AccountTemplateModel()
+      ..id = json['Id'] as int? ?? 0
+      ..name = json['Name'] as String? ?? ''
+      ..icon = Json.iconDataFormJson(json['Icon']);
 
-Map<String, dynamic> _$AccountTemplateModelToJson(AccountTemplateModel instance) => <String, dynamic>{
+Map<String, dynamic> _$AccountTemplateModelToJson(
+        AccountTemplateModel instance) =>
+    <String, dynamic>{
       'Id': instance.id,
       'Name': instance.name,
       'Icon': Json.iconDataToJson(instance.icon),
