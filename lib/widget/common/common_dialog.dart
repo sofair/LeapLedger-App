@@ -1,6 +1,35 @@
 part of 'common.dart';
 
-class CommonDialog {
+class CommonDialog extends AlertDialog {
+  const CommonDialog({
+    super.key,
+    super.icon,
+    super.iconPadding,
+    super.iconColor,
+    super.title,
+    super.titlePadding,
+    super.titleTextStyle,
+    super.content,
+    super.contentPadding,
+    super.contentTextStyle,
+    super.actions,
+    super.actionsPadding,
+    super.actionsAlignment,
+    super.actionsOverflowAlignment,
+    super.actionsOverflowDirection,
+    super.actionsOverflowButtonSpacing,
+    super.buttonPadding,
+    super.backgroundColor,
+    super.elevation,
+    super.shadowColor,
+    super.surfaceTintColor,
+    super.semanticLabel,
+    super.insetPadding,
+    super.clipBehavior,
+    super.shape,
+    super.alignment,
+    super.scrollable,
+  });
   static Future<bool> showDeleteConfirmationDialog(BuildContext context, VoidCallback onConfirm) async {
     bool isFinish = false;
     await showDialog(
@@ -28,4 +57,28 @@ class CommonDialog {
     ).then((value) => isFinish = value);
     return isFinish;
   }
+
+  CommonDialog.edit(BuildContext context,
+      {Key? key,
+      required VoidCallback onSave,
+      required Function getPopData,
+      required String title,
+      required Widget content,
+      bool autoPop = true})
+      : this(
+          key: key,
+          title: Text(title),
+          content: content,
+          actions: <Widget>[
+            TextButton(onPressed: () => Navigator.of(context).pop(getPopData()), child: const Text('取消')),
+            ElevatedButton(
+                onPressed: () {
+                  onSave();
+                  if (autoPop) Navigator.of(context).pop(getPopData());
+                },
+                child: const Text('确定')),
+          ],
+        );
 }
+
+class CommonEditDialog {}

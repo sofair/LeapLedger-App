@@ -1,5 +1,8 @@
 part of 'enter.dart';
 
+@Deprecated('Use [CommonDialog.edit] instead')
+
+/// 已弃用 改用[CommonDialog.edit]
 class EditDialog extends StatelessWidget {
   final TextEditingController textEditingController = TextEditingController();
   final String? name;
