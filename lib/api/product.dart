@@ -20,17 +20,17 @@ class ProductApi {
   }
 
   static Future<ResponseBody> mappingTransactionCategory(
-      TransactionCategoryModel transactionCategory, ProductTransactionCategoryModel productTransactionCategory) async {
+      TransactionCategoryModel transactionCategory, int productTransactionCategoryId) async {
     ResponseBody response = await ApiServer.request(
-        Method.post, '$baseUrl/transaction/category/${productTransactionCategory.id}/mapping',
+        Method.post, '$baseUrl/transaction/category/$productTransactionCategoryId/mapping',
         data: {'CategoryId': transactionCategory.id});
     return response;
   }
 
   static Future<ResponseBody> deleteTransactionCategoryMapping(
-      TransactionCategoryModel transactionCategory, ProductTransactionCategoryModel productTransactionCategory) async {
+      TransactionCategoryModel transactionCategory, int productTransactionCategoryId) async {
     ResponseBody response = await ApiServer.request(
-        Method.delete, '$baseUrl/transaction/category/${productTransactionCategory.id}/mapping',
+        Method.delete, '$baseUrl/transaction/category/$productTransactionCategoryId/mapping',
         data: {'CategoryId': transactionCategory.id});
     return response;
   }
