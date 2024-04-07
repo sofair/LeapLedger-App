@@ -6,4 +6,5 @@ import 'package:keepaccount_app/util/enter.dart';
 part 'common.dart';
 part 'user.dart';
 part 'transaction.dart';
+part 'transaction_category.dart';
 part 'model.g.dart';

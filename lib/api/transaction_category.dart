@@ -60,6 +60,35 @@ class TransactionCategoryApi {
   static Future<ResponseBody> updateCategoryFather(TransactionCategoryFatherModel model) async {
     return await ApiServer.request(Method.put, '$baseUrl/father/${model.id}', data: model.toJson());
   }
+
+  static Future<bool> mappingCategory({required int parentId, required int childId}) async {
+    var response = await ApiServer.request(Method.post, '$baseUrl/$parentId/mapping', data: {
+      "ChildCategoryId": childId,
+    });
+    return response.isSuccess;
+  }
+
+  static Future<bool> deleteCategoryMapping({required int parentId, required int childId}) async {
+    var response = await ApiServer.request(Method.delete, '$baseUrl/$parentId/mapping', data: {
+      "ChildCategoryId": childId,
+    });
+    return response.isSuccess;
+  }
+
+  static Future<List<TransactionCategoryMappingTreeNodeApiModel>> getCategoryMappingTree(
+      {required int parentAccountId, required int childAccountId}) async {
+    var response = await ApiServer.request(Method.get, '$baseUrl/mapping/tree', data: {
+      "ParentAccountId": parentAccountId,
+      "ChildCategoryId": childAccountId,
+    });
+    List<TransactionCategoryMappingTreeNodeApiModel> result = [];
+    if (response.isSuccess && response.data['Tree'] is List) {
+      for (var element in response.data['Tree']) {
+        result.add(TransactionCategoryMappingTreeNodeApiModel.fromJson(element));
+      }
+    }
+    return result;
+  }
 }
 
 class TransactionCategoryApiData {

@@ -212,3 +212,20 @@ Map<String, dynamic> _$TransactionCategoryAmountRankApiModelToJson(
       'Count': instance.count,
       'Category': instance.category,
     };
+
+TransactionCategoryMappingTreeNodeApiModel
+    _$TransactionCategoryMappingTreeNodeApiModelFromJson(
+            Map<String, dynamic> json) =>
+        TransactionCategoryMappingTreeNodeApiModel(
+          childrenIds: (json['ChildrenIds'] as List<dynamic>)
+              .map((e) => e as int)
+              .toList(),
+          fatherId: json['FatherId'] as int,
+        );
+
+Map<String, dynamic> _$TransactionCategoryMappingTreeNodeApiModelToJson(
+        TransactionCategoryMappingTreeNodeApiModel instance) =>
+    <String, dynamic>{
+      'ChildrenIds': instance.childrenIds,
+      'FatherId': instance.fatherId,
+    };
