@@ -24,6 +24,7 @@ import 'package:keepaccount_app/view/account/user/detail/account_user_detail_but
 import 'package:keepaccount_app/view/account/user/edit/user_detail_edit.dart';
 import 'package:keepaccount_app/view/account/user/invitation/account_user_invitation.dart';
 import 'package:keepaccount_app/view/account/user/invite/account_user_invite_dialog.dart';
+import 'package:keepaccount_app/view/transaction/category/father/edit/transaction_category_father_edit_dialog.dart';
 import 'package:keepaccount_app/view/transaction/category/mapping/transaction_category_mapping.dart';
 import 'package:keepaccount_app/view/transaction/category/template/transaction_category_template.dart';
 import 'package:keepaccount_app/view/transaction/detail/transaction_detail_bottom_sheet.dart';
@@ -35,7 +36,6 @@ import 'package:keepaccount_app/view/user/config/transaction/share/user_config_t
 
 import 'package:keepaccount_app/view/user/login/user_login.dart';
 import 'package:keepaccount_app/view/transaction/category/edit/transaction_category_edit.dart';
-import 'package:keepaccount_app/view/transaction/category/father/edit/transaction_category_father_edit.dart';
 import 'package:keepaccount_app/view/transaction/category/tree/transaction_category_tree.dart';
 import 'package:keepaccount_app/view/transaction/import/transaction_import.dart';
 import 'package:keepaccount_app/view/user/password/update/user_password_update.dart';
@@ -121,6 +121,17 @@ class RouterNavigator {
   final BuildContext context;
 
   bool get guard => true;
+  Future<bool> _push(BuildContext context, Widget page) async {
+    if (false == guard) {
+      return false;
+    }
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    ).then(_then);
+    return true;
+  }
+
   Future<bool> _leftSlidePush(BuildContext context, Widget page) async {
     if (false == guard) {
       return false;

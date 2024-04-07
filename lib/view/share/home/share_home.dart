@@ -139,8 +139,15 @@ class _ShareHomeState extends State<ShareHome> {
           ),
         ),
         Expanded(
-          child: _buildNavigationCard(text: "交易类型", icon: Icons.settings_outlined),
-        ),
+            child: _buildNavigationCard(
+          text: "交易类型",
+          icon: Icons.settings_outlined,
+          onTap: () {
+            if (ShareHomeBloc.account != null) {
+              TransactionCategoryRoutes.setting(context, account: ShareHomeBloc.account!).pushTree();
+            }
+          },
+        )),
         Expanded(
           child: _buildNavigationCard(
               text: "邀请",

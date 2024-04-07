@@ -40,6 +40,32 @@ class NoData {
         ));
   }
 
+  static Text categoryText(BuildContext context, {AccountDetailModel? account}) {
+    if (account == null || !account.isCreator) {
+      return commonText;
+    }
+    return Text.rich(
+        textAlign: TextAlign.center,
+        TextSpan(
+          children: [
+            const TextSpan(
+                text: '交易类型未设置!\n\n',
+                style: TextStyle(
+                  color: Colors.black,
+                )),
+            TextSpan(
+                text: '点击设置',
+                style: const TextStyle(
+                  color: Colors.blue,
+                ),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    TransactionCategoryRoutes.setting(context, account: account).pushTree();
+                  }),
+          ],
+        ));
+  }
+
   static const Widget commonWidget = Text("无数据", style: TextStyle(color: Colors.black));
   static const Text commonText = Text("无数据", style: TextStyle(color: Colors.black));
 }

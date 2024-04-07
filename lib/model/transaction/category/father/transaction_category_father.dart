@@ -18,4 +18,6 @@ class TransactionCategoryFatherModel {
   factory TransactionCategoryFatherModel.fromJson(Map<String, dynamic> json) =>
       _$TransactionCategoryFatherModelFromJson(json);
   Map<String, dynamic> toJson() => _$TransactionCategoryFatherModelToJson(this);
+
+  bool get isValid => id > 0;
 }

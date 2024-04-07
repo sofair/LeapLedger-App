@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:keepaccount_app/api/api_server.dart';
 
 import 'package:keepaccount_app/common/global.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 import 'package:keepaccount_app/model/transaction/category/model.dart';
 
 part 'transaction_category_tree_event.dart';
@@ -15,8 +16,8 @@ class CategoryData {
 
 class TransactionCategoryTreeBloc extends Bloc<TransactionCategoryTreeEvent, TransactionCategoryTreeState> {
   late List<CategoryData> _list;
-
-  TransactionCategoryTreeBloc() : super(LoadingState()) {
+  final AccountDetailModel account;
+  TransactionCategoryTreeBloc({required this.account}) : super(LoadingState()) {
     on<LoadEvent>(_getTree);
     on<MoveChildEvent>(_moveChild);
     on<MoveFatherEvent>(_moveFather);
@@ -27,6 +28,7 @@ class TransactionCategoryTreeBloc extends Bloc<TransactionCategoryTreeEvent, Tra
     on<UpdateChildEvent>(_updateChild);
     on<UpdateFatherEvent>(_updateFather);
   }
+  bool get canEdit => false;
 
   _getTree(LoadEvent event, Emitter<TransactionCategoryTreeState> emit) async {
     emit(LoadingState());
@@ -42,6 +44,7 @@ class TransactionCategoryTreeBloc extends Bloc<TransactionCategoryTreeEvent, Tra
   }
 
   _moveChild(MoveChildEvent event, Emitter<TransactionCategoryTreeState> emit) async {
+    if (!canEdit) return;
     CategoryData category = _list[event.newFatherIndex];
 
     ResponseBody responseBody;
@@ -63,6 +66,7 @@ class TransactionCategoryTreeBloc extends Bloc<TransactionCategoryTreeEvent, Tra
   }
 
   _moveFather(MoveFatherEvent event, Emitter<TransactionCategoryTreeState> emit) async {
+    if (!canEdit) return;
     ResponseBody responseBody;
     CategoryData movedItem = _list.removeAt(event.oldFatherIndex);
     if (event.newFatherIndex >= 1) {
@@ -78,6 +82,7 @@ class TransactionCategoryTreeBloc extends Bloc<TransactionCategoryTreeEvent, Tra
   }
 
   _deleteChild(DeleteChildEvent event, Emitter<TransactionCategoryTreeState> emit) async {
+    if (!canEdit) return;
     if ((await TransactionCategoryApi.deleteCategoryChild(event.id)).isSuccess) {
       for (var i = 0; i < _list.length; i++) {
         _list[i].children.removeWhere((element) => element.id == event.id);
@@ -87,6 +92,7 @@ class TransactionCategoryTreeBloc extends Bloc<TransactionCategoryTreeEvent, Tra
   }
 
   _deleteFather(DeleteFatherEvent event, Emitter<TransactionCategoryTreeState> emit) async {
+    if (!canEdit) return;
     if ((await TransactionCategoryApi.deleteCategoryFather(event.id)).isSuccess) {
       _list.removeWhere((element) => element.father.id == event.id);
       emit(LoadedState(_list));
@@ -94,6 +100,7 @@ class TransactionCategoryTreeBloc extends Bloc<TransactionCategoryTreeEvent, Tra
   }
 
   _addChild(AddChildEvent event, Emitter<TransactionCategoryTreeState> emit) async {
+    if (!canEdit) return;
     var item = _list.firstWhere((element) => element.father.id == event.transactionCategoryModel.fatherId);
 
     item.children.insert(0, event.transactionCategoryModel);
@@ -101,11 +108,13 @@ class TransactionCategoryTreeBloc extends Bloc<TransactionCategoryTreeEvent, Tra
   }
 
   _addFather(AddFatherEvent event, Emitter<TransactionCategoryTreeState> emit) async {
+    if (!canEdit) return;
     _list.insert(0, CategoryData(event.transactionCategoryFatherModel, []));
     emit(LoadedState(_list));
   }
 
   _updateChild(UpdateChildEvent event, Emitter<TransactionCategoryTreeState> emit) async {
+    if (!canEdit) return;
     _list.map((e) {
       for (int i = 0; i < e.children.length; i++) {
         if (e.children[i].id == event.transactionCategoryModel.id) {
@@ -118,6 +127,7 @@ class TransactionCategoryTreeBloc extends Bloc<TransactionCategoryTreeEvent, Tra
   }
 
   _updateFather(UpdateFatherEvent event, Emitter<TransactionCategoryTreeState> emit) async {
+    if (!canEdit) return;
     for (int i = 0; i < _list.length; i++) {
       if (_list[i].father.id == event.transactionCategoryFatherModel.id) {
         _list[i].father = event.transactionCategoryFatherModel;
