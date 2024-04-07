@@ -1,16 +1,11 @@
 part of '../../model.dart';
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
-class ProductTransactionCategoryModel {
-  @JsonKey(defaultValue: 0)
-  late int id;
+class ProductTransactionCategoryModel extends BaseTransactionCategoryModel {
   @JsonKey(defaultValue: '')
   late String uniqueKey;
-  @JsonKey(defaultValue: '')
-  late String name;
-  @JsonKey(defaultValue: IncomeExpense.income)
-  late IncomeExpense incomeExpense;
-  ProductTransactionCategoryModel();
+  ProductTransactionCategoryModel(
+      {required super.id, required super.name, required super.icon, required super.incomeExpense});
 
   factory ProductTransactionCategoryModel.fromJson(Map<String, dynamic> json) =>
       _$ProductTransactionCategoryModelFromJson(json);

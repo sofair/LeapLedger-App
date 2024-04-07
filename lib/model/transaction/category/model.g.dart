@@ -8,15 +8,16 @@ part of 'model.dart';
 
 TransactionCategoryModel _$TransactionCategoryModelFromJson(
         Map<String, dynamic> json) =>
-    TransactionCategoryModel()
-      ..id = json['Id'] as int? ?? 0
+    TransactionCategoryModel(
+      id: json['Id'] as int,
+      name: json['Name'] as String? ?? '',
+      icon: Json.iconDataFormJson(json['Icon']),
+      incomeExpense:
+          $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ??
+              IncomeExpense.income,
+    )
       ..fatherId = json['FatherId'] as int? ?? 0
       ..accountId = json['AccountId'] as int? ?? 0
-      ..name = json['Name'] as String? ?? ''
-      ..icon = Json.iconDataFormJson(json['Icon'])
-      ..incomeExpense =
-          $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ??
-              IncomeExpense.income
       ..createdAt = Json.dateTimeFromJson(json['CreatedAt'])
       ..updatedAt = Json.dateTimeFromJson(json['UpdatedAt']);
 
@@ -24,11 +25,11 @@ Map<String, dynamic> _$TransactionCategoryModelToJson(
         TransactionCategoryModel instance) =>
     <String, dynamic>{
       'Id': instance.id,
-      'FatherId': instance.fatherId,
-      'AccountId': instance.accountId,
       'Name': instance.name,
       'Icon': Json.iconDataToJson(instance.icon),
       'IncomeExpense': _$IncomeExpenseEnumMap[instance.incomeExpense]!,
+      'FatherId': instance.fatherId,
+      'AccountId': instance.accountId,
       'CreatedAt': Json.dateTimeToJson(instance.createdAt),
       'UpdatedAt': Json.dateTimeToJson(instance.updatedAt),
     };

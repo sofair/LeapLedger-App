@@ -18,21 +18,23 @@ Map<String, dynamic> _$ProductModelToJson(ProductModel instance) =>
 
 ProductTransactionCategoryModel _$ProductTransactionCategoryModelFromJson(
         Map<String, dynamic> json) =>
-    ProductTransactionCategoryModel()
-      ..id = json['Id'] as int? ?? 0
-      ..uniqueKey = json['UniqueKey'] as String? ?? ''
-      ..name = json['Name'] as String? ?? ''
-      ..incomeExpense =
+    ProductTransactionCategoryModel(
+      id: json['Id'] as int,
+      name: json['Name'] as String? ?? '',
+      icon: Json.iconDataFormJson(json['Icon']),
+      incomeExpense:
           $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']) ??
-              IncomeExpense.income;
+              IncomeExpense.income,
+    )..uniqueKey = json['UniqueKey'] as String? ?? '';
 
 Map<String, dynamic> _$ProductTransactionCategoryModelToJson(
         ProductTransactionCategoryModel instance) =>
     <String, dynamic>{
       'Id': instance.id,
-      'UniqueKey': instance.uniqueKey,
       'Name': instance.name,
+      'Icon': Json.iconDataToJson(instance.icon),
       'IncomeExpense': _$IncomeExpenseEnumMap[instance.incomeExpense]!,
+      'UniqueKey': instance.uniqueKey,
     };
 
 const _$IncomeExpenseEnumMap = {
