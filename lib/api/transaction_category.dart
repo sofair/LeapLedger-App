@@ -13,11 +13,9 @@ class TransactionCategoryApi {
     );
     if (response.isSuccess && response.data['Tree'] is List) {
       response.data['Tree'] = response.data['Tree'].map((value) {
-        value['IncomeExpense'] = type?.name;
         value['AccountId'] = accountId;
         if (value['Children'] is List) {
           value['Children'] = value['Children'].map((value) {
-            value['IncomeExpense'] = type?.name;
             value['AccountId'] = accountId;
             return value;
           }).toList();
@@ -79,7 +77,7 @@ class TransactionCategoryApi {
       {required int parentAccountId, required int childAccountId}) async {
     var response = await ApiServer.request(Method.get, '$baseUrl/mapping/tree', data: {
       "ParentAccountId": parentAccountId,
-      "ChildCategoryId": childAccountId,
+      "ChildAccountId": childAccountId,
     });
     List<TransactionCategoryMappingTreeNodeApiModel> result = [];
     if (response.isSuccess && response.data['Tree'] is List) {
