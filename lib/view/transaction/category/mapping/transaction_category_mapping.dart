@@ -1,37 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keepaccount_app/common/global.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 import 'package:keepaccount_app/model/product/model.dart';
 import 'package:keepaccount_app/model/transaction/category/model.dart';
 import 'package:keepaccount_app/view/transaction/category/mapping/bloc/transaction_category_mapping_bloc.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
-part 'weiget/header_card.dart';
-part 'weiget/tab_view.dart';
 
-class TransactionCategoryMapping extends StatelessWidget {
+import 'weiget/enter.dart';
+
+class ProductTransactionCategoryMapping extends StatelessWidget {
+  const ProductTransactionCategoryMapping(
+      {super.key, required this.product, required this.categoryTree, this.ptcList, required this.account});
+  final AccountDetailModel account;
   final ProductModel product;
-  late final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> expenseCategoryTree;
-  late final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> incomeCategoryTree;
-  late final List<ProductTransactionCategoryModel>? ptcList;
-  TransactionCategoryMapping(
-      this.product, List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryTree,
-      {this.ptcList, super.key}) {
-    expenseCategoryTree = [];
-    incomeCategoryTree = [];
-    for (var element in categoryTree) {
-      if (element.key.incomeExpense == IncomeExpense.income) {
-        incomeCategoryTree.add(element);
-      } else {
-        expenseCategoryTree.add(element);
-      }
-    }
+  final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryTree;
+  final List<ProductTransactionCategoryModel>? ptcList;
+  @override
+  Widget build(BuildContext context) {
+    return _TransactionCategoryMapping(
+      bloc: ProductTransactionCategoryMappingBloc(
+          product: product, account: account, list: ptcList, categoryTree: categoryTree),
+    );
   }
+}
+
+class AccountTransactionCategoryMapping extends StatelessWidget {
+  const AccountTransactionCategoryMapping(
+      {super.key,
+      required this.parentAccount,
+      required this.childAccount,
+      required this.parentCategoryTree,
+      this.childCategoryList});
+  final AccountDetailModel parentAccount, childAccount;
+  final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>>? parentCategoryTree;
+  final List<TransactionCategoryModel>? childCategoryList;
+  @override
+  Widget build(BuildContext context) {
+    return _TransactionCategoryMapping(
+      bloc: AccountTransactionCategoryMappingBloc(
+          childAccount: childAccount,
+          parentAccount: parentAccount,
+          childCategoryList: childCategoryList,
+          parentCategoryTree: parentCategoryTree),
+    );
+  }
+}
+
+class _TransactionCategoryMapping extends StatelessWidget {
+  final TransactionCategoryMappingBloc bloc;
+  const _TransactionCategoryMapping({required this.bloc});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<TransactionCategoryMappingBloc>(
-      create: (context) =>
-          TransactionCategoryMappingBloc(product, ptcList: ptcList)..add(TransactionCategoryMappingLoadEvent()),
+    return BlocProvider<TransactionCategoryMappingBloc>.value(
+      value: bloc..add(TransactionCategoryMappingLoadEvent()),
       child: DefaultTabController(
         length: 2,
         child: Scaffold(
@@ -39,50 +61,10 @@ class TransactionCategoryMapping extends StatelessWidget {
               title: const Text("交易类型关联"),
               bottom: const TabBar(tabs: [Tab(text: "支出"), Tab(text: "收入")]),
             ),
-            body: Container(
-              padding: const EdgeInsets.all(8),
-              color: Colors.grey.shade200,
-              child: TabBarView(
-                children: [ExpenseTabView(expenseCategoryTree), IncomeTabView(incomeCategoryTree)],
-              ),
+            body: const TabBarView(
+              children: [TabView(IncomeExpense.expense), TabView(IncomeExpense.income)],
             )),
       ),
     );
-  }
-}
-
-class ExpenseTabView extends StatefulWidget {
-  const ExpenseTabView(this.categoryTree, {super.key});
-  final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryTree;
-
-  @override
-  State<ExpenseTabView> createState() => _ExpenseTabViewState();
-}
-
-class _ExpenseTabViewState extends State<ExpenseTabView> with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return TabView(IncomeExpense.expense, widget.categoryTree);
-  }
-}
-
-class IncomeTabView extends StatefulWidget {
-  const IncomeTabView(this.categoryTree, {super.key});
-  final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryTree;
-
-  @override
-  State<IncomeTabView> createState() => _IncomeTabViewState();
-}
-
-class _IncomeTabViewState extends State<IncomeTabView> with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return TabView(IncomeExpense.income, widget.categoryTree);
   }
 }

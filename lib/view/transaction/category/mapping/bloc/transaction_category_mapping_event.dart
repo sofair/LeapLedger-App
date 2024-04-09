@@ -6,15 +6,15 @@ abstract class TransactionCategoryMappingEvent {}
 final class TransactionCategoryMappingLoadEvent extends TransactionCategoryMappingEvent {}
 
 final class TransactionCategoryMappingAddEvent extends TransactionCategoryMappingEvent {
-  final TransactionCategoryModel transactionCategory;
-  final ProductTransactionCategoryModel productTransactionCategory;
-  TransactionCategoryMappingAddEvent(this.transactionCategory, this.productTransactionCategory);
+  final TransactionCategoryModel parent;
+  final BaseTransactionCategoryModel child;
+  TransactionCategoryMappingAddEvent(this.parent, this.child);
 }
 
 final class TransactionCategoryMappingDeleteEvent extends TransactionCategoryMappingEvent {
-  final TransactionCategoryModel transactionCategory;
-  final ProductTransactionCategoryModel productTransactionCategory;
-  TransactionCategoryMappingDeleteEvent(this.transactionCategory, this.productTransactionCategory);
+  final TransactionCategoryModel parent;
+  final BaseTransactionCategoryModel child;
+  TransactionCategoryMappingDeleteEvent(this.parent, this.child);
 }
 
 final class TransactionCategoryMappingUploadBillEvent extends TransactionCategoryMappingEvent {

@@ -7,21 +7,6 @@ class TransactionCategoryRoutes {
   static void init() {
     Routes.routes[edit] = (context) => TransactionCategoryEdit(
         transactionCategory: Routes.argument<TransactionCategoryModel>(context, 'transactionCategory'));
-    Routes.routes[mapping] = (context) {
-      var product = Routes.argument<ProductModel>(context, 'product');
-      var categoryTree =
-          Routes.argument<List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>>>(
-              context, 'categoryTree');
-      var ptcList = Routes.argument<List<ProductTransactionCategoryModel>>(context, 'ptcList');
-      if (product == null || categoryTree == null) {
-        return Routes.errorWight("product和categoryTree必填");
-      }
-      return TransactionCategoryMapping(
-        product,
-        categoryTree,
-        ptcList: ptcList,
-      );
-    };
   }
 
   @Deprecated("改用global下的NoData.categoryText")
@@ -41,12 +26,14 @@ class TransactionCategoryRoutes {
     );
   }
 
-  static getMappingPushArguments(
-    ProductModel product,
-    List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryTree, {
-    List<ProductTransactionCategoryModel>? ptcList,
-  }) {
-    return {'product': product, 'categoryTree': categoryTree, 'ptcList': ptcList};
+  static TransactionCategoryFatherEditNavigator fatherEditNavigator(BuildContext context,
+      {required AccountDetailModel account, required TransactionCategoryFatherModel father}) {
+    return TransactionCategoryFatherEditNavigator(context, father: father, account: account);
+  }
+
+  static TransactionCategorySettingNavigator setting(BuildContext context,
+      {required AccountDetailModel account, AccountDetailModel? relatedAccount}) {
+    return TransactionCategorySettingNavigator(context, account: account, relatedAccount: relatedAccount);
   }
 
   static Route<TransactionCategoryTemplate> getTemplateRoute(BuildContext context, {required AccountModel account}) {
@@ -57,13 +44,27 @@ class TransactionCategoryRoutes {
     );
   }
 
-  static TransactionCategoryFatherEditNavigator fatherEditNavigator(BuildContext context,
-      {required AccountDetailModel account, required TransactionCategoryFatherModel father}) {
-    return TransactionCategoryFatherEditNavigator(context, father: father, account: account);
+  static AccountTransactionCategoryMappingNavigator accountMapping(BuildContext context,
+      {required AccountDetailModel parentAccount,
+      required AccountDetailModel childAccount,
+      List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>>? parentCategoryTree,
+      List<TransactionCategoryModel>? childCategoryList}) {
+    return AccountTransactionCategoryMappingNavigator(context,
+        parentAccount: parentAccount,
+        childAccount: childAccount,
+        parentCategoryTree: parentCategoryTree,
+        childCategoryList: childCategoryList);
   }
 
-  static TransactionCategorySettingNavigator setting(BuildContext context, {required AccountDetailModel account}) {
-    return TransactionCategorySettingNavigator(context, account: account);
+  static ProductTransactionCategoryMappingNavigator productMapping(
+    BuildContext context, {
+    required AccountDetailModel account,
+    required ProductModel product,
+    required List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryTree,
+    required List<ProductTransactionCategoryModel>? ptcList,
+  }) {
+    return ProductTransactionCategoryMappingNavigator(context,
+        account: account, product: product, categoryTree: categoryTree, ptcList: ptcList);
   }
 }
 
@@ -71,6 +72,23 @@ class TransactionCategoryRouterGuard {
   /// [TransactionCategoryFatherEditNavigator]的鉴权方法
   static bool edit({required AccountDetailModel account}) {
     return account.isCreator;
+  }
+
+  static bool accountMapping(
+      {required AccountDetailModel parentAccount,
+      required AccountDetailModel childAccount,
+      List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>>? parentCategoryTree,
+      List<TransactionCategoryModel>? childCategoryList}) {
+    return !parentAccount.isReader && childAccount.isCreator;
+  }
+
+  static bool productMapping({
+    required AccountDetailModel account,
+    required ProductModel product,
+    required List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryTree,
+    required List<ProductTransactionCategoryModel>? ptcList,
+  }) {
+    return !account.isReader;
   }
 }
 
@@ -99,11 +117,78 @@ class TransactionCategoryFatherEditNavigator extends RouterNavigator {
 
 class TransactionCategorySettingNavigator extends RouterNavigator {
   final AccountDetailModel account;
-  TransactionCategorySettingNavigator(BuildContext context, {required this.account}) : super(context: context);
+
+  /// 设置交易关联时是需要用到
+  final AccountDetailModel? relatedAccount;
+  TransactionCategorySettingNavigator(BuildContext context, {required this.account, this.relatedAccount})
+      : super(context: context);
 
   @override
   bool get guard => true;
   Future<bool> pushTree() async {
-    return await _push(context, TransactionCategoryTree(account: account));
+    return await _push(context, TransactionCategoryTree(account: account, relatedAccount: relatedAccount));
+  }
+}
+
+class AccountTransactionCategoryMappingNavigator extends RouterNavigator {
+  final AccountDetailModel parentAccount, childAccount;
+  final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>>? parentCategoryTree;
+  final List<TransactionCategoryModel>? childCategoryList;
+
+  @override
+  bool get guard => TransactionCategoryRouterGuard.accountMapping(
+      parentAccount: parentAccount, childAccount: childAccount, parentCategoryTree: parentCategoryTree);
+
+  AccountTransactionCategoryMappingNavigator(
+    BuildContext context, {
+    required this.parentAccount,
+    required this.childAccount,
+    required this.parentCategoryTree,
+    required this.childCategoryList,
+  }) : super(context: context);
+
+  Future<bool> push() async {
+    return await _push(
+        context,
+        AccountTransactionCategoryMapping(
+          parentAccount: parentAccount,
+          childAccount: childAccount,
+          parentCategoryTree: parentCategoryTree,
+          childCategoryList: childCategoryList,
+        ));
+  }
+}
+
+class ProductTransactionCategoryMappingNavigator extends RouterNavigator {
+  final AccountDetailModel account;
+  final ProductModel product;
+  final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryTree;
+  final List<ProductTransactionCategoryModel>? ptcList;
+  ProductTransactionCategoryMappingNavigator(
+    BuildContext context, {
+    required this.account,
+    required this.product,
+    required this.categoryTree,
+    required this.ptcList,
+  }) : super(context: context);
+
+  @override
+  bool get guard => TransactionCategoryRouterGuard.productMapping(
+      account: account, product: product, categoryTree: categoryTree, ptcList: ptcList);
+
+  Future<bool> push() async {
+    return await _push(
+        context,
+        ProductTransactionCategoryMapping(
+            account: account, product: product, categoryTree: categoryTree, ptcList: ptcList));
+  }
+
+  static TransactionCategoryFatherEditNavigator fatherEditNavigator(BuildContext context,
+      {required AccountDetailModel account, required TransactionCategoryFatherModel father}) {
+    return TransactionCategoryFatherEditNavigator(context, father: father, account: account);
+  }
+
+  static TransactionCategorySettingNavigator setting(BuildContext context, {required AccountDetailModel account}) {
+    return TransactionCategorySettingNavigator(context, account: account);
   }
 }

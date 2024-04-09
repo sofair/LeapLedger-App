@@ -1,13 +1,13 @@
-part of '../transaction_category_mapping.dart';
+part of 'enter.dart';
 
 class HeaderCard extends StatelessWidget {
   const HeaderCard(this.data, {super.key});
-  final List<ProductTransactionCategoryModel> data;
+  final List<BaseTransactionCategoryModel> data;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+      decoration: ConstantDecoration.cardDecoration,
       margin: EdgeInsets.zero,
       child: GridView.builder(
           shrinkWrap: true, // 让网格视图适应内容大小
@@ -22,11 +22,11 @@ class HeaderCard extends StatelessWidget {
     );
   }
 
-  Widget buildItem(ProductTransactionCategoryModel model) {
+  Widget buildItem(BaseTransactionCategoryModel model) {
     return Chip(
         label: Text(
           model.name,
-          style: const TextStyle(fontSize: 12),
+          style: const TextStyle(fontSize: ConstantFontSize.bodySmall),
         ),
         padding: const EdgeInsets.all(0),
         backgroundColor: Colors.white,
