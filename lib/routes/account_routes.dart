@@ -78,21 +78,6 @@ class AccountRoutes {
     return result;
   }
 
-  static Future<AccountMappingModel?> pushAccountMappingButtomSheet(BuildContext context,
-      {required AccountModel mainAccount, AccountMappingModel? mapping}) async {
-    AccountMappingModel? result;
-    await showModalBottomSheet(
-      isScrollControlled: true,
-      context: context,
-      builder: (_) => AccountMappingBottomSheet(mainAccount: mainAccount, mapping: mapping),
-    ).then((value) {
-      if (value is AccountMappingModel) {
-        result = value;
-      }
-    });
-    return result;
-  }
-
   static AccountUserDetailNavigator userDetail(BuildContext context,
       {required AccountUserModel accountUser,
       required AccountDetailModel accoount,
@@ -114,6 +99,12 @@ class AccountRoutes {
       {required AccountDetailModel account, required UserInfoModel userInfo}) {
     return AccountUserInviteNavigator(context, account: account, userInfo: userInfo);
   }
+
+  static AccountMappingNavigator mapping(BuildContext context,
+      {required AccountDetailModel mainAccount, AccountMappingModel? mapping, MappingChangeCallback? onMappingChange}) {
+    return AccountMappingNavigator(context,
+        mainAccount: mainAccount, mapping: mapping, onMappingChange: onMappingChange);
+  }
 }
 
 class AccountRouterGuard {
@@ -129,6 +120,10 @@ class AccountRouterGuard {
       return true;
     }
     return false;
+  }
+
+  static bool mapping({required AccountDetailModel mainAccount, AccountMappingModel? mapping}) {
+    return !mainAccount.isReader;
   }
 }
 
@@ -183,5 +178,26 @@ class AccountUserInviteNavigator extends RouterNavigator {
 
   Future<bool> showDialog() async {
     return await _showDialog(context, AccountUserInviteDialog(account: account, userInfo: userInfo));
+  }
+}
+
+class AccountMappingNavigator extends RouterNavigator {
+  final AccountDetailModel mainAccount;
+  final AccountMappingModel? mapping;
+  final MappingChangeCallback? onMappingChange;
+  AccountMappingNavigator(BuildContext context,
+      {required this.mainAccount, required this.mapping, this.onMappingChange})
+      : super(context: context);
+  @override
+  bool get guard => AccountRouterGuard.mapping(mainAccount: mainAccount, mapping: mapping);
+
+  Future<bool> showModalBottomSheet() async {
+    return await _modalBottomSheetShow(
+        context,
+        AccountMappingBottomSheet(
+          mainAccount: mainAccount,
+          mapping: mapping,
+          onMappingChange: onMappingChange,
+        ));
   }
 }

@@ -7,7 +7,7 @@ part 'account_mapping_state.dart';
 
 class AccountMappingCubit extends Cubit<AccountMappingState> {
   AccountMappingCubit(this.mainAccount, {this.mapping}) : super(AccountMappingInitial());
-  final AccountModel mainAccount;
+  final AccountDetailModel mainAccount;
   AccountMappingModel? mapping;
   List<AccountDetailModel> list = [];
   fetchData() async {
@@ -15,22 +15,30 @@ class AccountMappingCubit extends Cubit<AccountMappingState> {
     emit(AccountListLoad());
   }
 
+  bool isCurrentMappingAccount(AccountDetailModel account) {
+    return mapping != null && mapping!.relatedAccount.id == account.id;
+  }
+
   changeMapping(AccountDetailModel account) async {
-    bool isThisMapping = mapping == null || mapping!.relatedAccount.id != account.id;
-    if (isThisMapping) {
-      var mapping = await AccountApi.changeMapping(mainAccountId: mainAccount.id, relatedAccountId: account.id);
-      if (mapping == null) {
-        return;
-      }
-      this.mapping = mapping;
-      emit(AccountMappingChanged());
-    } else {
+    if (isCurrentMappingAccount(account)) {
       var isSuccess = await AccountApi.deleteMapping(mappingId: mapping!.id);
       if (false == isSuccess) {
         return;
       }
       mapping == null;
-      emit(AccountMappingChanged());
+    } else if (mapping == null) {
+      var mapping = await AccountApi.createMapping(mainAccountId: mainAccount.id, relatedAccountId: account.id);
+      if (mapping == null) {
+        return;
+      }
+      this.mapping = mapping;
+    } else {
+      var mapping = await AccountApi.updateMapping(mappingId: this.mapping!.id, relatedAccountId: account.id);
+      if (mapping == null) {
+        return;
+      }
+      this.mapping = mapping;
     }
+    emit(AccountMappingChanged());
   }
 }

@@ -257,9 +257,9 @@ class AccountApi {
   }
 
   /// 返回null表示失败
-  static Future<AccountMappingModel?> changeMapping({required int mainAccountId, required int relatedAccountId}) async {
+  static Future<AccountMappingModel?> createMapping({required int mainAccountId, required int relatedAccountId}) async {
     ResponseBody response =
-        await ApiServer.request(Method.post, '$baseUrl/$mainAccountId/mapping', data: {"accountId": relatedAccountId});
+        await ApiServer.request(Method.post, '$baseUrl/$mainAccountId/mapping', data: {"AccountId": relatedAccountId});
     if (response.isSuccess) {
       return AccountMappingModel.fromJson(response.data);
     }
@@ -269,5 +269,15 @@ class AccountApi {
   static Future<bool> deleteMapping({required int mappingId}) async {
     ResponseBody response = await ApiServer.request(Method.delete, '$baseUrl/mapping/$mappingId');
     return response.isSuccess;
+  }
+
+  /// 返回null表示失败
+  static Future<AccountMappingModel?> updateMapping({required int mappingId, required int relatedAccountId}) async {
+    ResponseBody response = await ApiServer.request(Method.put, '$baseUrl/mapping/$mappingId',
+        data: {"RelatedAccountId": relatedAccountId});
+    if (response.isSuccess) {
+      return AccountMappingModel.fromJson(response.data);
+    }
+    return null;
   }
 }
