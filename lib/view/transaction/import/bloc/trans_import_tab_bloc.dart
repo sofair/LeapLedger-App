@@ -1,10 +1,11 @@
 part of 'enter.dart';
 
 class TransImportTabBloc extends Bloc<TransImportTabEvent, TransImportTabState> {
-  TransImportTabBloc() : super(TransImportTabInitial()) {
+  TransImportTabBloc({required this.account}) : super(TransImportTabInitial()) {
     on<TransImportTabLoadedEvent>(loadTab);
     on<TransactionImportUploadBillEvent>(uploadFile);
   }
+  final AccountDetailModel account;
   final List<ProductModel> _list = [];
   final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> _tree = [];
   loadTab(TransImportTabLoadedEvent event, Emitter<TransImportTabState> emit) async {

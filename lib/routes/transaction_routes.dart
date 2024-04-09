@@ -60,6 +60,10 @@ class TransactionRoutes {
     ).then((value) => value is bool ? isFinish = value : isFinish = false);
     return isFinish;
   }
+
+  static TransactionImportNavigator import(BuildContext context, {required AccountDetailModel account}) {
+    return TransactionImportNavigator(context, account: account);
+  }
 }
 
 class TransactionRouterGuard {
@@ -75,6 +79,10 @@ class TransactionRouterGuard {
       return false;
     }
     return true;
+  }
+
+  static bool import({required AccountDetailModel account}) {
+    return !account.isReader;
   }
 }
 
@@ -99,5 +107,16 @@ class TransactionEditNavigator extends RouterNavigator {
   bool isFinish = false;
   bool getReturn() {
     return isFinish;
+  }
+}
+
+class TransactionImportNavigator extends RouterNavigator {
+  final AccountDetailModel account;
+  TransactionImportNavigator(BuildContext context, {required this.account}) : super(context: context);
+
+  @override
+  bool get guard => TransactionRouterGuard.import(account: account);
+  Future<bool> push() async {
+    return await _push(context, TransactionImport(account: account));
   }
 }

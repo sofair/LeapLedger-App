@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:keepaccount_app/bloc/user/user_bloc.dart';
+import 'package:keepaccount_app/common/global.dart';
+import 'package:keepaccount_app/model/account/model.dart';
 import 'package:keepaccount_app/model/product/model.dart';
 import 'package:keepaccount_app/model/transaction/category/model.dart';
 import 'package:keepaccount_app/routes/routes.dart';
@@ -12,12 +15,12 @@ import 'bloc/enter.dart';
 part 'widget/ptc_card.dart';
 
 class TransactionImport extends StatelessWidget {
-  const TransactionImport({super.key});
-
+  const TransactionImport({super.key, required this.account});
+  final AccountDetailModel account;
   @override
   Widget build(BuildContext context) {
     return BlocProvider<TransImportTabBloc>(
-      create: (context) => TransImportTabBloc()..add(TransImportTabLoadedEvent()),
+      create: (context) => TransImportTabBloc(account: account)..add(TransImportTabLoadedEvent()),
       child: const _TransactionImport(),
     );
   }

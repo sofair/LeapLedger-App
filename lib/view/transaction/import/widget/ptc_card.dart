@@ -3,10 +3,11 @@ part of '../transaction_import.dart';
 class PtcCard extends StatelessWidget {
   final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryTree;
   const PtcCard(this.categoryTree, {super.key});
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PtcCardBloc, PtcCardState>(builder: ((context, state) {
+      var account = BlocProvider.of<TransImportTabBloc>(context).account;
+      var product = BlocProvider.of<PtcCardBloc>(context).product;
       if (state is PtcCardLoad) {
         return Container(
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
@@ -26,44 +27,41 @@ class PtcCard extends StatelessWidget {
                 itemBuilder: (BuildContext context, int index) {
                   return buildItem(state.ptcList[index]);
                 }),
-            OutlinedButton(
-                style: ButtonStyle(
-                    shape: MaterialStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
-                onPressed: () {
-                  var product = BlocProvider.of<PtcCardBloc>(context).product;
-                  Object arguments = TransactionCategoryRoutes.getMappingPushArguments(
-                    product,
-                    categoryTree,
-                    ptcList: state.ptcList,
-                  );
-                  Navigator.pushNamed(context, TransactionCategoryRoutes.mapping, arguments: arguments);
-                },
-                child: Text(
-                  '设置交易类型关联',
-                  style: TextStyle(
-                    fontSize: Theme.of(context).primaryTextTheme.titleMedium!.fontSize,
-                  ),
-                ))
+            Padding(
+              padding: const EdgeInsets.all(Constant.margin),
+              child: Offstage(
+                offstage: false ==
+                    TransactionCategoryRouterGuard.productMapping(
+                      account: account,
+                      product: product,
+                      categoryTree: categoryTree,
+                      ptcList: state.ptcList,
+                    ),
+                child: ElevatedButton(
+                    onPressed: () {
+                      TransactionCategoryRoutes.productMapping(
+                        context,
+                        account: account,
+                        product: product,
+                        categoryTree: categoryTree,
+                        ptcList: state.ptcList,
+                      ).push();
+                    },
+                    child: const Text('设置交易类型关联', style: TextStyle(fontSize: ConstantFontSize.headline))),
+              ),
+            )
           ]),
         );
       }
-      return const SizedBox(
-        height: 300,
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const SizedBox(height: 300, child: Center(child: CircularProgressIndicator()));
     }));
   }
 
   Widget buildItem(ProductTransactionCategoryModel model) {
     return Chip(
       elevation: 0,
-      label: Text(
-        model.name,
-        style: const TextStyle(fontSize: 12),
-      ),
-      padding: const EdgeInsets.all(0),
+      label: Text(model.name, style: const TextStyle(fontSize: ConstantFontSize.bodySmall)),
+      padding: EdgeInsets.zero,
       backgroundColor: Colors.white,
       side: BorderSide.none,
     );

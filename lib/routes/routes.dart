@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keepaccount_app/api/model/model.dart';
@@ -46,7 +45,6 @@ import 'package:keepaccount_app/view/user/search/user_search.dart';
 part "animation.dart";
 part 'account_routes.dart';
 part 'transaction_category_routes.dart';
-part 'transaction_import_routes.dart';
 part 'user_routes.dart';
 part 'transaction_routes.dart';
 
@@ -90,7 +88,6 @@ class Routes {
     UserRoutes.init();
     AccountRoutes.init();
     TransactionCategoryRoutes.init();
-    TransactionImportRoutes.init();
   }
 
   static Widget buildloginPermissionRoute(BuildContext context, Widget widget) {

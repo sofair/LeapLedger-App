@@ -41,10 +41,13 @@ class HomeNavigationState extends State<HomeNavigation> {
           icon: Icons.settings_outlined,
           onTap: () => TransactionCategoryRoutes.setting(context, account: account).pushTree(),
         ),
-        navigatorButton(
-          "导入账单",
-          icon: Icons.upload_outlined,
-          onTap: () => Navigator.pushNamed(context, TransactionImportRoutes.home),
+        Offstage(
+          offstage: false == TransactionRouterGuard.import(account: account),
+          child: navigatorButton(
+            "导入账单",
+            icon: Icons.upload_outlined,
+            onTap: () => TransactionRoutes.import(context, account: account).push(),
+          ),
         ),
         navigatorButton(
           "导出账单",
