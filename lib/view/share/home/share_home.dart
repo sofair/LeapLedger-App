@@ -112,29 +112,20 @@ class _ShareHomeState extends State<ShareHome> {
           child: BlocBuilder<ShareHomeBloc, ShareHomeState>(
             buildWhen: (_, state) => state is AccountMappingLoad,
             builder: (context, state) {
-              if (state is AccountMappingLoad) {
-                if (state.mapping != null) {
-                  // 存在关联账本
-                  return _buildNavigationCard(
-                      text: state.mapping!.relatedAccount.name,
-                      icon: state.mapping!.relatedAccount.icon,
-                      onTap: () => AccountRoutes.pushAccountMappingButtomSheet(context,
-                          mainAccount: ShareHomeBloc.account!, mapping: state.mapping!));
-                }
+              if (state is AccountMappingLoad && state.mapping != null) {
+                // 存在关联账本
+                return _buildNavigationCard(
+                    text: state.mapping!.relatedAccount.name,
+                    icon: state.mapping!.relatedAccount.icon,
+                    onTap: _clickMapping);
               }
               if (ShareHomeBloc.account != null && ShareHomeBloc.account!.isReader) {
                 // 只读权限
                 return _buildNavigationCard(
-                    text: ShareHomeBloc.account!.name,
-                    icon: Icons.receipt_long_outlined,
-                    onTap: () => CommonToast.tipToast("只读，不可关联账本"));
+                    text: ShareHomeBloc.account!.name, icon: Icons.receipt_long_outlined, onTap: _clickMapping);
               }
               // 未设置关联账本或正在加载中
-              return _buildNavigationCard(
-                  text: "关联账本",
-                  icon: Icons.receipt_long_outlined,
-                  onTap: () =>
-                      AccountRoutes.pushAccountMappingButtomSheet(context, mainAccount: ShareHomeBloc.account!));
+              return _buildNavigationCard(text: "关联账本", icon: Icons.receipt_long_outlined, onTap: _clickMapping);
             },
           ),
         ),
@@ -144,7 +135,9 @@ class _ShareHomeState extends State<ShareHome> {
           icon: Icons.settings_outlined,
           onTap: () {
             if (ShareHomeBloc.account != null) {
-              TransactionCategoryRoutes.setting(context, account: ShareHomeBloc.account!).pushTree();
+              TransactionCategoryRoutes.setting(context,
+                      account: ShareHomeBloc.account!, relatedAccount: _bloc.accountMapping?.relatedAccount)
+                  .pushTree();
             }
           },
         )),
@@ -158,6 +151,20 @@ class _ShareHomeState extends State<ShareHome> {
         )
       ],
     );
+  }
+
+  _clickMapping() async {
+    if (ShareHomeBloc.account != null &&
+        AccountRouterGuard.mapping(mainAccount: ShareHomeBloc.account!, mapping: _bloc.accountMapping)) {
+      AccountRoutes.mapping(
+        context,
+        mainAccount: ShareHomeBloc.account!,
+        mapping: _bloc.accountMapping,
+        onMappingChange: (mapping) => _bloc.add(SetAccountMappingEvent(mapping)),
+      ).showModalBottomSheet();
+    } else {
+      CommonToast.tipToast("只读，不可关联账本");
+    }
   }
 
   _buildNavigationCard({required String text, required IconData icon, VoidCallback? onTap}) {

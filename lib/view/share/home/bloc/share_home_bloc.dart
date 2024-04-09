@@ -20,6 +20,9 @@ class ShareHomeBloc extends Bloc<ShareHomeEvent, ShareHomeState> {
     on<ChangeAccountEvent>((event, emit) async {
       await _changeAccount(event.account, emit);
     });
+    on<SetAccountMappingEvent>((event, emit) async {
+      await _setAccountMapping(event.mapping, emit);
+    });
   }
   static ShareHomeBloc of(BuildContext context) {
     return BlocProvider.of<ShareHomeBloc>(context);
@@ -67,13 +70,18 @@ class ShareHomeBloc extends Bloc<ShareHomeEvent, ShareHomeState> {
     }
   }
 
-  AccountMappingModel? mapping;
+  AccountMappingModel? accountMapping;
   Future<void> _getAccountMapping(emit) async {
     if (account == null) {
       return;
     }
-    mapping = await AccountApi.getMapping(accountId: account!.id);
-    emit(AccountMappingLoad(mapping));
+    accountMapping = await AccountApi.getMapping(accountId: account!.id);
+    emit(AccountMappingLoad(accountMapping));
+  }
+
+  Future<void> _setAccountMapping(AccountMappingModel? accountMapping, emit) async {
+    this.accountMapping = accountMapping;
+    emit(AccountMappingLoad(this.accountMapping));
   }
 
   Future<void> _changeAccount(AccountDetailModel account, emit) async {

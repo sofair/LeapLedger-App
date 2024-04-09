@@ -16,3 +16,8 @@ class ChangeAccountEvent extends ShareHomeEvent {
   final AccountDetailModel account;
   ChangeAccountEvent(this.account);
 }
+
+class SetAccountMappingEvent extends ShareHomeEvent {
+  final AccountMappingModel? mapping;
+  SetAccountMappingEvent(this.mapping);
+}
