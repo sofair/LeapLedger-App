@@ -1,31 +1,19 @@
 part of 'enter.dart';
 
 class Json {
-  static DateTime dateTimeFromJson(dynamic timestamp) {
-    return DateTime.fromMillisecondsSinceEpoch(timestamp != null ? timestamp * 1000 + 28800000 : 0);
+  static String? dateTimeToJson(DateTime? dateTime) {
+    return dateTime != null ? dateTime.toUtc().toIso8601String() : null;
   }
 
-  static int dateTimeToJson(DateTime? dateTime) {
-    return dateTime != null ? dateTime.millisecondsSinceEpoch ~/ 1000 - 28800 : 0;
-  }
-
-  static DateTime? optionDateTimeFromJson(dynamic timestamp) {
-    return timestamp != null ? DateTime.fromMillisecondsSinceEpoch(timestamp * 1000 + 28800000) : null;
-  }
-
-  static int? optionDateTimeToJson(DateTime? dateTime) {
-    return dateTime != null ? dateTime.millisecondsSinceEpoch ~/ 1000 - 28800 : null;
-  }
-
-  static const _defaultIconData = Icons.payment_outlined;
+  static const defaultIconData = Icons.payment_outlined;
 
   static final Map<IconData, String> _reverseIconMap =
       Map.fromEntries(_iconMap.entries.map((entry) => MapEntry(entry.value, entry.key)));
   static IconData iconDataFormJson(dynamic iconString) {
     if (iconString == null) {
-      return _defaultIconData;
+      return defaultIconData;
     }
-    return _iconMap[iconString] ?? _defaultIconData;
+    return _iconMap[iconString] ?? defaultIconData;
   }
 
   static String iconDataToJson(IconData icon) {
@@ -71,7 +59,7 @@ const Map<String, IconData> _iconMap = {
   'content_paste': Icons.content_paste_outlined,
   'receipt_long': Icons.receipt_long_outlined,
   'auto_stories': Icons.auto_stories_outlined,
-  'restaurant': Icons.restaurant_outlined,
+  'restaurant_outlined': Icons.restaurant_outlined,
   'run_circle': Icons.run_circle_outlined,
   'home': Icons.home_outlined,
   'directions_bus': Icons.directions_bus_outlined,
@@ -84,3 +72,33 @@ const Map<String, IconData> _iconMap = {
   'luggage': Icons.luggage_outlined,
   'grid_view': Icons.grid_view_outlined,
 };
+
+class UtcDateTimeConverter implements JsonConverter<DateTime, String?> {
+  const UtcDateTimeConverter();
+
+  @override
+  DateTime fromJson(String? json) {
+    return json != null ? DateTime.parse(json).toLocal() : DateTime.now().toLocal();
+  }
+
+  @override
+  String toJson(DateTime dateTime) {
+    return dateTime.toUtc().toIso8601String();
+  }
+}
+
+class UtcTZDateTimeConverter implements JsonConverter<TZDateTime, String?> {
+  const UtcTZDateTimeConverter();
+
+  @override
+  TZDateTime fromJson(String? json) {
+    return json != null
+        ? TZDateTime.parse(getLocation(Constant.defultLocation), json)
+        : TZDateTime.now(getLocation(Constant.defultLocation));
+  }
+
+  @override
+  String toJson(TZDateTime dateTime) {
+    return dateTime.toUtc().toIso8601String();
+  }
+}

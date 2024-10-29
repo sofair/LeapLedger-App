@@ -8,123 +8,134 @@ class HeaderCard extends StatefulWidget {
 }
 
 class _HeaderCardState extends State<HeaderCard> {
+  late final FlowConditionCubit _conditionCubit;
+  late final FlowListBloc _bloc;
   @override
   void initState() {
-    var condition = BlocProvider.of<FlowConditionBloc>(context).condition;
-    dateRange = DateTimeRange(start: condition.startTime, end: condition.endTime);
+    _conditionCubit = BlocProvider.of<FlowConditionCubit>(context);
+    _bloc = BlocProvider.of<FlowListBloc>(context);
     super.initState();
   }
 
-  IncomeExpenseStatisticApiModel? data;
+  InExStatisticWithTimeModel get totalData => _bloc.total;
   @override
   Widget build(BuildContext context) {
-    return BlocListener<FlowListBloc, FlowListState>(
-      listener: (context, state) {
-        if (state is FlowListTotalDataFetched) {
-          setState(() {
-            data = state.data;
-          });
-        } else if (state is FlowListLoading) {
-          setState(() {
-            data = null;
-          });
-        }
-      },
+    return Container(
+        padding: EdgeInsets.all(Constant.padding),
+        decoration: BoxDecoration(
+          color: ConstantColor.primaryColor,
+          borderRadius: ConstantDecoration.borderRadius,
+        ),
+        child: PopScope(
+            onPopInvokedWithResult: (_, result) => _conditionCubit.sync(),
+            child: BlocBuilder<FlowListBloc, FlowListState>(
+              buildWhen: (_, state) => state is FlowListTotalDataFetched || state is FlowListLoading,
+              builder: (context, state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [_buildDateRange()]),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.all(Constant.margin),
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                AmountTextSpan.sameHeight(
+                                  totalData.income.amount - totalData.expense.amount,
+                                  dollarSign: true,
+                                  textStyle: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
+                                ),
+                                WidgetSpan(child: SizedBox(width: Constant.padding)),
+                                TextSpan(text: "结余", style: TextStyle(fontSize: ConstantFontSize.body))
+                              ],
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                    IntrinsicHeight(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          _buildTotalData("支出", totalData.expense.amount),
+                          _buildVerticalDivider(),
+                          _buildTotalData("收入", totalData.income.amount),
+                          _buildVerticalDivider(),
+                          _buildTotalData("日均支出", totalData.dayAverageExpense),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            )));
+  }
+
+  TZDateTime get startDate => _conditionCubit.condition.startTime;
+  TZDateTime get endDate => _conditionCubit.condition.endTime;
+
+  /// 时间范围
+  Widget _buildDateRange() {
+    String dateText;
+    bool isFirstSecondOfMonth = Tz.isFirstSecondOfMonth(startDate);
+    bool isLastSecondOfMonth = Tz.isLastSecondOfMonth(endDate);
+    if (isFirstSecondOfMonth && isLastSecondOfMonth) {
+      if (startDate.year == endDate.year && startDate.month == endDate.month) {
+        dateText = DateFormat('yyyy-MM').format(startDate);
+      } else {
+        dateText = '${DateFormat('yyyy-MM').format(startDate)} 至 ${DateFormat('yyyy-MM').format(endDate)}';
+      }
+    } else {
+      dateText = '${DateFormat('yyyy-MM-dd').format(startDate)} 至 ${DateFormat('yyyy-MM-dd').format(endDate)}';
+    }
+    return GestureDetector(
       child: Container(
-        margin: const EdgeInsets.only(top: Constant.margin, bottom: Constant.margin),
-        padding: const EdgeInsets.all(Constant.padding),
-        decoration: ConstantDecoration.cardDecoration,
-        child: Column(
+        padding: EdgeInsets.symmetric(horizontal: Constant.padding),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(32), color: ConstantColor.secondaryColor),
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: Constant.margin),
-              child: _buildDateRange(),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: data != null
-                  ? [
-                      _buildTotalData("支出", data!.expense.amount),
-                      _buildTotalData("收入", data!.income.amount),
-                      _buildTotalData("结余", data!.income.amount - data!.expense.amount),
-                      _buildTotalData("日均支出", data!.expense.average),
-                    ]
-                  : [
-                      _buildShimmerItem("支出", 0),
-                      _buildShimmerItem("收入", 0),
-                      _buildShimmerItem("结余", 0),
-                      _buildShimmerItem("日均支出", 0)
-                    ],
-            )
+            Text(dateText, style: TextStyle(fontSize: ConstantFontSize.bodyLarge)),
+            Icon(Icons.arrow_drop_down_outlined),
           ],
         ),
       ),
+      onTap: () async {
+        var result = await showMonthOrDateRangePickerModalBottomSheet(
+          initialValue: DateTimeRange(start: startDate, end: endDate),
+          context: context,
+        );
+        if (result != null) {
+          _conditionCubit.updateTime(startTime: result.start, endTime: result.end);
+        }
+      },
     );
   }
 
-  late DateTimeRange dateRange;
-
-  Widget _buildDateRange() {
-    String dateText;
-    var startDate = dateRange.start;
-    var endDate = dateRange.end;
-    bool isFirstSecondOfMonth = startDate == DateTime(startDate.year, startDate.month, 1, 0, 0, 0);
-    bool isLastSecondOfMonth = endDate == Time.getLastSecondOfMonth(date: endDate);
-    if (isFirstSecondOfMonth && isLastSecondOfMonth) {
-      if (startDate.year == endDate.year && startDate.month == endDate.month) {
-        dateText = DateFormat('yyyy-MM').format(dateRange.start);
-      } else {
-        dateText = '${DateFormat('yyyy-MM').format(dateRange.start)} 至 ${DateFormat('yyyy-MM').format(dateRange.end)}';
-      }
-    } else {
-      dateText =
-          '${DateFormat('yyyy-MM-dd').format(dateRange.start)} 至 ${DateFormat('yyyy-MM-dd').format(dateRange.end)}';
-    }
-    return GestureDetector(
-      onTap: () async {
-        var result = (await showMonthOrDateRangePickerModalBottomSheet(
-          initialValue: dateRange,
-          context: context,
-        ));
-        if (result != null) {
-          setState(() {
-            dateRange = result;
-            BlocProvider.of<FlowConditionBloc>(context)
-                .add(FlowConditionTimeUpdateEvent(dateRange.start, dateRange.end));
-          });
-        }
-      },
-      child: Row(
+  // 合计数据
+  Widget _buildTotalData(String title, int amount) {
+    return Text.rich(
+      TextSpan(
+        style: TextStyle(fontSize: ConstantFontSize.body),
         children: [
-          Text(
-            dateText,
-            style: const TextStyle(fontSize: 18),
-          ),
-          const Icon(Icons.arrow_drop_down_outlined),
+          TextSpan(text: title),
+          WidgetSpan(child: SizedBox(width: Constant.margin)),
+          AmountTextSpan.sameHeight(amount)
         ],
       ),
     );
   }
 
-  Widget _buildTotalData(String title, int amount) {
-    return Column(children: [
-      Text(
-        title,
-        style: const TextStyle(color: Colors.black54, fontSize: 14),
-      ),
-      SameHightAmount(
-        amount: amount,
-        textStyle: const TextStyle(color: Colors.black87, fontSize: 20),
-        dollarSign: true,
-      )
-    ]);
-  }
-
-  Widget _buildShimmerItem(String title, int amount) {
-    return Shimmer.fromColors(
-      baseColor: ConstantColor.shimmerBaseColor,
-      highlightColor: ConstantColor.shimmerHighlightColor,
-      child: _buildTotalData(title, amount),
+  Widget _buildVerticalDivider() {
+    return VerticalDivider(
+      color: Colors.black,
+      width: Constant.padding,
+      thickness: 1,
+      indent: Constant.margin / 2,
+      endIndent: Constant.margin / 2,
     );
   }
 }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/bloc/user/user_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/routes/routes.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
-import 'package:keepaccount_app/widget/toast.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:leap_ledger_app/bloc/user/user_bloc.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/routes/routes.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
+import 'package:leap_ledger_app/widget/toast.dart';
 
 class UserRegister extends StatefulWidget {
   const UserRegister({Key? key}) : super(key: key);
@@ -36,6 +37,7 @@ class UserRegisterState extends State<UserRegister> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SingleChildScrollView(
         child: BlocListener<UserBloc, UserState>(
           listener: (context, state) {
@@ -45,17 +47,17 @@ class UserRegisterState extends State<UserRegister> {
             }
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: Constant.padding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 80),
-                const Padding(
-                  padding: EdgeInsets.all(10),
+                SizedBox(height: 80.h),
+                Padding(
+                  padding: EdgeInsets.all(Constant.margin),
                   child: Text(
                     "注册",
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w500,
                       fontSize: 42,
                     ),
                   ),
@@ -77,9 +79,7 @@ class UserRegisterState extends State<UserRegister> {
                   UserAction.register,
                   formKey: emailCaptchaKey,
                 ),
-                const SizedBox(
-                  height: 70,
-                ),
+                SizedBox(height: 70.h),
                 buildSubmitButton(),
               ],
             ),
@@ -92,11 +92,11 @@ class UserRegisterState extends State<UserRegister> {
   Widget buildSubmitButton() {
     return Align(
       child: SizedBox(
-        height: 45,
-        width: 270,
+        height: 45.h,
+        width: 270.w,
         child: ElevatedButton(
           style: ButtonStyle(
-              shape: MaterialStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
+              shape: WidgetStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
           child: Text('注册', style: Theme.of(context).primaryTextTheme.headlineSmall),
           onPressed: () {
             triggerRegisterEvent();

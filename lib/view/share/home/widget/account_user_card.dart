@@ -35,17 +35,16 @@ class _AccountUserCardState extends State<AccountUserCard> {
                 itemCount: state.list.length,
               );
             }
-            return const SizedBox(
-              width: double.infinity,
-              height: 50,
-            );
+            return SizedBox(width: double.infinity, height: 50.sp);
           },
         ),
         action: Offstage(
-          offstage: false == AccountRouterGuard.userInvite(account: ShareHomeBloc.account!),
+          offstage: ShareHomeBloc.account == null
+              ? true
+              : false == AccountRouterGuard.userInvite(account: ShareHomeBloc.account!),
           child: GestureDetector(
             onTap: () => onPressedAdd(ShareHomeBloc.account!),
-            child: const Icon(Icons.add_circle_outline),
+            child: const Icon(ConstantIcon.add),
           ),
         ));
   }

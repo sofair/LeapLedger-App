@@ -8,13 +8,12 @@ final class FlowConditionInitial extends FlowConditionState {}
 final class FlowConditionLoading extends FlowConditionState {}
 
 final class FlowConditionLoaded extends FlowConditionState {
-  final TransactionQueryConditionApiModel data;
+  final TransactionQueryCondModel data;
   FlowConditionLoaded(this.data);
 }
 
 final class FlowConditionCategoryLoaded extends FlowConditionState {
-  final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> tree;
-  FlowConditionCategoryLoaded(this.tree);
+  FlowConditionCategoryLoaded();
 }
 
 final class FlowConditionAccountLoaded extends FlowConditionState {
@@ -22,7 +21,15 @@ final class FlowConditionAccountLoaded extends FlowConditionState {
   FlowConditionAccountLoaded(this.data);
 }
 
-final class FlowConditionUpdate extends FlowConditionState {
-  final TransactionQueryConditionApiModel condition;
-  FlowConditionUpdate(this.condition);
+final class FlowEditingConditionUpdate extends FlowConditionState {
+  FlowEditingConditionUpdate();
+}
+
+final class FlowConditionChanged extends FlowConditionState {
+  final TransactionQueryCondModel condition;
+  FlowConditionChanged(this.condition);
+}
+
+final class FlowCurrentAccountChanged extends FlowConditionState {
+  FlowCurrentAccountChanged();
 }

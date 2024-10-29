@@ -12,40 +12,21 @@ class UserInfoUpdateModel {
 
 ///首页接口数据模型
 class UserHomeApiModel {
-  late UserHomeHeaderCardApiModel? headerCard;
+  late InExStatisticWithTimeModel? headerCard;
   late UserHomeTimePeriodStatisticsApiModel? timePeriodStatistics;
-  UserHomeApiModel();
+  UserHomeApiModel({this.headerCard,this.timePeriodStatistics});
   factory UserHomeApiModel.fromJson(Map<String, dynamic> json) => _$UserHomeApiModelFromJson(json);
   Map<String, dynamic> toJson() => _$UserHomeApiModelToJson(this);
-}
-
-///首页头部Card接口数据模型
-@JsonSerializable(fieldRename: FieldRename.pascal)
-class UserHomeHeaderCardApiModel extends IncomeExpenseStatisticWithTimeApiModel {
-  UserHomeHeaderCardApiModel(
-      {AmountCountApiModel? income, AmountCountApiModel? expense, required super.startTime, required super.endTime})
-      : super(income: income, expense: expense);
-  int? get days => endTime.difference(startTime).inDays;
-  int get dayExpenseAmountaverage {
-    if (days == null || expense.amount <= 0) {
-      return 0;
-    }
-    return expense.amount ~/ days!;
-  }
-
-  factory UserHomeHeaderCardApiModel.fromJson(Map<String, dynamic> json) => _$UserHomeHeaderCardApiModelFromJson(json);
-  @override
-  Map<String, dynamic> toJson() => _$UserHomeHeaderCardApiModelToJson(this);
 }
 
 @JsonSerializable(fieldRename: FieldRename.pascal)
 
 ///首页时间段统计接口数据模型
 class UserHomeTimePeriodStatisticsApiModel {
-  late IncomeExpenseStatisticWithTimeApiModel todayData;
-  late IncomeExpenseStatisticWithTimeApiModel yesterdayData;
-  late IncomeExpenseStatisticWithTimeApiModel weekData;
-  late IncomeExpenseStatisticWithTimeApiModel yearData;
+  late InExStatisticWithTimeModel todayData;
+  late InExStatisticWithTimeModel yesterdayData;
+  late InExStatisticWithTimeModel weekData;
+  late InExStatisticWithTimeModel yearData;
   UserHomeTimePeriodStatisticsApiModel({
     required this.todayData,
     required this.yesterdayData,

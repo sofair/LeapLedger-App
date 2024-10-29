@@ -8,12 +8,13 @@ class UserModel {
   late String username;
   @JsonKey(defaultValue: '')
   late String email;
-  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
+  @UtcDateTimeConverter()
   late DateTime createTime;
-  @JsonKey(fromJson: Json.dateTimeFromJson, toJson: Json.dateTimeToJson)
+  @UtcDateTimeConverter()
   late DateTime updateTime;
   UserModel();
 
+  String get uniqueUsername => username + "#" + id.toString();
   bool get isValid => id > 0;
 
   factory UserModel.fromJson(Map<String, dynamic> json) => _$UserModelFromJson(json);
@@ -77,8 +78,8 @@ class UserInfoModel {
         username = other.username;
 
   Widget get avatarPainterWidget => SizedBox(
-        width: 50,
-        height: 50,
+        width: 50.sp,
+        height: 50.sp,
         child: CustomPaint(painter: CommonAvatarPainter(username: username)),
       );
 

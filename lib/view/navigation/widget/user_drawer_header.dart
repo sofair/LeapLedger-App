@@ -8,6 +8,7 @@ class UserDrawerHeader extends StatefulWidget {
 }
 
 class _UserDrawerHeaderState extends State<UserDrawerHeader> {
+  UserModel get user => UserBloc.user;
   @override
   Widget build(BuildContext context) {
     return DividerTheme(
@@ -18,81 +19,100 @@ class _UserDrawerHeaderState extends State<UserDrawerHeader> {
         decoration: const BoxDecoration(
           color: Colors.blue,
         ),
-        child: Row(
-          children: <Widget>[
-            const CircleAvatar(
-                backgroundImage: null,
-                radius: 32.0,
-                child: Icon(
-                  Icons.person,
-                  size: 32.0,
-                )),
-            const SizedBox(width: 16.0),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  BlocListener<UserBloc, UserState>(
-                      listener: (_, state) {
-                        if (state is UserUpdateInfoSuccess) {
-                          setState(() {});
-                        }
+        child: DefaultTextStyle.merge(
+          style: const TextStyle(color: Colors.white),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              CircleAvatar(
+                  backgroundImage: null, radius: 32.0.w, child: Icon(Icons.person, size: Constant.iconlargeSize)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    BlocBuilder<UserBloc, UserState>(
+                      builder: (_, state) {
+                        return buildUsername(context);
                       },
-                      child: buildUsername(context)),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    UserBloc.user.email,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14.0,
                     ),
-                  ),
-                ],
+                    _buildEmail(context, user.email)
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget buildUsername(BuildContext context) {
-    return GestureDetector(
-        onTap: () {
-          onSubmit(String value) {
-            UserInfoUpdateModel model = UserInfoUpdateModel();
-            model.username = value;
-            BlocProvider.of<UserBloc>(context).add(UserInfoUpdateEvent(model));
-          }
+    return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: GestureDetector(
+            onTap: () {
+              onSubmit(String? value) {
+                UserInfoUpdateModel model = UserInfoUpdateModel();
+                model.username = value;
+                BlocProvider.of<UserBloc>(context).add(UserInfoUpdateEvent(model));
+              }
 
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return EditDialog("编辑昵称", null, UserBloc.user.username, onSubmit);
-              });
-        },
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Text(
-              UserBloc.user.username,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
-              ),
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return CommonDialog.editOne<String>(context,
+                        fieldName: "编辑昵称", initValue: user.username, onSave: onSubmit);
+                  });
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  user.username,
+                  style: TextStyle(color: Colors.white, fontSize: 24.0, fontWeight: FontWeight.w500),
+                ),
+                GestureDetector(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: user.uniqueUsername));
+                      CommonToast.tipToast("用户名已复制");
+                    },
+                    child: Icon(Icons.copy_outlined, color: Colors.white, size: ConstantFontSize.body))
+              ],
+            )));
+  }
+
+  Widget _buildEmail(BuildContext context, String email) {
+    List<String> splitStrings = email.split("@");
+    if (splitStrings.length == 2 && email.length >= 25) {
+      return Column(
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              splitStrings[0],
+              style: TextStyle(fontSize: ConstantFontSize.body),
             ),
-            const SizedBox(
-              width: 5,
-            ),
-            const Icon(
-              Icons.edit_calendar,
-              color: Colors.white,
-              size: 18,
-            ),
-          ],
-        ));
+          ),
+          Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                "@${splitStrings[1]}",
+                style: TextStyle(fontSize: ConstantFontSize.bodySmall),
+              ))
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          Text(
+            email,
+            style: TextStyle(fontSize: ConstantFontSize.body),
+          )
+        ],
+      );
+    }
   }
 }

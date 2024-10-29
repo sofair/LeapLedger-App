@@ -1,10 +1,9 @@
 import 'package:bloc/bloc.dart';
-import 'package:keepaccount_app/api/api_server.dart';
-import 'package:keepaccount_app/bloc/user/config/user_config_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/model/transaction/model.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
+import 'package:leap_ledger_app/api/api_server.dart';
+import 'package:leap_ledger_app/bloc/user/config/user_config_bloc.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
+import 'package:leap_ledger_app/model/transaction/model.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
 import 'package:meta/meta.dart';
 
 part 'transaction_event.dart';
@@ -27,7 +26,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       return;
     }
     emit(TransactionAddSuccess(trans));
-    _handleStatisticUpdate(emit, newTrans: trans.editModel);
+    _handleStatisticUpdate(emit, newTrans: trans);
   }
 
   _handleUpdate(TransactionUpdate event, emit) async {
@@ -44,8 +43,13 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       return;
     }
     CommonToast.tipToast("编辑成功");
-    emit(TransactionUpdateSuccess(event.oldTrans, newTrans));
-    _handleStatisticUpdate(emit, oldTrans: event.oldTrans.editModel, newTrans: newTrans.editModel);
+    if (event.oldTrans.accountId != newTrans.accountId) {
+      emit(TransactionUpdateSuccess(event.oldTrans, newTrans));
+    } else {
+      emit(TransactionDeleteSuccess(event.oldTrans));
+      emit(TransactionAddSuccess(newTrans));
+    }
+    _handleStatisticUpdate(emit, oldTrans: event.oldTrans, newTrans: newTrans);
   }
 
   _handleDelete(TransactionDelete event, emit) async {
@@ -53,13 +57,13 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     if (event.trans.id == 0) {
       return;
     }
-    var response = await TransactionApi.delete(event.trans.id);
+    var response = await TransactionApi.delete(event.trans.id, accountId: event.trans.accountId);
     if (response.isSuccess == false) {
       return;
     }
     CommonToast.tipToast("删除成功");
     emit(TransactionDeleteSuccess(event.trans));
-    _handleStatisticUpdate(emit, oldTrans: event.trans.editModel);
+    _handleStatisticUpdate(emit, oldTrans: event.trans);
   }
 
   _handleStatisticUpdate(emit, {TransactionEditModel? oldTrans, TransactionEditModel? newTrans}) {
@@ -70,28 +74,14 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   }
 
   bool _verificationData(TransactionEditModel data, emit) {
-    if (data.categoryId == 0) {
-      emit(TransactionDataVerificationFails("请选择交易类型"));
+    var tip = data.check();
+    if (tip != null) {
+      emit(TransactionDataVerificationFails(tip));
       return false;
+    } else {
+      emit(TransactionDataVerificationSuccess());
+      return true;
     }
-    if (data.accountId == 0) {
-      emit(TransactionDataVerificationFails("请选择账本"));
-      return false;
-    }
-    if (data.amount <= 0) {
-      emit(TransactionDataVerificationFails("金额需大于0"));
-      return false;
-    }
-    if (data.amount > Constant.maxAmount) {
-      emit(TransactionDataVerificationFails("金额过大"));
-      return false;
-    }
-    if (data.tradeTime.year > Constant.maxYear || data.tradeTime.year < Constant.minYear) {
-      emit(TransactionDataVerificationFails("时间超过范围"));
-      return false;
-    }
-    emit(TransactionDataVerificationSuccess());
-    return true;
   }
 
   _handleShare(TransactionShare event, emit) async {

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/api/api_server.dart';
-import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/model/user/model.dart';
+import 'package:leap_ledger_app/api/api_server.dart';
+import 'package:leap_ledger_app/bloc/user/user_bloc.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
+import 'package:leap_ledger_app/model/user/model.dart';
 
 part 'account_event.dart';
 part 'account_state.dart';
@@ -10,29 +11,40 @@ part 'account_state.dart';
 class AccountBloc extends Bloc<AccountEvent, AccountState> {
   AccountBloc() : super(AccountInitial()) {
     on<AccountListFetchEvent>(_getList);
+    on<CanEditAccountListFetchEvent>(_getCanEditList);
     on<AccountSaveEvent>(_handleAccountSave);
     on<AccountDeleteEvent>(_deleteAccount);
     on<AccountTemplateListFetch>(_getTemplateList);
     on<AccountTransCategoryInit>(_useTemplateTransCategory);
   }
+
   static AccountBloc of(BuildContext context) {
     return BlocProvider.of<AccountBloc>(context);
   }
 
   //列表
-  List<AccountDetailModel> _list = [];
-  List<AccountDetailModel> get shareList => _list.where((element) => element.type == AccountType.share).toList();
+  List<AccountDetailModel> _cachelist = [];
+  int _cacheUserId = -1;
+  List<AccountDetailModel> get shareList => _cachelist.where((element) => element.type == AccountType.share).toList();
   _getList(AccountListFetchEvent event, emit) async {
-    _list = await AccountApi.getList();
-    emit(AccountListLoaded(list: _list));
+    if (_cachelist.isEmpty || _cacheUserId != UserBloc.user.id) {
+      _cacheUserId = UserBloc.user.id;
+      _cachelist = await AccountApi.getList();
+    }
+    emit(AccountListLoaded(list: _cachelist));
+  }
+
+  _getCanEditList(CanEditAccountListFetchEvent event, emit) async {
+    _cachelist = await AccountApi.getList();
+    emit(CanEditAccountListLoaded(list: _cachelist.where((element) => element.role != AccountRole.reader).toList()));
   }
 
   // 账本
   _deleteAccount(AccountDeleteEvent event, Emitter<AccountState> emit) async {
     var currentInfo = await AccountApi.delete(event.account.id);
     if (currentInfo != null) {
-      _list.removeWhere((element) => element.id == event.account.id);
-      emit(AccountListLoaded(list: _list));
+      _cachelist.removeWhere((element) => element.id == event.account.id);
+      emit(AccountListLoaded(list: _cachelist));
       emit(AccountDeleteSuccess(currentInfo));
     } else {
       emit(AccountDeleteFail());
@@ -44,10 +56,10 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       // 编辑
       var response = await AccountApi.update(event.account);
       if (response.isSuccess) {
-        int index = _list.indexWhere((element) => element.id == event.account.id);
+        int index = _cachelist.indexWhere((element) => element.id == event.account.id);
         var newAccount = AccountDetailModel.fromJson(response.data);
-        _list[index] = newAccount;
-        emit(AccountListLoaded(list: _list));
+        _cachelist[index] = newAccount;
+        emit(AccountListLoaded(list: _cachelist));
         emit(AccountSaveSuccess(newAccount));
       } else {
         emit(AccountSaveFail(event.account));
@@ -59,8 +71,8 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
         emit(AccountSaveFail(event.account));
         return;
       }
-      _list.add(newAccount);
-      emit(AccountListLoaded(list: _list));
+      _cachelist.add(newAccount);
+      emit(AccountListLoaded(list: _cachelist));
       emit(AccountSaveSuccess(newAccount));
     }
   }
@@ -79,6 +91,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     if (responseData == null) {
       return;
     }
-    emit(AccountTransCategoryInitSuccess());
+    emit(AccountTransCategoryInitSuccess(responseData));
   }
 }

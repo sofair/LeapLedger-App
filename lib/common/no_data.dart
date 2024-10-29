@@ -34,7 +34,7 @@ class NoData {
                 style: const TextStyle(color: Colors.blue),
                 recognizer: TapGestureRecognizer()
                   ..onTap = () {
-                    AccountRoutes.pushEdit(context);
+                    AccountRoutes.edit(context);
                   }),
           ],
         ));
@@ -60,7 +60,7 @@ class NoData {
                 ),
                 recognizer: TapGestureRecognizer()
                   ..onTap = () {
-                    TransactionCategoryRoutes.setting(context, account: account).pushTree();
+                    TransactionCategoryRoutes.settingNavigator(context, account: account).pushTree();
                   }),
           ],
         ));

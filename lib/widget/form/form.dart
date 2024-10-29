@@ -1,7 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:keepaccount_app/util/enter.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
+import 'package:intl/intl.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/util/enter.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
+
 part 'form_input_field.dart';
+part 'form_select_field.dart';
 part 'form_button.dart';
 part 'form_selecter.dart';
 
@@ -9,13 +14,11 @@ Widget saveButton(BuildContext context, Function(BuildContext context) submitFor
   return ElevatedButton(
     onPressed: () => submitForm(context),
     style: ElevatedButton.styleFrom(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+      padding: EdgeInsets.symmetric(vertical: Constant.padding, horizontal: Constant.padding * 2),
     ),
     child: const Text(
       '保 存',
-      style: TextStyle(
-        fontSize: 18.0,
-      ),
+      style: TextStyle(fontSize: ConstantFontSize.largeHeadline),
     ),
   );
 }

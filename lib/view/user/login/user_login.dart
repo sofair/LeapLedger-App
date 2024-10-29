@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/bloc/user/user_bloc.dart';
-import 'package:keepaccount_app/routes/routes.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:leap_ledger_app/bloc/user/user_bloc.dart';
+import 'package:leap_ledger_app/common/current.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/routes/routes.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
 
 class UserLogin extends StatefulWidget {
   const UserLogin({Key? key}) : super(key: key);
@@ -32,98 +35,107 @@ class UserLoginState extends State<UserLogin> {
   }
 
   final GlobalKey<CommonCaptchaState> captchaKey = GlobalKey();
+  bool displayCaptcha = false;
   @override
   Widget build(BuildContext context) {
-    return RawKeyboardListener(
+    return KeyboardListener(
       autofocus: true,
       focusNode: FocusNode(),
-      onKey: (RawKeyEvent event) {
-        if (event.runtimeType == RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+      onKeyEvent: (KeyEvent event) {
+        if (event.runtimeType == KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
           onPressed();
         }
       },
       child: Scaffold(
-          body: PopScope(
-        canPop: UserBloc.isLogin,
-        child: SingleChildScrollView(
-          child: BlocListener<UserBloc, UserState>(
-            listener: (context, state) {
-              if (state is UserLoginedState) {
-                if (UserBloc.currentAccount.id > 0) {
-                  Navigator.pop(context, true);
-                } else {
-                  Navigator.pushReplacementNamed(context, AccountRoutes.templateList);
+        resizeToAvoidBottomInset: false,
+        body: PopScope(
+          canPop: UserBloc.isLogin,
+          child: SingleChildScrollView(
+            child: BlocListener<UserBloc, UserState>(
+              listener: (context, state) {
+                if (state is UserLoginedState) {
+                  if (UserBloc.currentAccount.isValid) {
+                    Navigator.pop(context, true);
+                  } else {
+                    Navigator.pushReplacementNamed(context, AccountRoutes.templateList);
+                  }
                 }
-              }
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 80),
-                  const Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text(
-                      "登录",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 42,
-                      ),
+              },
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: Constant.padding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 80.h),
+                    Padding(
+                      padding: EdgeInsets.all(Constant.margin),
+                      child: Text("登录", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 42)),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    decoration: const InputDecoration(
-                      labelText: '邮箱',
+                    SizedBox(height: 20.h),
+                    TextField(decoration: const InputDecoration(labelText: '邮箱'), controller: emailController),
+                    SizedBox(height: 20.h),
+                    TextField(
+                      decoration: const InputDecoration(labelText: '密码'),
+                      controller: pwdController,
+                      obscureText: true,
+                      onTap: () => setState(() => displayCaptcha = true),
                     ),
-                    controller: emailController,
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    decoration: const InputDecoration(
-                      labelText: '密码',
+                    Offstage(offstage: !displayCaptcha, child: CommonCaptcha(key: captchaKey)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                            onPressed: () => CommonToast.tipToast("不开放注册，请点击“游客模式”"),
+                            child: const Text("注册账号")),
+                        TextButton(
+                            onPressed: () => CommonToast.tipToast("不开放注册，请点击“游客模式”"),
+                            child: const Text("忘记密码"))
+                      ],
                     ),
-                    controller: pwdController,
-                    obscureText: true,
-                  ),
-                  CommonCaptcha(
-                    key: captchaKey,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(
-                          onPressed: () => Navigator.pushNamed(context, UserRoutes.register),
-                          child: const Text("注册账号")),
-                      TextButton(
-                          onPressed: () => Navigator.pushNamed(context, UserRoutes.forgetPassword),
-                          child: const Text("忘记密码"))
-                    ],
-                  ),
-                  const SizedBox(height: 70),
-                  buildLoginButton(),
-                ],
+                    SizedBox(height: 40.h),
+                    Padding(padding: EdgeInsets.all(Constant.padding), child: _buildTourButton()),
+                    SizedBox(height: 30.h),
+                    buildLoginButton(),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      )),
+      ),
     );
   }
 
   Widget buildLoginButton() {
     return Align(
       child: SizedBox(
-        height: 45,
-        width: 270,
+        height: 36.h,
+        width: 270.w,
         child: ElevatedButton(
           style: ButtonStyle(
-              shape: MaterialStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
+              shape: WidgetStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
           onPressed: onPressed,
           child: Text('登录', style: Theme.of(context).primaryTextTheme.headlineSmall),
         ),
       ),
+    );
+  }
+
+  Widget _buildTourButton() {
+    return Offstage(
+      offstage: Current.deviceId == null,
+      child: GestureDetector(
+          onTap: () => RepositoryProvider.of<UserBloc>(context).add(UserRequestTourEvent()),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.rocket_launch_outlined, color: ConstantColor.primaryColor),
+              Text(
+                "游客模式",
+                style: TextStyle(color: ConstantColor.primaryColor),
+              ),
+            ],
+          )),
     );
   }
 

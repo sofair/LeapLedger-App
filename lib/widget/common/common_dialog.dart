@@ -54,7 +54,7 @@ class CommonDialog extends AlertDialog {
           ],
         );
       },
-    ).then((value) => isFinish = value);
+    ).then((value) => isFinish = value!);
     return isFinish;
   }
 
@@ -70,7 +70,7 @@ class CommonDialog extends AlertDialog {
           title: Text(title),
           content: content,
           actions: <Widget>[
-            TextButton(onPressed: () => Navigator.of(context).pop(getPopData()), child: const Text('取消')),
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('取消')),
             ElevatedButton(
                 onPressed: () {
                   onSave();
@@ -79,6 +79,36 @@ class CommonDialog extends AlertDialog {
                 child: const Text('确定')),
           ],
         );
+  static CommonDialog editOne<T>(BuildContext context,
+      {Key? key,
+      required void Function(T?) onSave,
+      required String fieldName,
+      required T? initValue,
+      bool autoPop = true}) {
+    return CommonDialog(
+      key: key,
+      title: Text(fieldName),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              FormInputField.general<T>(initialValue: initValue, onChanged: (value) => initValue = value)
+            ],
+          ),
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('取消')),
+        ElevatedButton(
+            onPressed: () {
+              onSave(initValue);
+              if (autoPop) Navigator.of(context).pop();
+            },
+            child: const Text('确定')),
+      ],
+    );
+  }
 }
-
-class CommonEditDialog {}

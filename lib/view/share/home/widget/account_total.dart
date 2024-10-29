@@ -1,7 +1,7 @@
 part of 'enter.dart';
 
 class AccountTotal extends StatelessWidget {
-  final IncomeExpenseStatisticApiModel todayTransTotal, monthTransTotal;
+  final InExStatisticModel todayTransTotal, monthTransTotal;
   const AccountTotal({super.key, required this.todayTransTotal, required this.monthTransTotal});
 
   @override
@@ -15,79 +15,94 @@ class AccountTotal extends StatelessWidget {
     );
   }
 
-  Widget _buildTotal(IconData icon, String text, IncomeExpenseStatisticApiModel data) {
+  Widget _buildTotal(IconData icon, String text, InExStatisticModel data) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(Constant.padding),
-        margin: const EdgeInsets.all(Constant.margin),
-        decoration: const BoxDecoration(borderRadius: ConstantDecoration.borderRadius, color: Colors.white),
+        padding: EdgeInsets.all(Constant.padding),
+        margin: EdgeInsets.all(Constant.margin),
+        decoration: BoxDecoration(borderRadius: ConstantDecoration.borderRadius, color: Colors.white),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Column(
               children: [
-                Icon(icon, size: 36, color: ConstantColor.primaryColor),
+                Icon(icon, size: Constant.iconlargeSize, color: ConstantColor.primaryColor),
                 Text(
                   text,
-                  style: const TextStyle(
-                      fontSize: ConstantFontSize.body,
-                      color: ConstantColor.greyText,
-                      letterSpacing: ConstantFontSize.letterSpacing),
+                  style: TextStyle(
+                    fontSize: ConstantFontSize.body,
+                    color: ConstantColor.greyText,
+                    letterSpacing: ConstantFontSize.letterSpacing,
+                  ),
                 ),
               ],
             ),
-            Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text.rich(
-                  TextSpan(
-                      style: const TextStyle(
-                          fontSize: ConstantFontSize.largeHeadline,
-                          fontWeight: FontWeight.bold,
-                          color: ConstantColor.expenseAmount),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const TextSpan(
-                          text: "支出  ",
-                          style: TextStyle(
-                              fontSize: ConstantFontSize.body,
-                              color: ConstantColor.greyText,
-                              fontWeight: FontWeight.normal),
-                        ),
-                        AmountTextSpan.sameHeight(data.expense.amount,
-                            dollarSign: false,
-                            displayModel: IncomeExpenseDisplayModel.color,
-                            incomeExpense: IncomeExpense.expense),
-                      ]),
+                        _buildAmount(data.expense.amount, IncomeExpense.expense),
+                        SizedBox(height: Constant.margin / 2),
+                        _buildAmount(data.income.amount, IncomeExpense.income),
+                      ],
+                    ),
+                    _buildIe()
+                  ],
                 ),
-                const SizedBox(height: Constant.margin / 2),
-                Text.rich(
-                  TextSpan(
-                      style: const TextStyle(
-                          fontSize: ConstantFontSize.largeHeadline,
-                          fontWeight: FontWeight.bold,
-                          color: ConstantColor.incomeAmount),
-                      children: [
-                        const TextSpan(
-                          text: "收入  ",
-                          style: TextStyle(
-                              fontSize: ConstantFontSize.body,
-                              color: ConstantColor.greyText,
-                              fontWeight: FontWeight.normal),
-                        ),
-                        AmountTextSpan.sameHeight(data.income.amount,
-                            dollarSign: false,
-                            displayModel: IncomeExpenseDisplayModel.color,
-                            incomeExpense: IncomeExpense.income),
-                      ]),
-                ),
-              ],
-            )
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAmount(int amount, IncomeExpense ie) {
+    return AmountText.sameHeight(
+      amount,
+      textStyle: TextStyle(
+        fontSize: ConstantFontSize.largeHeadline,
+        fontWeight: FontWeight.w500,
+      ),
+      dollarSign: false,
+      displayModel: IncomeExpenseDisplayModel.color,
+      incomeExpense: ie,
+    );
+  }
+
+  Widget _buildIe() {
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "  支",
+          style: TextStyle(
+            fontSize: ConstantFontSize.body,
+            color: ConstantColor.greyText,
+            fontWeight: FontWeight.normal,
+          ),
+        ),
+        SizedBox(height: Constant.margin / 2),
+        Text(
+          "  收",
+          style: TextStyle(
+            fontSize: ConstantFontSize.body,
+            color: ConstantColor.greyText,
+            fontWeight: FontWeight.normal,
+          ),
+        ),
+      ],
     );
   }
 }

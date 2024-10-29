@@ -74,21 +74,23 @@ class AccountApi {
     return result;
   }
 
-  static Future<AccountModel?> initTransCategoryByTempalte({
+  static Future<AccountDetailModel?> initTransCategoryByTempalte({
     required AccountModel account,
     required AccountTemplateModel template,
   }) async {
     ResponseBody response = await ApiServer.request(Method.post, '$baseUrl/${account.id}/transaction/category/init',
         data: {'TemplateId': template.id});
-    AccountModel? result;
+    AccountDetailModel? result;
     if (response.isSuccess) {
-      result = AccountModel.fromJson(response.data);
+      result = AccountDetailModel.fromJson(response.data);
     }
     return result;
   }
 
-  static Future<AccountUserModel?> updateUser({required int id, required AccountRole role}) async {
-    ResponseBody response = await ApiServer.request(Method.put, '$baseUrl/user/$id', data: {'Role': role.value});
+  static Future<AccountUserModel?> updateUser(
+      {required int id, required int accountId, required AccountRole role}) async {
+    ResponseBody response =
+        await ApiServer.request(Method.put, '$baseUrl/$accountId/user/$id', data: {'Role': role.value});
     AccountUserModel? result;
     if (response.isSuccess) {
       result = AccountUserModel.fromJson(response.data);
@@ -109,22 +111,22 @@ class AccountApi {
 
   static Future<
       ({
-        IncomeExpenseStatisticApiModel? todayTransTotal,
-        IncomeExpenseStatisticApiModel? currentMonthTransTotal,
+        InExStatisticModel? todayTransTotal,
+        InExStatisticModel? currentMonthTransTotal,
         List<TransactionModel>? recentTrans,
-      })> getUserInfo({required int id}) async {
-    ResponseBody response = await ApiServer.request(Method.get, '$baseUrl/user/$id/info', data: {
+      })> getUserInfo({required int id, required int accountId}) async {
+    ResponseBody response = await ApiServer.request(Method.get, '$baseUrl/$accountId/user/$id/info', data: {
       "Types": ['todayTransTotal', 'currentMonthTransTotal', 'recentTrans']
     });
-    IncomeExpenseStatisticApiModel? todayTotal;
-    IncomeExpenseStatisticApiModel? monthTotal;
+    InExStatisticModel? todayTotal;
+    InExStatisticModel? monthTotal;
     List<TransactionModel>? recentTrans;
     if (response.isSuccess) {
       if (response.data['TodayTransTotal'] != null) {
-        todayTotal = IncomeExpenseStatisticApiModel.fromJson(response.data['TodayTransTotal']);
+        todayTotal = InExStatisticModel.fromJson(response.data['TodayTransTotal']);
       }
       if (response.data['CurrentMonthTransTotal'] != null) {
-        monthTotal = IncomeExpenseStatisticApiModel.fromJson(response.data['CurrentMonthTransTotal']);
+        monthTotal = InExStatisticModel.fromJson(response.data['CurrentMonthTransTotal']);
       }
       if (response.data['RecentTrans'] != null && response.data['RecentTrans'] is List) {
         recentTrans = [];
@@ -143,21 +145,21 @@ class AccountApi {
   // 获取信息
   static Future<
       ({
-        IncomeExpenseStatisticApiModel? todayTransTotal,
-        IncomeExpenseStatisticApiModel? currentMonthTransTotal,
+        InExStatisticWithTimeModel? todayTransTotal,
+        InExStatisticWithTimeModel? currentMonthTransTotal,
         List<TransactionModel>? recentTrans,
       })> getInfo({required int accountId, required List<InfoType> types}) async {
     ResponseBody response =
         await ApiServer.request(Method.get, '$baseUrl/$accountId/info', data: {"Types": types.toJson()});
-    IncomeExpenseStatisticApiModel? todayTotal;
-    IncomeExpenseStatisticApiModel? monthTotal;
+    InExStatisticWithTimeModel? todayTotal;
+    InExStatisticWithTimeModel? monthTotal;
     List<TransactionModel>? recentTrans;
     if (response.isSuccess) {
       if (response.data['TodayTransTotal'] != null) {
-        todayTotal = IncomeExpenseStatisticApiModel.fromJson(response.data['TodayTransTotal']);
+        todayTotal = InExStatisticWithTimeModel.fromJson(response.data['TodayTransTotal']);
       }
       if (response.data['CurrentMonthTransTotal'] != null) {
-        monthTotal = IncomeExpenseStatisticApiModel.fromJson(response.data['CurrentMonthTransTotal']);
+        monthTotal = InExStatisticWithTimeModel.fromJson(response.data['CurrentMonthTransTotal']);
       }
       if (response.data['RecentTrans'] != null && response.data['RecentTrans'] is List) {
         recentTrans = [];
@@ -204,7 +206,7 @@ class AccountApi {
       "AccountId": accountId,
       "Invitee": inviteeId,
       "Limit": limit,
-      "offset": offset,
+      "Offset": offset,
     });
     List<AccountUserInvitationModle> result = [];
     if (response.isSuccess) {
@@ -220,7 +222,7 @@ class AccountApi {
     ResponseBody response = await ApiServer.request(Method.get, '$baseUrl/user/invitation/list', data: {
       "Invitee": UserBloc.user.id,
       "Limit": limit,
-      "offset": offset,
+      "Offset": offset,
     });
     List<AccountUserInvitationModle> result = [];
     if (response.isSuccess) {
@@ -232,7 +234,7 @@ class AccountApi {
   }
 
   static Future<AccountUserInvitationModle?> acceptInvitation(int id) async {
-    ResponseBody response = await ApiServer.request(Method.post, '$baseUrl/user/invitation/$id/accept');
+    ResponseBody response = await ApiServer.request(Method.put, '$baseUrl/user/invitation/$id/accept');
     if (response.isSuccess) {
       return AccountUserInvitationModle.fromJson(response.data);
     }
@@ -240,7 +242,7 @@ class AccountApi {
   }
 
   static Future<AccountUserInvitationModle?> refuseInvitation(int id) async {
-    ResponseBody response = await ApiServer.request(Method.post, '$baseUrl/user/invitation/$id/refuse');
+    ResponseBody response = await ApiServer.request(Method.put, '$baseUrl/user/invitation/$id/refuse');
     if (response.isSuccess) {
       return AccountUserInvitationModle.fromJson(response.data);
     }
@@ -266,17 +268,44 @@ class AccountApi {
     return null;
   }
 
-  static Future<bool> deleteMapping({required int mappingId}) async {
-    ResponseBody response = await ApiServer.request(Method.delete, '$baseUrl/mapping/$mappingId');
+  static Future<bool> deleteMapping({required int mappingId, required int accountId}) async {
+    ResponseBody response = await ApiServer.request(Method.delete, '$baseUrl/$accountId/mapping/$mappingId');
     return response.isSuccess;
   }
 
   /// 返回null表示失败
-  static Future<AccountMappingModel?> updateMapping({required int mappingId, required int relatedAccountId}) async {
-    ResponseBody response = await ApiServer.request(Method.put, '$baseUrl/mapping/$mappingId',
+  static Future<AccountMappingModel?> updateMapping({
+    required int mappingId,
+    required int accountId,
+    required int relatedAccountId,
+  }) async {
+    ResponseBody response = await ApiServer.request(Method.put, '$baseUrl/$accountId/mapping/$mappingId',
         data: {"RelatedAccountId": relatedAccountId});
     if (response.isSuccess) {
       return AccountMappingModel.fromJson(response.data);
+    }
+    return null;
+  }
+
+  /// 返回null表示失败
+  static Future<AccountUserConfigModel?> getAccountUserConfig({required int accountId}) async {
+    ResponseBody response = await ApiServer.request(Method.get, '$baseUrl/$accountId/user/config', data: {"AccountId": accountId});
+    if (response.isSuccess) {
+      return AccountUserConfigModel.fromJson(response.data);
+    }
+    return null;
+  }
+
+  /// 返回null表示失败
+  static Future<AccountUserConfigModel?> updateAccountUserConfigFlagStatus({
+    required String flagName,
+    required int accountId,
+    required bool status,
+  }) async {
+    ResponseBody response = await ApiServer.request(Method.put, '$baseUrl/$accountId/user/config/flag/$flagName',
+        data: {"AccountId": accountId, "Status": status});
+    if (response.isSuccess) {
+      return AccountUserConfigModel.fromJson(response.data);
     }
     return null;
   }

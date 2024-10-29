@@ -4,16 +4,13 @@ part of 'enter.dart';
 sealed class FlowListEvent {}
 
 class FlowListDataFetchEvent extends FlowListEvent {
-  final TransactionQueryConditionApiModel condition;
-  FlowListDataFetchEvent(this.condition);
+  final TransactionQueryCondModel? condition;
+  final AccountDetailModel account;
+  FlowListDataFetchEvent({this.condition, required this.account});
 }
 
 class FlowListMoreDataFetchEvent extends FlowListEvent {
   FlowListMoreDataFetchEvent();
-}
-
-class FlowListUpdateConditionEvent extends FlowListEvent {
-  FlowListUpdateConditionEvent();
 }
 
 class FlowListTransactionAddEvent extends FlowListEvent {

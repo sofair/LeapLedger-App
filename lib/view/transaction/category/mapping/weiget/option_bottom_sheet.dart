@@ -2,12 +2,12 @@ part of 'enter.dart';
 
 class OptionBottomSheet extends StatelessWidget {
   const OptionBottomSheet({super.key, required this.unmapped});
-  final List<BaseTransactionCategoryModel> unmapped;
+  final List<TransactionCategoryBaseModel> unmapped;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: ConstantDecoration.bottomSheetBorderRadius,
       ),
@@ -19,11 +19,11 @@ class OptionBottomSheet extends StatelessWidget {
             title: Center(
               child: Text(unmapped[index].name),
             ),
-            onTap: () => Navigator.pop<BaseTransactionCategoryModel>(context, unmapped[index]),
+            onTap: () => Navigator.pop<TransactionCategoryBaseModel>(context, unmapped[index]),
           );
         },
         separatorBuilder: (BuildContext context, int index) {
-          return const Divider(color: Colors.grey, height: 0.5, thickness: 0.5, indent: 16, endIndent: 16);
+          return Divider(color: Colors.grey, height: 0.5.sp, thickness: 0.5.sp, indent: 16.sp, endIndent: 16.sp);
         },
         itemCount: unmapped.length,
       )),

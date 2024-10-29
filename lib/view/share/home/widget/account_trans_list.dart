@@ -23,7 +23,7 @@ class _AccountTransListState extends State<AccountTransList> {
                     ListTile(
                       title: const Text("查看更多交易", textAlign: TextAlign.right),
                       trailing: const Icon(Icons.chevron_right_outlined),
-                      onTap: () => _onLookMore(account, state.list.lastOrNull),
+                      onTap: () => _onLookMore(account, state.list.firstOrNull),
                     ),
                   ],
                 ));
@@ -42,8 +42,8 @@ class _AccountTransListState extends State<AccountTransList> {
             : CommonListTile.fromTransModel(
                 list[index ~/ 2],
                 displayUser: true,
-                onTap: () =>
-                    TransactionRoutes.pushDetailBottomSheet(context, account: account, transaction: list[index ~/ 2]),
+                onTap: () => TransactionRoutes.detailNavigator(context, account: account, transaction: list[index ~/ 2])
+                    .showModalBottomSheet(),
               ),
       );
     } else {
@@ -52,14 +52,15 @@ class _AccountTransListState extends State<AccountTransList> {
   }
 
   void _onLookMore(AccountDetailModel account, TransactionModel? trans) {
-    DateTime startTime, endTime = DateTime.now();
+    TZDateTime startTime, endTime;
     if (trans == null) {
-      startTime = DateTime.now().add(const Duration(days: -7));
+      startTime = account.getNowTime().add(const Duration(days: -7));
     } else {
-      startTime = trans.tradeTime.add(const Duration(days: -7));
+      startTime = account.getTZDateTime(trans.tradeTime).add(const Duration(days: -7));
     }
+    endTime = startTime.add(const Duration(days: 7));
     TransactionRoutes.pushFlow(context,
         account: account,
-        condition: TransactionQueryConditionApiModel(accountId: account.id, startTime: startTime, endTime: endTime));
+        condition: TransactionQueryCondModel(accountId: account.id, startTime: startTime, endTime: endTime));
   }
 }

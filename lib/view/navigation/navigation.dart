@@ -1,15 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/api/model/model.dart';
-import 'package:keepaccount_app/bloc/user/user_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/routes/routes.dart';
-import 'package:keepaccount_app/util/enter.dart';
-import 'package:keepaccount_app/view/home/home.dart';
-import 'package:keepaccount_app/view/share/home/share_home.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
-import 'package:keepaccount_app/widget/dialog/enter.dart';
+import 'dart:math';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:leap_ledger_app/api/model/model.dart';
+import 'package:leap_ledger_app/bloc/user/user_bloc.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/model/transaction/model.dart';
+import 'package:leap_ledger_app/model/user/model.dart';
+import 'package:leap_ledger_app/routes/routes.dart';
+import 'package:leap_ledger_app/util/enter.dart';
+import 'package:leap_ledger_app/view/home/home.dart';
+import 'package:leap_ledger_app/view/share/home/share_home.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'bloc/navigation_bloc.dart';
 
 part 'widget/user_drawer.dart';
@@ -25,11 +29,13 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   late final NavigationBloc _bloc;
+  late final List<Widget> _pages;
+
   @override
   void initState() {
-    UserBloc.checkUserState(context);
-    _bloc = NavigationBloc(UserBloc.currentAccount);
     super.initState();
+    _bloc = NavigationBloc(account: UserBloc.currentAccount);
+    _pages = [Home(), ShareHome()];
   }
 
   @override
@@ -53,9 +59,12 @@ class _NavigationState extends State<Navigation> {
                 } else if (state is InUserHomePage) {
                   _scaffoldKey.currentState!.openEndDrawer();
                 } else if (state is InFlowPage) {
-                  var condition = TransactionQueryConditionApiModel(
-                      accountId: _bloc.account.id, startTime: Time.getFirstSecondOfMonth(), endTime: DateTime.now());
-                  TransactionRoutes.pushFlow(context, condition: condition, account: UserBloc.currentAccount);
+                  var condition = TransactionQueryCondModel(
+                    accountId: _bloc.account.id,
+                    startTime: Tz.getFirstSecondOfMonth(date: _bloc.nowTime),
+                    endTime: _bloc.nowTime,
+                  );
+                  TransactionRoutes.pushFlow(context, condition: condition, account: _bloc.account);
                 }
               },
             )
@@ -71,29 +80,23 @@ class _NavigationState extends State<Navigation> {
       body: BlocBuilder<NavigationBloc, NavigationState>(
         buildWhen: (_, state) => state is! NavigationAccountChannged,
         builder: (context, state) {
-          if (state is InHomePage) {
-            return buildPageByType(TabPage.home);
-          } else if (state is InFlowPage) {
-            var page = BlocProvider.of<NavigationBloc>(context).currentDisplayPage;
-            return buildPageByType(page);
-          } else if (state is InUserHomePage) {
-            var page = BlocProvider.of<NavigationBloc>(context).currentDisplayPage;
-            return buildPageByType(page);
-          } else if (state is InSharePage) {
-            return buildPageByType(TabPage.share);
+          var index = 0;
+          switch (_bloc.currentDisplayPage) {
+            case TabPage.home:
+              index = 0;
+              break;
+            case TabPage.share:
+              index = 1;
+              break;
+            default:
+              index = 0;
           }
-          return Container();
+          return IndexedStack(index: index, children: _pages);
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _onAdd,
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: FloatingActionButton(onPressed: _onAdd, child: Icon(Icons.add, size: Constant.iconSize)),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: const _DemoBottomAppBar(
-        fabLocation: FloatingActionButtonLocation.centerDocked,
-        shape: CircularNotchedRectangle(),
-      ),
+      bottomNavigationBar: const _BottomNavigationBar(),
       endDrawer: const UserDrawer(),
     );
   }
@@ -106,79 +109,85 @@ class _NavigationState extends State<Navigation> {
 
     TransactionRoutes.editNavigator(context, mode: TransactionEditMode.add, account: _bloc.account).push();
   }
-
-  Widget buildPageByType(TabPage page) {
-    switch (page) {
-      case TabPage.home:
-        return const Home();
-      case TabPage.share:
-        return const Center(
-          child: ShareHome(),
-        );
-      default:
-        return Container();
-    }
-  }
 }
 
-class _DemoBottomAppBar extends StatelessWidget {
-  const _DemoBottomAppBar({
-    this.fabLocation = FloatingActionButtonLocation.endDocked,
-    this.shape = const CircularNotchedRectangle(),
-  });
+class _BottomNavigationBar extends StatefulWidget {
+  const _BottomNavigationBar();
 
-  final FloatingActionButtonLocation fabLocation;
-  final NotchedShape? shape;
+  @override
+  State<_BottomNavigationBar> createState() => _BottomNavigationBarState();
+}
 
-  static final List<FloatingActionButtonLocation> centerLocations = <FloatingActionButtonLocation>[
-    FloatingActionButtonLocation.centerDocked,
-    FloatingActionButtonLocation.centerFloat,
-  ];
+class _BottomNavigationBarState extends State<_BottomNavigationBar> {
+  late NavigationBloc _bloc;
+  TabPage get _currentTab => _bloc.currentDisplayPage;
+  @override
+  void initState() {
+    _bloc = BlocProvider.of<NavigationBloc>(context);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final Color iconColor = Colors.grey.shade800;
     return BottomAppBar(
-      height: 64,
+      surfaceTintColor: Colors.white,
+      color: Colors.white,
+      shadowColor: Colors.grey,
+      height: 52.sp,
       padding: EdgeInsets.zero,
-      shape: shape,
-      color: Colors.blue,
-      notchMargin: 4,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          _textIcon('首页', Icons.home_filled, TabPage.home, () {
-            BlocProvider.of<NavigationBloc>(context).add(NavigateToHomePage());
-          }),
-          _textIcon('流水', Icons.compare_arrows, TabPage.flow, () {
-            BlocProvider.of<NavigationBloc>(context).add(NavigateToFlowPage());
-          }),
-          if (centerLocations.contains(fabLocation)) const Spacer(),
-          _textIcon('共享', Icons.people, TabPage.share, () {
-            BlocProvider.of<NavigationBloc>(context).add(NavigateToSharePage());
-          }),
-          _textIcon('我的', Icons.person, TabPage.userHome, () {
-            BlocProvider.of<NavigationBloc>(context).add(NavigateToUserHomePage());
-          }),
-        ],
+      shape: CircularNotchedRectangle(),
+      elevation: Constant.margin,
+      notchMargin: Constant.margin,
+      child: BlocBuilder<NavigationBloc, NavigationState>(
+        builder: (context, state) {
+          var children = [
+            _navigationbutton('首页',
+                unSelect: Icon(Icons.home_outlined, color: iconColor),
+                select: Icon(Icons.home, color: iconColor),
+                tabPage: TabPage.home,
+                onTap: () => _bloc.add(NavigateToHomePage())),
+            _navigationbutton('流水',
+                unSelect: Icon(Icons.compare_arrows_rounded, color: iconColor),
+                select: Icon(Icons.compare_arrows_rounded, color: iconColor),
+                tabPage: TabPage.flow,
+                onTap: () => _bloc.add(NavigateToFlowPage())),
+            const Spacer(),
+            _navigationbutton('共享',
+                unSelect: Icon(Icons.people_outline, color: iconColor),
+                select: Icon(Icons.people, color: iconColor),
+                tabPage: TabPage.share,
+                onTap: () => _bloc.add(NavigateToSharePage())),
+            _navigationbutton('我的',
+                unSelect: Icon(Icons.person_outline, color: iconColor),
+                select: Icon(Icons.person, color: iconColor),
+                tabPage: TabPage.userHome,
+                onTap: () => _bloc.add(NavigateToUserHomePage())),
+          ];
+          return DefaultTextStyle(
+            style: TextStyle(color: Colors.black54, fontSize: ConstantFontSize.body),
+            child: Row(children: children),
+          );
+        },
       ),
     );
   }
 
-  Widget _textIcon(String label, IconData icon, TabPage tabPage, Function onTap) {
+  Widget _navigationbutton(
+    String label, {
+    required Widget unSelect,
+    required Widget select,
+    required TabPage tabPage,
+    required Function onTap,
+  }) {
     return Expanded(
         child: GestureDetector(
       onTap: () => onTap(),
-      child: Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(
-          icon,
-          color: Colors.white,
-          size: 30,
-        ),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
-        )
-      ]),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [_currentTab == tabPage ? select : unSelect, Text(label)],
+      ),
     ));
   }
 }

@@ -17,25 +17,13 @@ class _AccountMenuState extends State<AccountMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<ShareHomeBloc, ShareHomeState>(
-          listenWhen: (context, state) {
-            return state is AccountHaveChanged;
-          },
-          listener: (context, state) {
-            setState(() {});
-          },
-        ),
-        BlocListener<UserBloc, UserState>(
-          listenWhen: (context, state) {
-            return state is CurrentShareAccountChanged;
-          },
-          listener: (context, state) {
-            _bloc.add(ChangeAccountEvent(UserBloc.currentShareAccount));
-          },
-        ),
-      ],
+    return BlocListener<ShareHomeBloc, ShareHomeState>(
+      listenWhen: (context, state) {
+        return state is AccountHaveChanged;
+      },
+      listener: (context, state) {
+        setState(() {});
+      },
       child: BlocBuilder<ShareHomeBloc, ShareHomeState>(
         buildWhen: (context, state) {
           return state is AccountListLoaded || state is NoShareAccount;
@@ -44,27 +32,29 @@ class _AccountMenuState extends State<AccountMenu> {
           if (state is AccountListLoaded && state.list.isEmpty || state is NoShareAccount) {
             return _buildCreateBox();
           } else if (state is AccountListLoaded) {
-            return PopupMenuButton<AccountDetailModel>(
-              itemBuilder: (context) {
-                return List.generate(
-                  state.list.length,
-                  (index) => PopupMenuItem(
-                    value: state.list[index],
-                    child: _buildAccount(state.list[index]),
+            return DefaultTextStyle.merge(
+                style: TextStyle(fontSize: ConstantFontSize.largeHeadline),
+                child: PopupMenuButton<AccountDetailModel>(
+                  itemBuilder: (context) {
+                    return List.generate(
+                      state.list.length,
+                      (index) => PopupMenuItem(
+                        value: state.list[index],
+                        child: _buildAccount(state.list[index]),
+                      ),
+                    );
+                  },
+                  initialValue: ShareHomeBloc.account,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [_buildAccount(ShareHomeBloc.account!), const Icon(Icons.arrow_drop_down_rounded)],
                   ),
-                );
-              },
-              initialValue: ShareHomeBloc.account,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [_buildAccount(ShareHomeBloc.account!), const Icon(Icons.arrow_drop_down_rounded)],
-              ),
-              onSelected: (AccountDetailModel account) {
-                _bloc.add(ChangeAccountEvent(account));
-                UserBloc.of(context).add(SetCurrentShareAccount(account));
-              },
-            );
+                  onSelected: (AccountDetailModel account) {
+                    _bloc.add(ChangeAccountEvent(account));
+                    UserBloc.of(context).add(SetCurrentShareAccount(account));
+                  },
+                ));
           }
           return const SizedBox();
         },
@@ -75,30 +65,26 @@ class _AccountMenuState extends State<AccountMenu> {
   Widget _buildAccount(AccountModel account) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(
-          account.icon,
-        ),
-        Text(
-          account.name,
-          textAlign: TextAlign.center,
-        )
+        Icon(account.icon, size: ConstantFontSize.largeHeadline),
+        SizedBox(width: Constant.margin / 2),
+        Text(account.name, textAlign: TextAlign.center)
       ],
     );
   }
 
   Widget _buildCreateBox() {
     return Container(
-        margin: const EdgeInsets.all(Constant.margin),
+        margin: EdgeInsets.all(Constant.margin),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey.shade400),
           borderRadius: ConstantDecoration.borderRadius,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(Constant.padding),
+          padding: EdgeInsets.all(Constant.padding),
           child: Column(
-            children: [Text("新建共享账本"), Icon(Icons.add_outlined)],
+            children: [Text("新建共享账本"), Icon(ConstantIcon.add)],
           ),
         ));
   }

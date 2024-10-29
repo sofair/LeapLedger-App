@@ -10,8 +10,8 @@ class UnequalHeightAmountTextSpan extends StatelessWidget {
     Key? key,
     required this.amount,
     this.title,
-    this.fontWeight = FontWeight.bold,
-    this.textStyle = const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+    this.fontWeight = FontWeight.w500,
+    this.textStyle = const TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: Colors.black),
     this.dollarSign = false,
     this.tailReduction = true,
   }) : super(key: key);
@@ -22,9 +22,8 @@ class UnequalHeightAmountTextSpan extends StatelessWidget {
     String formattedAmount = amountInDollars.toStringAsFixed(2);
     List<String> parts = formattedAmount.split('.');
     double? tailFontSize = tailReduction ? textStyle.fontSize! * 2 / 3 : textStyle.fontSize;
-    return RichText(
-      textScaler: MediaQuery.of(context).textScaler,
-      text: TextSpan(
+    return Text.rich(
+      TextSpan(
         children: [
           if (title != null)
             TextSpan(

@@ -23,7 +23,16 @@ doc/api/
 *.js.deps
 *.js.map
 
+*.log
+
 .flutter-plugins
 .flutter-plugins-dependencies
 
 .vscode/
+.idea/
+.metadata
+
+
+service/*
+!service/start.ps1
+!service/start

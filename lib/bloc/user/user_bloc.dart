@@ -1,14 +1,18 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/api/api_server.dart';
-import 'package:keepaccount_app/api/model/model.dart';
-import 'package:keepaccount_app/bloc/captcha/captcha_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/model/user/model.dart';
-import 'package:keepaccount_app/routes/routes.dart';
+import 'package:leap_ledger_app/api/api_server.dart';
+import 'package:leap_ledger_app/api/model/model.dart';
+import 'package:leap_ledger_app/bloc/account/account_bloc.dart';
+import 'package:leap_ledger_app/bloc/captcha/captcha_bloc.dart';
+import 'package:leap_ledger_app/common/current.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
+import 'package:leap_ledger_app/model/user/model.dart';
+import 'package:leap_ledger_app/routes/routes.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
 part 'user_event.dart';
 part 'user_state.dart';
 
@@ -20,8 +24,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
   static bool get isLogin => token != "" && user.isValid;
 
-  UserBloc() : super(UserInitial()) {
+  UserBloc(this._accountBloc) : super(UserInitial()) {
     getToCache();
+    parentBlocSubscription = _accountBloc.stream.listen(_accountBlocListen);
     on<SetCurrentAccount>((event, emit) async {
       await _setCurrentAccount(event.account, emit);
     });
@@ -31,6 +36,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<UserLoginEvent>(_login);
     on<UserLogoutEvent>(_logout);
     on<UserRegisterEvent>(_register);
+    on<UserRequestTourEvent>(_requestTour);
     on<UserPasswordUpdateEvent>(_updatePassword);
     on<UserInfoUpdateEvent>(_updateInfo);
     on<UpdateCurrentInfoEvent>((event, emit) async {
@@ -44,14 +50,40 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     return BlocProvider.of<UserBloc>(context);
   }
 
+  final AccountBloc _accountBloc;
+  late final StreamSubscription parentBlocSubscription;
+  _accountBlocListen(AccountState state) {
+    if (state is AccountDeleteSuccess) {
+      this.add(UpdateCurrentInfoEvent(state.currentInfo));
+    } else if (state is AccountSaveSuccess) {
+      this.add(SetCurrentAccount(state.account));
+      if (state.account.type == AccountType.independent) {
+      } else if (state.account.type == AccountType.share) {
+        this.add(SetCurrentShareAccount(state.account));
+      }
+    }
+  }
+
+  @override
+  Future<void> close() async {
+    parentBlocSubscription.cancel();
+    await super.close();
+  }
+
   void _login(UserLoginEvent event, Emitter<UserState> emit) async {
-    var bytes = utf8.encode(event.userAccount + event.password);
-    var password = sha256.convert(bytes).toString();
+    var userAccount = event.userAccount.trim();
+    var password = event.password.trim();
+    var captcha = event.captcha.trim();
+    if (userAccount.isEmpty || password.isEmpty || captcha.isEmpty) {
+      emit(UserLoginFailState("请输入"));
+    }
+    var bytes = utf8.encode(userAccount + password);
+    password = sha256.convert(bytes).toString();
     var response = await UserApi.login(
-      event.userAccount,
+      userAccount,
       password,
       CaptchaBloc.currentCaptchaId,
-      event.captcha,
+      captcha,
     );
     if (response.isSuccess) {
       UserBloc.currentAccount = AccountDetailModel.fromJson(response.data['CurrentAccount']);
@@ -72,7 +104,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     UserBloc.currentAccount = AccountDetailModel.fromJson({});
     UserBloc.currentShareAccount = AccountDetailModel.fromJson({});
     token = "";
-    UserBloc.saveToCache();
+    await UserBloc.saveToCache();
+    emit(CurrentAccountChanged());
+    emit(CurrentShareAccountChanged());
   }
 
   void _register(UserRegisterEvent event, Emitter<UserState> emit) async {
@@ -87,6 +121,25 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     } else {
       emit(UserRegisterFailState());
     }
+  }
+
+  void _requestTour(UserRequestTourEvent event, Emitter<UserState> emit) async {
+    if (Current.deviceId == null) {
+      return;
+    }
+    var response = await UserApi.requestTour(deviceNumber: Current.deviceId!);
+    if (false == response.isSuccess) {
+      CommonToast.tipToast(response.msg);
+      return;
+    };
+    UserBloc.currentAccount = AccountDetailModel.fromJson(response.data['CurrentAccount']);
+    UserBloc.currentShareAccount = AccountDetailModel.fromJson(response.data['CurrentShareAccount']);
+    token = response.data['Token'];
+    user = UserModel.fromJson(response.data['User']);
+    UserBloc.saveToCache();
+    emit(UserLoginedState());
+    emit(CurrentAccountChanged());
+    emit(CurrentShareAccountChanged());
   }
 
   void _updatePassword(UserPasswordUpdateEvent event, Emitter<UserState> emit) async {
@@ -127,16 +180,19 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
   _updateCurrentInfo(UserCurrentModel data, Emitter<UserState> emit) async {
     var needSaveCache = false;
-    if (false == data.currentAccount.isSame(currentAccount)) {
+    var isUpdateCurrent = data.currentAccount.isValid;
+    if (isUpdateCurrent && false == data.currentAccount.isSame(currentAccount)) {
       UserBloc.currentAccount = data.currentAccount.copy();
       emit(CurrentAccountChanged());
       needSaveCache = true;
     }
+
     if (false == data.currentShareAccount.isSame(currentShareAccount)) {
       UserBloc.currentShareAccount = data.currentShareAccount.copy();
       emit(CurrentShareAccountChanged());
       needSaveCache = true;
     }
+
     if (needSaveCache) {
       UserBloc.saveToCache();
     }
@@ -189,6 +245,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     user = UserModel.fromJson(prefsData['User'] ?? {});
     UserBloc.currentShareAccount = AccountDetailModel.fromJson(prefsData['CurrentShareAccount'] ?? {});
     UserBloc.currentAccount = AccountDetailModel.fromJson(prefsData['CurrentAccount'] ?? {});
+
     token = prefsData['Token'] ?? '';
   }
 

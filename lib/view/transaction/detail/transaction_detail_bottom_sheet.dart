@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:keepaccount_app/bloc/transaction/transaction_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/model/transaction/model.dart';
-import 'package:keepaccount_app/routes/routes.dart';
-import 'package:keepaccount_app/widget/amount/enter.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
+import 'package:leap_ledger_app/bloc/transaction/transaction_bloc.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
+import 'package:leap_ledger_app/model/transaction/model.dart';
+import 'package:leap_ledger_app/routes/routes.dart';
+import 'package:leap_ledger_app/widget/amount/enter.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
 
 class TransactionDetailBottomSheet extends StatefulWidget {
   const TransactionDetailBottomSheet({required this.account, this.transaction, this.transactionId, super.key})
@@ -20,10 +20,11 @@ class TransactionDetailBottomSheet extends StatefulWidget {
 }
 
 class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSheet> {
-  TransactionModel? transaction = TransactionModel();
+  TransactionModel transaction = TransactionModel.prototypeData();
   String title = "详情";
   @override
   void initState() {
+    super.initState();
     if (widget.transaction == null) {
       if (widget.transactionId != null) {
         BlocProvider.of<TransactionBloc>(context).add(TransactionDataFetch(widget.account, widget.transactionId!));
@@ -31,7 +32,6 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
     } else {
       setTransactionData(widget.transaction!);
     }
-    super.initState();
   }
 
   void setTransactionData(TransactionModel trans) {
@@ -42,11 +42,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
   @override
   Widget build(BuildContext _) {
     Widget detailWidget;
-    if (transaction != null) {
-      detailWidget = _buildDetail(transaction!);
-    } else {
-      detailWidget = const Center(child: Center(child: CircularProgressIndicator()));
-    }
+    detailWidget = _buildDetail(transaction);
 
     return BlocListener<TransactionBloc, TransactionState>(
       listener: (context, state) {
@@ -69,7 +65,7 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
             Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [_buildHeader(), detailWidget],
+              children: [_buildHeader(), detailWidget, SizedBox(height: Constant.padding)],
             ),
           ])),
     );
@@ -80,11 +76,11 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        IconButton(
-          padding: EdgeInsets.zero,
-          icon: const Icon(Icons.share_outlined),
-          onPressed: _onShare,
-        ),
+        // IconButton(
+        //   padding: EdgeInsets.zero,
+        //   icon: const Icon(Icons.share_outlined),
+        //   onPressed: _onShare,
+        // ),
       ],
     );
   }
@@ -92,93 +88,131 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
   Widget _buildHeader() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(Constant.padding),
+        padding: EdgeInsets.all(Constant.padding),
         child: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: ConstantFontSize.largeHeadline),
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: ConstantFontSize.largeHeadline),
         ),
       ),
     );
   }
 
   Widget _buildDetail(TransactionModel data) {
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      _buildListTile(
-        leading: "金额",
-        trailingWidget: Text.rich(AmountTextSpan.sameHeight(
-          data.amount,
-          textStyle: const TextStyle(fontSize: ConstantFontSize.body, fontWeight: FontWeight.bold, color: Colors.black),
-        )),
-      ),
-      ConstantWidget.divider.list,
-      _buildListTile(
-        leading: "分类",
-        trailing: data.categoryName,
-      ),
-      ConstantWidget.divider.list,
-      _buildListTile(
-        leading: "时间",
-        trailing: DateFormat("yyyy-MM-dd").format(data.tradeTime),
-      ),
-      ConstantWidget.divider.list,
-      _buildListTile(
-        leading: "账本",
-        trailing: data.accountName,
-      ),
-      ConstantWidget.divider.list,
-      _buildListTile(
-        leading: "备注",
-        trailing: data.remark.isEmpty ? "无" : data.remark,
-      ),
-      Offstage(
-        offstage: TransactionRouterGuard.edit(mode: TransactionEditMode.update, account: widget.account),
-        child: _buildButtomButtonGroup(),
-      )
-    ]);
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: Constant.margin),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        _buildListTile(
+            leading: "金额",
+            trailingWidget: Align(
+              alignment: Alignment.centerRight,
+              child: AmountText.sameHeight(
+                data.amount,
+                textStyle: TextStyle(
+                  fontSize: ConstantFontSize.body,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
+              ),
+            )),
+        ConstantWidget.divider.list,
+        _buildListTile(
+          leading: "分类",
+          trailing: data.categoryName,
+        ),
+        ConstantWidget.divider.list,
+        _buildListTile(
+          leading: "时间",
+          trailing: DateFormat.yMd().format(data.tradeTime),
+        ),
+        ConstantWidget.divider.list,
+        _buildListTile(
+          leading: "账本",
+          trailing: data.accountName,
+        ),
+        ConstantWidget.divider.list,
+        _buildListTile(
+          leading: "备注",
+          trailing: data.remark.isEmpty ? "无" : data.remark,
+        ),
+        if (data.recordType != RecordType.manual) ...[
+          ConstantWidget.divider.list,
+          _buildListTile(leading: "记录方式", trailing: data.recordType.label),
+        ],
+        if (widget.account.isShare) ...[
+          ConstantWidget.divider.list,
+          _buildListTile(leading: "记录人", trailing: data.userName),
+        ],
+        ConstantWidget.divider.list,
+        _buildListTile(
+          leading: "新建时间",
+          trailing: DateFormat.yMd().add_Hms().format(data.createTime),
+        ),
+        _buildButtomButtonGroup(TransactionRouterGuard.edit(mode: TransactionEditMode.update, account: widget.account)),
+      ]),
+    );
   }
 
   Widget _buildListTile({required String leading, String? trailing, Widget? trailingWidget}) {
     assert(trailing != null || trailingWidget != null);
-    trailingWidget ??= Text(trailing!, style: const TextStyle(fontSize: ConstantFontSize.body));
-
-    return ListTile(
-      leading: Text(leading, style: const TextStyle(fontSize: ConstantFontSize.body)),
-      trailing: trailingWidget,
+    trailingWidget ??= Text(trailing!,
+        style: TextStyle(fontSize: ConstantFontSize.body),
+        textAlign: TextAlign.right,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis);
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          flex: 3,
+          child: Padding(
+            padding: EdgeInsets.all(Constant.padding),
+            child: Text(leading, style: TextStyle(fontSize: ConstantFontSize.body)),
+          ),
+        ),
+        Expanded(
+          flex: 9,
+          child: Padding(
+            padding: EdgeInsets.all(Constant.padding),
+            child: trailingWidget,
+          ),
+        )
+      ],
     );
   }
 
-  Widget _buildButtomButtonGroup() {
+  Widget _buildButtomButtonGroup(bool canEdit) {
     return Row(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-      OutlinedButton(
-        onPressed: _onDelete,
-        style: const ButtonStyle(
-          side: MaterialStatePropertyAll<BorderSide>(BorderSide(color: ConstantColor.primaryColor)),
-        ),
-        child: const Text(
-          "删除",
-          style: TextStyle(letterSpacing: Constant.buttomLetterSpacing),
-        ),
-      ),
-      FilledButton(
-        onPressed: _onUpdate,
-        child: const Text(
-          "编辑",
-          style: TextStyle(letterSpacing: Constant.buttomLetterSpacing),
-        ),
-      )
+      Offstage(
+          offstage: false == canEdit,
+          child: OutlinedButton(
+            onPressed: _onDelete,
+            child: Text(
+              "删除",
+              style: TextStyle(letterSpacing: Constant.buttomLetterSpacing),
+            ),
+          )),
+      Offstage(
+          offstage: false == canEdit,
+          child: FilledButton(
+            onPressed: _onUpdate,
+            child: Text(
+              "编辑",
+              style: TextStyle(letterSpacing: Constant.buttomLetterSpacing),
+            ),
+          ))
     ]);
   }
 
-  handleDelete() {
-    if (transaction == null) {
+  _handleDelete() {
+    if (!transaction.isValid) {
       return;
     }
-    BlocProvider.of<TransactionBloc>(context).add(TransactionDelete(widget.account, transaction!));
-    Navigator.pop(context);
+    BlocProvider.of<TransactionBloc>(context).add(TransactionDelete(widget.account, transaction));
   }
 
   void _onDelete() {
-    CommonDialog.showDeleteConfirmationDialog(context, handleDelete).then((bool isFinish) {
+    CommonDialog.showDeleteConfirmationDialog(context, _handleDelete).then((bool isFinish) {
       if (isFinish) {
         Navigator.pop(context);
       }
@@ -187,16 +221,14 @@ class _TransactionDetailBottomSheetState extends State<TransactionDetailBottomSh
 
   _onUpdate() async {
     var page = TransactionRoutes.editNavigator(context,
-        mode: TransactionEditMode.update, account: widget.account, transaction: widget.transaction);
+        mode: TransactionEditMode.update, account: widget.account, originalTrans: widget.transaction);
     await page.push();
-    if (page.getReturn() && mounted) {
+    if (page.finish() && mounted) {
       Navigator.pop(context);
     }
   }
 
-  void _onShare() {
-    if (transaction != null) {
-      BlocProvider.of<TransactionBloc>(context).add(TransactionShare(transaction!));
-    }
-  }
+  // void _onShare() {
+  //   BlocProvider.of<TransactionBloc>(context).add(TransactionShare(transaction));
+  // }
 }

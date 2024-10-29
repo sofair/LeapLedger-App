@@ -1,40 +1,86 @@
-import 'package:bloc/bloc.dart';
-import 'package:keepaccount_app/api/api_server.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/model/transaction/category/model.dart';
+import 'package:leap_ledger_app/bloc/common/enter.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
+import 'package:leap_ledger_app/model/transaction/category/model.dart';
+import 'package:leap_ledger_app/model/transaction/model.dart';
+import 'package:leap_ledger_app/model/user/model.dart';
+import 'package:leap_ledger_app/widget/toast.dart';
 import 'package:meta/meta.dart';
 
 part 'edit_event.dart';
 part 'edit_state.dart';
 
-class EditBloc extends Bloc<EditEvent, EditState> {
-  EditBloc(this.account) : super(EditInitial()) {
-    on<EditDataFetch>(_fetchData);
-    on<TransactionCategoryFetch>(_fetchTransactionCategory);
-    on<AccountChange>(_changeAccount);
-  }
-  AccountModel account;
-  _fetchData(EditDataFetch event, emit) async {}
-
-  _fetchTransactionCategory(TransactionCategoryFetch event, emit) async {
-    List<TransactionCategoryModel> list;
-    list = await ApiServer.getData(
-      () => TransactionCategoryApi.getTree(type: event.type),
-      TransactionCategoryApi.dataFormatFunc.getCategoryListByTree,
-    );
-    if (event.type == IncomeExpense.expense) {
-      emit(ExpenseCategoryPickLoaded(list));
-    } else {
-      emit(IncomeCategoryPickLoaded(list));
+class EditBloc extends AccountBasedBloc<EditEvent, EditState> {
+  EditBloc(
+      {required this.user,
+      required super.account,
+      required this.mode,
+      TransactionModel? trans,
+      TransactionInfoModel? transInfo})
+      : super(EditInitial()) {
+    switch (mode) {
+      case TransactionEditMode.add:
+        canAgain = true;
+        this.transInfo = transInfo ?? TransactionInfoModel.prototypeData()
+          ..setUser(user)
+          ..setAccount(account);
+        break;
+      case TransactionEditMode.update:
+        assert(mode == TransactionEditMode.update && trans != null);
+        canAgain = false;
+        _originalTrans = trans!;
+        this.transInfo = _originalTrans!.copyWith();
+        break;
+      case TransactionEditMode.popTrans:
+        canAgain = false;
+        this.transInfo = transInfo ?? TransactionInfoModel.prototypeData()
+          ..setUser(user)
+          ..setAccount(account);
+        break;
     }
-  }
 
-  _changeAccount(AccountChange event, emit) {
-    if (account.id == event.account.id) {
+    on<AccountChange>(_changeAccount);
+    on<TransactionSave>(_save);
+  }
+  UserModel user;
+  late TransactionInfoModel transInfo;
+  late TransactionModel? _originalTrans;
+
+  TransactionEditMode mode;
+  bool canAgain = false;
+
+  _changeAccount(AccountChange event, emit) async {
+    if (mode == TransactionEditMode.popTrans || account.id == event.account.id) {
       return;
     }
-    account.copyWith(event.account);
-    emit(AccountChanged(account));
+    account = event.account;
+    transInfo.setAccount(account);
+    emit(AccountChanged());
+  }
+
+  _save(TransactionSave event, emit) {
+    if (event.amount != null) transInfo.amount = event.amount!;
+    if (event.ie != null) transInfo.incomeExpense = event.ie!;
+    var newTrans = transInfo.copyWith();
+    var checkTip = newTrans.check();
+    if (checkTip != null) {
+      tipToast(checkTip);
+      return;
+    }
+    switch (mode) {
+      case TransactionEditMode.update:
+        emit(UpdateTransaction(_originalTrans!, newTrans));
+        break;
+      case TransactionEditMode.add:
+        canAgain = event.isAgain;
+        if (canAgain) {
+          transInfo.amount = 0;
+        }
+        emit(AddNewTransaction(newTrans));
+        break;
+      case TransactionEditMode.popTrans:
+        emit(PopTransaction(newTrans));
+        break;
+    }
   }
 }

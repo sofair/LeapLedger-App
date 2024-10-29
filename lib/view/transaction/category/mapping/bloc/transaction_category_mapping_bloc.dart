@@ -1,12 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:keepaccount_app/api/api_server.dart';
-import 'package:keepaccount_app/api/model/model.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/model/common/common.dart';
-import 'package:keepaccount_app/model/product/model.dart';
-import 'package:keepaccount_app/model/transaction/category/model.dart';
+import 'package:leap_ledger_app/api/api_server.dart';
+import 'package:leap_ledger_app/api/model/model.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
+import 'package:leap_ledger_app/model/common/model.dart';
+import 'package:leap_ledger_app/model/product/model.dart';
+import 'package:leap_ledger_app/model/transaction/category/model.dart';
 import 'package:meta/meta.dart';
 
 part 'transaction_category_mapping_event.dart';
@@ -33,7 +33,7 @@ abstract class TransactionCategoryMappingBloc<T>
     });
   }
 
-  List<BaseTransactionCategoryModel> unmapped = [];
+  List<TransactionCategoryBaseModel> unmapped = [];
 
   late List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>>? _parentCategoryTree;
   late List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> expenseCategoryTree;
@@ -66,7 +66,7 @@ abstract class TransactionCategoryMappingBloc<T>
 class AccountTransactionCategoryMappingBloc extends TransactionCategoryMappingBloc<TransactionCategoryModel> {
   final AccountDetailModel childAccount;
   AccountDetailModel get parentAccount => super.account;
-  Map<int, List<BaseTransactionCategoryModel>> relation = {};
+  Map<int, List<TransactionCategoryBaseModel>> relation = {};
 
   AccountTransactionCategoryMappingBloc(
       {required this.childAccount,
@@ -80,20 +80,20 @@ class AccountTransactionCategoryMappingBloc extends TransactionCategoryMappingBl
     // 获取
     List<TransactionCategoryMappingTreeNodeApiModel> tree = [];
     List<Future<void>> waitGroup = [
-      Future<void>(() async => tree = await TransactionCategoryApi.getCategoryMappingTree(
-          parentAccountId: parentAccount.id, childAccountId: childAccount.id))
+      Future<void>(() async => tree =
+          await CategoryApi.getCategoryMappingTree(parentAccountId: parentAccount.id, childAccountId: childAccount.id))
     ];
     if (childCategoryList == null) waitGroup.add(getList());
     if (parentCategoryTree == null) waitGroup.add(getParentCategoryTree());
     await Future.wait(waitGroup);
     // 处理
-    Map<int, BaseTransactionCategoryModel> unmappedMap = {};
-    for (BaseTransactionCategoryModel item in childCategoryList!) {
+    Map<int, TransactionCategoryBaseModel> unmappedMap = {};
+    for (TransactionCategoryBaseModel item in childCategoryList!) {
       unmappedMap[item.id] = item;
     }
     if (tree.isNotEmpty) {
       for (var father in tree) {
-        List<BaseTransactionCategoryModel> child = [];
+        List<TransactionCategoryBaseModel> child = [];
         for (var childId in father.childrenIds) {
           if (unmappedMap[childId] != null) {
             child.add(unmappedMap[childId]!);
@@ -108,19 +108,23 @@ class AccountTransactionCategoryMappingBloc extends TransactionCategoryMappingBl
   }
 
   getParentCategoryTree() async => parentCategoryTree = await ApiServer.getData(
-        () => TransactionCategoryApi.getTree(accountId: parentAccount.id),
-        TransactionCategoryApi.dataFormatFunc.getTreeDataToList,
+        () => CategoryApi.getTree(accountId: parentAccount.id),
+        CategoryApi.dataFormatFunc.getTreeDataToList,
       );
 
   @override
   getList() async => childCategoryList = await ApiServer.getData(
-        () => TransactionCategoryApi.getTree(accountId: childAccount.id),
-        TransactionCategoryApi.dataFormatFunc.getCategoryListByTree,
+        () => CategoryApi.getTree(accountId: childAccount.id),
+        CategoryApi.dataFormatFunc.getCategoryListByTree,
       );
 
   @override
   mapping(TransactionCategoryMappingAddEvent event, Emitter<TransactionCategoryMappingState> emit) async {
-    bool isSuccess = await TransactionCategoryApi.mappingCategory(parentId: event.parent.id, childId: event.child.id);
+    bool isSuccess = await CategoryApi.mappingCategory(
+      parentId: event.parent.id,
+      childId: event.child.id,
+      accountId: event.parent.accountId,
+    );
     if (isSuccess) {
       if (relation[event.parent.id] != null) {
         relation[event.parent.id]?.add(event.child);
@@ -135,8 +139,11 @@ class AccountTransactionCategoryMappingBloc extends TransactionCategoryMappingBl
 
   @override
   deleteMapping(TransactionCategoryMappingDeleteEvent event, Emitter<TransactionCategoryMappingState> emit) async {
-    bool isSuccess =
-        await TransactionCategoryApi.deleteCategoryMapping(parentId: event.parent.id, childId: event.child.id);
+    bool isSuccess = await CategoryApi.deleteCategoryMapping(
+      parentId: event.parent.id,
+      childId: event.child.id,
+      accountId: event.parent.accountId,
+    );
     if (isSuccess) {
       if (relation[event.parent.id] != null) {
         relation[event.parent.id]?.removeWhere((element) => event.child.id == element.id);
@@ -172,21 +179,21 @@ class ProductTransactionCategoryMappingBloc extends TransactionCategoryMappingBl
 
   final ProductModel product;
   //交易类型id与产品交易类型关联
-  Map<int, List<BaseTransactionCategoryModel>> relation = {};
+  Map<int, List<TransactionCategoryBaseModel>> relation = {};
 
   @override
   load(TransactionCategoryMappingLoadEvent event, Emitter<TransactionCategoryMappingState> emit) async {
-    ResponseBody treeResponse = await ProductApi.getCategorymappingTree(product.uniqueKey);
+    ResponseBody treeResponse = await ProductApi.getCategorymappingTree(product.uniqueKey, accountId: account.id);
     if (childCategoryList == null) {
       await getList();
     }
     if (treeResponse.isSuccess) {
-      Map<int, BaseTransactionCategoryModel> unmappedMap = {};
-      for (BaseTransactionCategoryModel ptc in childCategoryList!) {
+      Map<int, TransactionCategoryBaseModel> unmappedMap = {};
+      for (TransactionCategoryBaseModel ptc in childCategoryList!) {
         unmappedMap[ptc.id] = ptc;
       }
       relation = {};
-      List<BaseTransactionCategoryModel> child;
+      List<TransactionCategoryBaseModel> child;
       if (treeResponse.data['Tree'] != null) {
         for (Map<String, dynamic> data in treeResponse.data['Tree']) {
           child = [];

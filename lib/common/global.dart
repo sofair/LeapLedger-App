@@ -1,10 +1,15 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:keepaccount_app/config/config.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/routes/routes.dart';
-import 'package:keepaccount_app/util/enter.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:leap_ledger_app/config/config.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
+import 'package:leap_ledger_app/routes/routes.dart';
+import 'package:leap_ledger_app/util/enter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 part 'constant.dart';
 part 'no_data.dart';
@@ -16,28 +21,21 @@ class Global {
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   static final GlobalKey<OverlayState> overlayKey = GlobalKey<OverlayState>();
   static OverlayEntry? overlayEntry;
-  // 是否为release版
   static bool get isRelease => const bool.fromEnvironment("dart.vm.product");
-  //初始化全局信息，会在APP启动时执行
+  static late final Directory tempDirectory;
+  static DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
   static Future init() async {
     config.init();
-  }
-
-  static void showOverlayLoader() {
-    EasyLoading.show(status: 'Loading...');
-  }
-
-  static void hideOverlayLoader() {
-    EasyLoading.dismiss(); // Hide the loading indicator
-  }
-
-  static bool isShowOverlayLoader() {
-    return EasyLoading.isShow; // Hide the loading indicator
+    getTemporaryDirectory().then((dir) {
+      tempDirectory = dir;
+    });
   }
 }
 
 enum IncomeExpense {
+  @JsonValue("income")
   income(label: "收入"),
+  @JsonValue("expense")
   expense(label: "支出");
 
   final String label;
@@ -46,12 +44,18 @@ enum IncomeExpense {
   });
 }
 
-// ignore: constant_identifier_names
-const INCOME = "income", EXPENSE = "expense";
-
 enum UserAction { register, updatePassword, forgetPassword }
 
-enum TransactionEditMode { add, update }
+enum TransactionEditMode { add, update, popTrans }
+
+enum DateType {
+  @JsonValue("day")
+  day,
+  @JsonValue("month")
+  month,
+  @JsonValue("year")
+  year
+}
 
 //信息类型 常用于接口数据提交
 enum InfoType { todayTransTotal, currentMonthTransTotal, recentTrans }

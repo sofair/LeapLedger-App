@@ -3,17 +3,14 @@ part of 'edit_bloc.dart';
 @immutable
 sealed class EditEvent {}
 
-class EditDataFetch extends EditEvent {
-  final AccountModel account;
-  EditDataFetch(this.account);
-}
-
-class TransactionCategoryFetch extends EditEvent {
-  final IncomeExpense type;
-  TransactionCategoryFetch(this.type);
-}
-
 class AccountChange extends EditEvent {
-  final AccountModel account;
+  final AccountDetailModel account;
   AccountChange(this.account);
+}
+
+class TransactionSave extends EditEvent {
+  final bool isAgain;
+  final int? amount;
+  final IncomeExpense? ie;
+  TransactionSave(this.isAgain, {this.amount, this.ie});
 }

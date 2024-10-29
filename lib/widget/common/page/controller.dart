@@ -61,6 +61,11 @@ class CommonPageController<T> extends ChangeNotifier {
     _changeState(PageState.loaded);
   }
 
+  addNewItemInHeader(T item) {
+    list.insert(0, item);
+    _changeState(PageState.loaded);
+  }
+
   bool updateListItemWhere(bool Function(T item) find, T item) {
     var index = list.indexWhere((element) => find(element));
     if (index >= 0) {
@@ -85,6 +90,11 @@ class CommonPageController<T> extends ChangeNotifier {
     }
     _list.addAll(list);
     _changeState(PageState.loaded);
+  }
+
+  removeWhere(bool test(T element)) {
+    _list.removeWhere(test);
+    notifyListeners();
   }
 
   _changeState(PageState newState) {

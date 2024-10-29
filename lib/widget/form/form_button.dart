@@ -9,9 +9,7 @@ class FormButton {
       ),
       child: const Text(
         '保 存',
-        style: TextStyle(
-          fontSize: 18.0,
-        ),
+        style: TextStyle(fontSize: ConstantFontSize.largeHeadline),
       ),
     );
   }
@@ -27,12 +25,9 @@ class FormButton {
             borderRadius: BorderRadius.circular(10.0),
           ),
         ),
-        child: const Text(
-          '保 存',
-          style: TextStyle(
-            fontSize: 18.0,
-            fontWeight: FontWeight.bold,
-          ),
+        child: Text(
+          '保存',
+          style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w500, letterSpacing: Constant.margin / 2),
         ),
       ),
     );
@@ -40,18 +35,17 @@ class FormButton {
 
   static Widget mediumElevatedBtn(BuildContext context, String text, Function() submitForm) {
     return SizedBox(
-      width: 250,
+      width: double.infinity,
       child: ElevatedButton(
-        style: ButtonStyle(
-            shape: MaterialStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
+        style:
+            ButtonStyle(shape: WidgetStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
         onPressed: () {
           submitForm();
         },
         child: Text(
           text,
           style: TextStyle(
-            fontSize: Theme.of(context).primaryTextTheme.titleMedium!.fontSize,
-          ),
+              fontSize: Theme.of(context).primaryTextTheme.titleMedium!.fontSize, letterSpacing: Constant.margin / 2),
         ),
       ),
     );

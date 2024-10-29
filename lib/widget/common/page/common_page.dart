@@ -54,7 +54,6 @@ class _CommonPageListState<T> extends State<CommonPageList<T>> with SingleTicker
 
   bool scrollToTop = false;
   bool get canScroll => _scrollController.position.maxScrollExtent > _scrollController.position.viewportDimension;
-  bool startDrag = false;
   double lastDy = 0;
   @override
   Widget build(BuildContext context) {
@@ -137,14 +136,14 @@ class _CommonPageListState<T> extends State<CommonPageList<T>> with SingleTicker
   }
 
   Widget _buildNoData() {
-    return const SliverToBoxAdapter(
-      child: SizedBox(height: 64, child: Center(child: NoData.commonWidget)),
+    return SliverToBoxAdapter(
+      child: SizedBox(height: 64.sp, child: Center(child: NoData.commonWidget)),
     );
   }
 
   Widget _buildLoading() {
     return SliverToBoxAdapter(
-      child: RefreshAnimation(key: _refreshAnimationKey, height: 78),
+      child: RefreshAnimation(key: _refreshAnimationKey, height: 78.sp),
     );
   }
 }

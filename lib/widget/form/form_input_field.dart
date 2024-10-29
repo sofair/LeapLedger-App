@@ -2,21 +2,32 @@ part of 'form.dart';
 
 class FormInputField {
   static Widget string(String fieldName, String initialValue, void Function(String)? onChanged) {
-    return TextFormField(
-      initialValue: initialValue,
-      decoration: InputDecoration(
-        labelText: fieldName,
-        border: const OutlineInputBorder(),
-
-        // You can further style the input here
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: Constant.margin, horizontal: Constant.padding),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+              child: TextFormField(
+            textAlignVertical: TextAlignVertical.center,
+            initialValue: initialValue,
+            decoration: InputDecoration(
+              labelText: fieldName,
+              border: const OutlineInputBorder(),
+            ),
+            maxLength: 6,
+            onChanged: onChanged,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return '请输入一个$fieldName';
+              }
+              return null;
+            },
+          ))
+        ],
       ),
-      onChanged: onChanged,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '请输入一个$fieldName';
-        }
-        return null;
-      },
     );
   }
 
@@ -29,7 +40,6 @@ class FormInputField {
     InputDecoration? decoration,
     bool enabled = true,
   }) {
-    assert(decoration == null || fieldName == null);
     late final T? Function(String? value) handleValue;
     late final String? initialValueString;
     late final TextInputType type;
@@ -61,10 +71,12 @@ class FormInputField {
       initialValue: initialValueString,
       keyboardType: type,
       decoration: decoration ??
-          InputDecoration(
-            labelText: fieldName,
-            border: const OutlineInputBorder(),
-          ),
+          (fieldName != null
+              ? InputDecoration(
+                  labelText: fieldName,
+                  border: const OutlineInputBorder(),
+                )
+              : null),
       onChanged: (String? value) {
         if (onChanged != null) {
           onChanged(handleValue(value));
@@ -86,29 +98,35 @@ class FormInputField {
 
   static Widget searchInput({
     void Function(String?)? onChanged,
+    void Function(String?)? onSubmitted,
     void Function(String?)? onSave,
   }) {
-    return Row(
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        const Text("搜索："),
-        Expanded(
-            child: TextFormField(
-          decoration: const InputDecoration(
-            border: UnderlineInputBorder(), // 添加边框
-          ),
-          onChanged: (String? value) {
-            if (onChanged != null) {
-              onChanged(value);
-            }
-          },
-          onSaved: (String? value) {
-            if (onSave != null) {
-              onSave(value);
-            }
-          },
-        ))
-      ],
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: Constant.margin),
+      margin: EdgeInsets.only(right: Constant.margin),
+      decoration: BoxDecoration(color: ConstantColor.greyBackground, borderRadius: ConstantDecoration.borderRadius),
+      child: TextFormField(
+        decoration: InputDecoration(
+          icon: Icon(Icons.search_rounded),
+          border: InputBorder.none,
+        ),
+        textInputAction: TextInputAction.search,
+        onChanged: (String? value) {
+          if (onChanged != null) {
+            onChanged(value);
+          }
+        },
+        onFieldSubmitted: (String? value) {
+          if (onSubmitted != null) {
+            onSubmitted(value);
+          }
+        },
+        onSaved: (String? value) {
+          if (onSave != null) {
+            onSave(value);
+          }
+        },
+      ),
     );
   }
 }

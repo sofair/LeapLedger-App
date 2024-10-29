@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'package:keepaccount_app/api/api_server.dart';
-import 'package:keepaccount_app/model/account/model.dart';
+import 'package:leap_ledger_app/api/api_server.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
 import 'package:meta/meta.dart';
 
 part 'account_mapping_state.dart';
@@ -21,11 +21,11 @@ class AccountMappingCubit extends Cubit<AccountMappingState> {
 
   changeMapping(AccountDetailModel account) async {
     if (isCurrentMappingAccount(account)) {
-      var isSuccess = await AccountApi.deleteMapping(mappingId: mapping!.id);
+      var isSuccess = await AccountApi.deleteMapping(mappingId: mapping!.id, accountId: account.id);
       if (false == isSuccess) {
         return;
       }
-      mapping == null;
+      mapping = null;
     } else if (mapping == null) {
       var mapping = await AccountApi.createMapping(mainAccountId: mainAccount.id, relatedAccountId: account.id);
       if (mapping == null) {
@@ -33,7 +33,8 @@ class AccountMappingCubit extends Cubit<AccountMappingState> {
       }
       this.mapping = mapping;
     } else {
-      var mapping = await AccountApi.updateMapping(mappingId: this.mapping!.id, relatedAccountId: account.id);
+      var mapping = await AccountApi.updateMapping(
+          mappingId: this.mapping!.id, accountId: account.id, relatedAccountId: account.id);
       if (mapping == null) {
         return;
       }

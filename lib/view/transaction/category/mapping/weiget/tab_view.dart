@@ -37,14 +37,19 @@ class _TabViewState extends State<TabView> with AutomaticKeepAliveClientMixin {
       builder: (context, state) {
         if (state is TransactionCategoryMappingLoaded) {
           return Container(
-            padding: const EdgeInsets.all(Constant.padding),
             color: ConstantColor.greyBackground,
             child: CustomScrollView(
               slivers: <Widget>[
                 SliverToBoxAdapter(
-                  child: HeaderCard(state.unmapped),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(Constant.padding, Constant.padding, Constant.padding, 0),
+                    child: HeaderCard(state.unmapped),
+                  ),
                 ),
-                buildList(state.relation),
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: Constant.padding),
+                  sliver: buildList(state.relation),
+                ),
               ],
             ),
           );
@@ -55,7 +60,7 @@ class _TabViewState extends State<TabView> with AutomaticKeepAliveClientMixin {
   }
 
   Widget buildList(
-    Map<int, List<BaseTransactionCategoryModel>> relation,
+    Map<int, List<TransactionCategoryBaseModel>> relation,
   ) {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
@@ -67,7 +72,7 @@ class _TabViewState extends State<TabView> with AutomaticKeepAliveClientMixin {
   Widget buildCategoryGroup(
     TransactionCategoryFatherModel father,
     List<TransactionCategoryModel> childList,
-    Map<int, List<BaseTransactionCategoryModel>> relation,
+    Map<int, List<TransactionCategoryBaseModel>> relation,
   ) {
     List<Widget> childrenWidget = [];
 
@@ -76,13 +81,13 @@ class _TabViewState extends State<TabView> with AutomaticKeepAliveClientMixin {
       childrenWidget.add(buildCategory(childList[i], relation[childList[i].id]));
     }
     return Padding(
-      padding: const EdgeInsets.only(top: Constant.margin),
+      padding: EdgeInsets.only(top: Constant.margin),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(padding: const EdgeInsets.all(Constant.margin), child: Text(father.name)),
+          Padding(padding: EdgeInsets.all(Constant.margin), child: Text(father.name)),
           Container(
-            padding: const EdgeInsets.all(Constant.padding),
+            padding: EdgeInsets.all(Constant.padding),
             width: double.infinity,
             decoration: ConstantDecoration.cardDecoration,
             child: Column(
@@ -95,7 +100,7 @@ class _TabViewState extends State<TabView> with AutomaticKeepAliveClientMixin {
 
   Widget buildCategory(
     TransactionCategoryModel category,
-    List<BaseTransactionCategoryModel>? relation,
+    List<TransactionCategoryBaseModel>? relation,
   ) {
     var textSize = (TextPainter(
             text: const TextSpan(text: "测试文字"),
@@ -105,7 +110,7 @@ class _TabViewState extends State<TabView> with AutomaticKeepAliveClientMixin {
           ..layout())
         .size;
     return ListTile(
-        contentPadding: const EdgeInsets.all(0),
+        contentPadding: EdgeInsets.zero,
         minVerticalPadding: 0,
         dense: true,
         leading: Row(
@@ -125,39 +130,40 @@ class _TabViewState extends State<TabView> with AutomaticKeepAliveClientMixin {
               (index) => GestureDetector(
                   onTap: () => onDelete(category, relation[index]),
                   child: Chip(
-                    label: Text(relation![index].name, style: const TextStyle(fontSize: ConstantFontSize.bodySmall)),
-                    padding: const EdgeInsets.all(0),
-                    shape: const RoundedRectangleBorder(
+                    label: Text(relation![index].name, style: TextStyle(fontSize: ConstantFontSize.bodySmall)),
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
                       borderRadius: ConstantDecoration.borderRadius,
                     ),
                     backgroundColor: ConstantColor.greyButton,
                   ))),
         ),
         trailing: GestureDetector(
-          child: const Icon(Icons.add_circle_outline),
+          child: const Icon(ConstantIcon.add),
           onTap: () => onSelect(category),
         ));
   }
 
   _showCustomModalBottomSheet(
-      BuildContext context, List<BaseTransactionCategoryModel> unmapped, TransactionCategoryModel model) async {
+      BuildContext context, List<TransactionCategoryBaseModel> unmapped, TransactionCategoryModel model) async {
     return showModalBottomSheet(
       context: context,
       builder: (_) {
         return OptionBottomSheet(unmapped: unmapped);
       },
     ).then((value) {
-      if (value is BaseTransactionCategoryModel) {
+      if (value is TransactionCategoryBaseModel) {
         BlocProvider.of<TransactionCategoryMappingBloc>(context).add(TransactionCategoryMappingAddEvent(model, value));
       }
     });
   }
 
   onSelect(TransactionCategoryModel model) {
-    _showCustomModalBottomSheet(context, _bloc.unmapped, model);
+    _showCustomModalBottomSheet(
+        context, _bloc.unmapped.where((element) => element.incomeExpense == widget.type).toList(), model);
   }
 
-  onDelete(TransactionCategoryModel category, BaseTransactionCategoryModel prc) {
+  onDelete(TransactionCategoryModel category, TransactionCategoryBaseModel prc) {
     BlocProvider.of<TransactionCategoryMappingBloc>(context).add(TransactionCategoryMappingDeleteEvent(category, prc));
   }
 }

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/bloc/user/user_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
-import 'package:keepaccount_app/widget/toast.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:leap_ledger_app/bloc/user/user_bloc.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
+import 'package:leap_ledger_app/widget/toast.dart';
 
 class UserPasswordUpdate extends StatefulWidget {
   const UserPasswordUpdate({Key? key}) : super(key: key);
@@ -31,6 +32,7 @@ class UserPasswordUpdateState extends State<UserPasswordUpdate> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('修改密码'),
       ),
@@ -58,9 +60,7 @@ class UserPasswordUpdateState extends State<UserPasswordUpdate> {
                   controller: pwdController,
                   obscureText: true,
                 ),
-                const SizedBox(
-                  height: 70,
-                ),
+                SizedBox(height: 70.h),
                 buildSubmitButton(),
               ],
             ),
@@ -73,11 +73,11 @@ class UserPasswordUpdateState extends State<UserPasswordUpdate> {
   Widget buildSubmitButton() {
     return Align(
       child: SizedBox(
-        height: 45,
-        width: 270,
+        height: 45.h,
+        width: 270.w,
         child: ElevatedButton(
           style: ButtonStyle(
-              shape: MaterialStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
+              shape: WidgetStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
           child: Text('修改', style: Theme.of(context).primaryTextTheme.headlineSmall),
           onPressed: () {
             triggerUpdateEvent();

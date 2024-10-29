@@ -12,6 +12,12 @@ class AccountListLoaded extends AccountState {
   AccountListLoaded({required this.list});
 }
 
+class CanEditAccountListLoaded extends AccountState {
+  final List<AccountDetailModel> list;
+
+  CanEditAccountListLoaded({required this.list});
+}
+
 class ShareAccountListLoaded extends AccountState {
   final List<AccountModel> list;
 
@@ -47,5 +53,6 @@ final class AccountTemplateListLoaded extends AccountState {
 }
 
 final class AccountTransCategoryInitSuccess extends AccountState {
-  AccountTransCategoryInitSuccess();
+  final AccountDetailModel account;
+  AccountTransCategoryInitSuccess(this.account);
 }

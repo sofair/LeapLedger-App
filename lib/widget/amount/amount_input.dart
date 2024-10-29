@@ -1,30 +1,37 @@
 part of 'enter.dart';
 
 class AmountInput extends StatelessWidget {
-  static const InputDecoration defaultDecoration = InputDecoration(
+  static InputDecoration defaultDecoration = InputDecoration(
     contentPadding: EdgeInsets.all(Constant.padding),
     prefixText: "￥",
-    labelStyle: TextStyle(fontSize: 14),
+    labelStyle: TextStyle(fontSize: ConstantFontSize.body),
     border: OutlineInputBorder(),
     // You can further style the input here
   );
-  final Function(int?) onSave;
-  final InputDecoration decoration;
+  final Function(int?)? onSave;
+  final Function(int?)? onChanged;
+  late final InputDecoration decoration;
   final int? initialValue;
-  const AmountInput({
-    required this.onSave,
-    this.initialValue,
-    this.decoration = defaultDecoration,
+  final TextEditingController? controller;
+  AmountInput({
     super.key,
-  });
+    this.onSave,
+    this.onChanged,
+    this.initialValue,
+    InputDecoration? decoration,
+    this.controller,
+  }) {
+    this.decoration = decoration ?? defaultDecoration;
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
+      width: 132.sp,
       height: 48,
-      width: 150,
       child: TextFormField(
-        style: const TextStyle(fontSize: 14),
+        controller: controller,
+        style: const TextStyle(fontSize: ConstantFontSize.body),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         initialValue: initialValue != null ? (initialValue! / 100).toStringAsFixed(2) : null,
         showCursor: true,
@@ -35,12 +42,14 @@ class AmountInput extends StatelessWidget {
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
         ],
-        onSaved: (String? value) {
-          double? doubleResult = Data.stringToDouble(value);
-          int? intResult = doubleResult != null ? (doubleResult * 100).toInt() : null;
-          onSave(intResult);
-        },
+        onSaved: (String? value) => onSave != null ? onSave!(stringToAmount(value)) : null,
+        onChanged: (String? value) => onChanged != null ? onChanged!(stringToAmount(value)) : null,
       ),
     );
+  }
+
+  int? stringToAmount(String? value) {
+    double? doubleResult = Data.stringToDouble(value);
+    return doubleResult != null ? (doubleResult * 100).toInt() : null;
   }
 }

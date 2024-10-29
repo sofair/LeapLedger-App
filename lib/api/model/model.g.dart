@@ -17,76 +17,18 @@ Map<String, dynamic> _$CommonCaptchaModelToJson(CommonCaptchaModel instance) =>
       'CaptchaId': instance.captchaId,
     };
 
-AmountCountApiModel _$AmountCountApiModelFromJson(Map<String, dynamic> json) =>
-    AmountCountApiModel(
-      json['Amount'] as int? ?? 0,
-      json['Count'] as int? ?? 0,
-    );
-
-Map<String, dynamic> _$AmountCountApiModelToJson(
-        AmountCountApiModel instance) =>
-    <String, dynamic>{
-      'Amount': instance.amount,
-      'Count': instance.count,
-    };
-
-IncomeExpenseStatisticApiModel _$IncomeExpenseStatisticApiModelFromJson(
-        Map<String, dynamic> json) =>
-    IncomeExpenseStatisticApiModel(
-      income: json['Income'] == null
-          ? null
-          : AmountCountApiModel.fromJson(
-              json['Income'] as Map<String, dynamic>),
-      expense: json['Expense'] == null
-          ? null
-          : AmountCountApiModel.fromJson(
-              json['Expense'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$IncomeExpenseStatisticApiModelToJson(
-        IncomeExpenseStatisticApiModel instance) =>
-    <String, dynamic>{
-      'Income': instance.income,
-      'Expense': instance.expense,
-    };
-
-IncomeExpenseStatisticWithTimeApiModel
-    _$IncomeExpenseStatisticWithTimeApiModelFromJson(
-            Map<String, dynamic> json) =>
-        IncomeExpenseStatisticWithTimeApiModel(
-          income: json['Income'] == null
-              ? null
-              : AmountCountApiModel.fromJson(
-                  json['Income'] as Map<String, dynamic>),
-          expense: json['Expense'] == null
-              ? null
-              : AmountCountApiModel.fromJson(
-                  json['Expense'] as Map<String, dynamic>),
-          startTime: Json.dateTimeFromJson(json['StartTime']),
-          endTime: Json.dateTimeFromJson(json['EndTime']),
-        );
-
-Map<String, dynamic> _$IncomeExpenseStatisticWithTimeApiModelToJson(
-        IncomeExpenseStatisticWithTimeApiModel instance) =>
-    <String, dynamic>{
-      'Income': instance.income,
-      'Expense': instance.expense,
-      'StartTime': Json.dateTimeToJson(instance.startTime),
-      'EndTime': Json.dateTimeToJson(instance.endTime),
-    };
-
 DayAmountStatisticApiModel _$DayAmountStatisticApiModelFromJson(
         Map<String, dynamic> json) =>
     DayAmountStatisticApiModel(
-      amount: json['Amount'] as int? ?? 0,
-      date: Json.dateTimeFromJson(json['Date']),
+      amount: (json['Amount'] as num?)?.toInt() ?? 0,
+      date: const UtcDateTimeConverter().fromJson(json['Date'] as String?),
     );
 
 Map<String, dynamic> _$DayAmountStatisticApiModelToJson(
         DayAmountStatisticApiModel instance) =>
     <String, dynamic>{
       'Amount': instance.amount,
-      'Date': Json.dateTimeToJson(instance.date),
+      'Date': const UtcDateTimeConverter().toJson(instance.date),
     };
 
 UserInfoUpdateModel _$UserInfoUpdateModelFromJson(Map<String, dynamic> json) =>
@@ -102,7 +44,7 @@ UserHomeApiModel _$UserHomeApiModelFromJson(Map<String, dynamic> json) =>
     UserHomeApiModel()
       ..headerCard = json['HeaderCard'] == null
           ? null
-          : UserHomeHeaderCardApiModel.fromJson(
+          : InExStatisticWithTimeModel.fromJson(
               json['HeaderCard'] as Map<String, dynamic>)
       ..timePeriodStatistics = json['TimePeriodStatistics'] == null
           ? null
@@ -115,40 +57,16 @@ Map<String, dynamic> _$UserHomeApiModelToJson(UserHomeApiModel instance) =>
       'TimePeriodStatistics': instance.timePeriodStatistics,
     };
 
-UserHomeHeaderCardApiModel _$UserHomeHeaderCardApiModelFromJson(
-        Map<String, dynamic> json) =>
-    UserHomeHeaderCardApiModel(
-      income: json['Income'] == null
-          ? null
-          : AmountCountApiModel.fromJson(
-              json['Income'] as Map<String, dynamic>),
-      expense: json['Expense'] == null
-          ? null
-          : AmountCountApiModel.fromJson(
-              json['Expense'] as Map<String, dynamic>),
-      startTime: Json.dateTimeFromJson(json['StartTime']),
-      endTime: Json.dateTimeFromJson(json['EndTime']),
-    );
-
-Map<String, dynamic> _$UserHomeHeaderCardApiModelToJson(
-        UserHomeHeaderCardApiModel instance) =>
-    <String, dynamic>{
-      'Income': instance.income,
-      'Expense': instance.expense,
-      'StartTime': Json.dateTimeToJson(instance.startTime),
-      'EndTime': Json.dateTimeToJson(instance.endTime),
-    };
-
 UserHomeTimePeriodStatisticsApiModel
     _$UserHomeTimePeriodStatisticsApiModelFromJson(Map<String, dynamic> json) =>
         UserHomeTimePeriodStatisticsApiModel(
-          todayData: IncomeExpenseStatisticWithTimeApiModel.fromJson(
+          todayData: InExStatisticWithTimeModel.fromJson(
               json['TodayData'] as Map<String, dynamic>),
-          yesterdayData: IncomeExpenseStatisticWithTimeApiModel.fromJson(
+          yesterdayData: InExStatisticWithTimeModel.fromJson(
               json['YesterdayData'] as Map<String, dynamic>),
-          weekData: IncomeExpenseStatisticWithTimeApiModel.fromJson(
+          weekData: InExStatisticWithTimeModel.fromJson(
               json['WeekData'] as Map<String, dynamic>),
-          yearData: IncomeExpenseStatisticWithTimeApiModel.fromJson(
+          yearData: InExStatisticWithTimeModel.fromJson(
               json['YearData'] as Map<String, dynamic>),
         );
 
@@ -161,46 +79,12 @@ Map<String, dynamic> _$UserHomeTimePeriodStatisticsApiModelToJson(
       'YearData': instance.yearData,
     };
 
-TransactionQueryConditionApiModel _$TransactionQueryConditionApiModelFromJson(
-        Map<String, dynamic> json) =>
-    TransactionQueryConditionApiModel(
-      accountId: json['AccountId'] as int,
-      startTime: Json.dateTimeFromJson(json['StartTime']),
-      endTime: Json.dateTimeFromJson(json['EndTime']),
-      userIds:
-          (json['UserIds'] as List<dynamic>?)?.map((e) => e as int).toSet(),
-      categoryIds:
-          (json['CategoryIds'] as List<dynamic>?)?.map((e) => e as int).toSet(),
-      incomeExpense:
-          $enumDecodeNullable(_$IncomeExpenseEnumMap, json['IncomeExpense']),
-      minimumAmount: json['MinimumAmount'] as int?,
-      maximumAmount: json['MaximumAmount'] as int?,
-    );
-
-Map<String, dynamic> _$TransactionQueryConditionApiModelToJson(
-        TransactionQueryConditionApiModel instance) =>
-    <String, dynamic>{
-      'AccountId': instance.accountId,
-      'UserIds': instance.userIds?.toList(),
-      'CategoryIds': instance.categoryIds?.toList(),
-      'IncomeExpense': _$IncomeExpenseEnumMap[instance.incomeExpense],
-      'MinimumAmount': instance.minimumAmount,
-      'MaximumAmount': instance.maximumAmount,
-      'StartTime': Json.dateTimeToJson(instance.startTime),
-      'EndTime': Json.dateTimeToJson(instance.endTime),
-    };
-
-const _$IncomeExpenseEnumMap = {
-  IncomeExpense.income: 'income',
-  IncomeExpense.expense: 'expense',
-};
-
 TransactionCategoryAmountRankApiModel
     _$TransactionCategoryAmountRankApiModelFromJson(
             Map<String, dynamic> json) =>
         TransactionCategoryAmountRankApiModel(
-          amount: json['Amount'] as int? ?? 0,
-          count: json['Count'] as int? ?? 0,
+          amount: (json['Amount'] as num?)?.toInt() ?? 0,
+          count: (json['Count'] as num?)?.toInt() ?? 0,
           category: TransactionCategoryModel.fromJson(
               json['Category'] as Map<String, dynamic>),
         );
@@ -218,9 +102,9 @@ TransactionCategoryMappingTreeNodeApiModel
             Map<String, dynamic> json) =>
         TransactionCategoryMappingTreeNodeApiModel(
           childrenIds: (json['ChildrenIds'] as List<dynamic>)
-              .map((e) => e as int)
+              .map((e) => (e as num).toInt())
               .toList(),
-          fatherId: json['FatherId'] as int,
+          fatherId: (json['FatherId'] as num).toInt(),
         );
 
 Map<String, dynamic> _$TransactionCategoryMappingTreeNodeApiModelToJson(

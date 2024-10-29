@@ -2,15 +2,12 @@ part of 'routes.dart';
 
 class AccountRoutes {
   static String baseUrl = 'account';
-  static String list = '$baseUrl/list';
   static String detail = '$baseUrl/detail';
   static String templateList = '$baseUrl/template/list';
   static String userInvitation = '$baseUrl/user/invitation';
 
-  static get accountUser => null;
   static void init() {
     Routes.routes.addAll({
-      list: (context) => Routes.buildloginPermissionRoute(context, const AccountList()),
       detail: (context) => const AccountDetail(),
       templateList: (context) => const AccountTemplateList(),
     });
@@ -18,48 +15,6 @@ class AccountRoutes {
 
   static Future<T?> pushNamed<T extends Object?>(BuildContext context, String routeName, {Object? arguments}) {
     return Navigator.of(context).pushNamed<T>(routeName, arguments: arguments);
-  }
-
-  static Future<AccountModel?> pushEdit(BuildContext context, {AccountModel? account}) async {
-    AccountModel? result;
-    await Navigator.of(context).push(RightSlideRoute(page: AccountEdit(account: account))).then((value) {
-      if (value is AccountModel) {
-        result = value;
-      }
-    });
-    return result;
-  }
-
-  static Future<AccountModel?> showAccountListButtomSheet(
-    BuildContext context, {
-    required AccountModel currentAccount,
-  }) async {
-    AccountModel? result;
-    await showModalBottomSheet(
-      isScrollControlled: true,
-      context: context,
-      builder: (_) => AccountListBottomSheet(
-        currentAccount: currentAccount,
-      ),
-    ).then((value) {
-      if (value is AccountModel) {
-        result = value;
-      }
-    });
-    return result;
-  }
-
-  static void showOperationBottomSheet(
-    BuildContext context, {
-    required AccountDetailModel account,
-  }) {
-    showModalBottomSheet(
-      isScrollControlled: true,
-      context: context,
-      builder: (_) => AccountOperationBottomSheet(
-        account: account,
-      ),
-    );
   }
 
   static Future<AccountUserInvitationModle?> pushAccountUserInvitation(
@@ -90,24 +45,58 @@ class AccountRoutes {
     );
   }
 
-  static AccountUserEditNavigator userEdit(BuildContext context,
-      {required AccountUserModel accountUser, required AccountDetailModel accoount}) {
-    return AccountUserEditNavigator(context, account: accoount, accountUser: accountUser);
+  static AccountEditNavigator edit(BuildContext context, {AccountDetailModel? account}) =>
+      AccountEditNavigator(context, account: account);
+
+  static AccountListNavigator list(
+    BuildContext context, {
+    AccountDetailModel? selectedAccount,
+    bool selectedCurrentAccount = false,
+  }) {
+    return AccountListNavigator(
+      context,
+      selectedAccount: selectedAccount,
+      selectedCurrentAccount: selectedCurrentAccount,
+    );
   }
 
-  static AccountUserInviteNavigator userInvite(BuildContext context,
-      {required AccountDetailModel account, required UserInfoModel userInfo}) {
-    return AccountUserInviteNavigator(context, account: account, userInfo: userInfo);
-  }
+  static AccountOperationListNavigator operationList(BuildContext context, {required AccountDetailModel account}) =>
+      AccountOperationListNavigator(context, account: account);
 
-  static AccountMappingNavigator mapping(BuildContext context,
-      {required AccountDetailModel mainAccount, AccountMappingModel? mapping, MappingChangeCallback? onMappingChange}) {
-    return AccountMappingNavigator(context,
-        mainAccount: mainAccount, mapping: mapping, onMappingChange: onMappingChange);
-  }
+  static AccountUserConfigNavigator userConfig(BuildContext context, {required AccountDetailModel accoount}) =>
+      AccountUserConfigNavigator(context, account: accoount);
+
+  static AccountUserEditNavigator userEdit(
+    BuildContext context, {
+    required AccountUserModel accountUser,
+    required AccountDetailModel accoount,
+  }) =>
+      AccountUserEditNavigator(context, account: accoount, accountUser: accountUser);
+
+  static AccountUserInviteNavigator userInvite(
+    BuildContext context, {
+    required AccountDetailModel account,
+    required UserInfoModel userInfo,
+  }) =>
+      AccountUserInviteNavigator(context, account: account, userInfo: userInfo);
+
+  static AccountMappingNavigator mapping(
+    BuildContext context, {
+    required AccountDetailModel mainAccount,
+    AccountMappingModel? mapping,
+    MappingChangeCallback? onMappingChange,
+  }) =>
+      AccountMappingNavigator(context, mainAccount: mainAccount, mapping: mapping, onMappingChange: onMappingChange);
 }
 
 class AccountRouterGuard {
+  static bool edit({required AccountDetailModel? account}) {
+    if (account != null && account.isValid && account.isReader) {
+      return false;
+    }
+    return true;
+  }
+
   static bool userInvite({required AccountDetailModel account, UserInfoModel? userInfo}) {
     if (account.isReader) {
       return false;
@@ -127,6 +116,111 @@ class AccountRouterGuard {
   }
 }
 
+class AccountEditNavigator extends RouterNavigator {
+  final AccountDetailModel? account;
+  AccountEditNavigator(BuildContext context, {this.account}) : super(context: context);
+  @override
+  bool get guard => AccountRouterGuard.edit(account: account);
+  Future<bool> push() async => await _push(context, AccountEdit(account: account));
+
+  @override
+  _then(value) {
+    if (value is AccountDetailModel) {
+      result = value;
+    }
+  }
+
+  AccountDetailModel? result;
+  AccountDetailModel? getReturn() {
+    return result;
+  }
+}
+
+class AccountListNavigator extends RouterNavigator {
+  final AccountDetailModel? selectedAccount;
+  final SelectAccountCallback? onSelectedAccount;
+  final bool selectedCurrentAccount;
+  AccountListNavigator(
+    BuildContext context, {
+    this.selectedAccount,
+    this.onSelectedAccount,
+    required this.selectedCurrentAccount,
+  }) : super(context: context);
+  Future<AccountDetailModel?> _defaultOnSelectedAccount(AccountDetailModel account) async {
+    Navigator.pop<AccountDetailModel>(context, account);
+    return account;
+  }
+
+  Widget _listenCurrentAccountChanged(
+      Widget Function(AccountDetailModel account, SelectAccountCallback onSelectedAccount) page) {
+    if (selectedCurrentAccount)
+      return BlocBuilder<UserBloc, UserState>(
+        buildWhen: (_, state) => state is CurrentAccountChanged,
+        builder: (context, state) {
+          return page(
+            UserBloc.currentAccount,
+            (AccountDetailModel account) async {
+              var page = AccountRoutes.operationList(context, account: account);
+              await page.showModalBottomSheet();
+              return UserBloc.currentAccount;
+            },
+          );
+        },
+      );
+    assert(selectedAccount != null);
+    return page(selectedAccount!, onSelectedAccount ?? _defaultOnSelectedAccount);
+  }
+
+  Future<bool> showModalBottomSheet({bool onlyCanEdit = false}) async => await _modalBottomSheetShow(
+        context,
+        _listenCurrentAccountChanged(
+          (account, onSelectedAccount) => AccountListBottomSheet(
+            selectedAccount: account,
+            onSelectedAccount: onSelectedAccount,
+            type: onlyCanEdit ? ViewAccountListType.onlyCanEdit : ViewAccountListType.all,
+          ),
+        ),
+      );
+
+  Future<bool> push() async => await _push(
+        context,
+        _listenCurrentAccountChanged(
+          (account, onSelectedAccount) => AccountList(
+            selectedAccount: account,
+            onSelectedAccount: onSelectedAccount,
+          ),
+        ),
+      );
+
+  AccountDetailModel? retrunAccount;
+  @override
+  _then(value) {
+    if (value is AccountDetailModel) {
+      retrunAccount = value;
+    }
+  }
+}
+
+class AccountOperationListNavigator extends RouterNavigator {
+  final AccountDetailModel account;
+  AccountOperationListNavigator(BuildContext context, {required this.account}) : super(context: context);
+
+  Future<bool> showModalBottomSheet() async =>
+      await _modalBottomSheetShow(context, AccountOperationBottomSheet(account: account));
+
+  @override
+  _then(value) {
+    if (value is AccountDetailModel) {
+      updatedAccount = value;
+    } else if (value is bool) {
+      accountDelated = value;
+    }
+  }
+
+  AccountDetailModel? updatedAccount;
+  bool? accountDelated;
+}
+
 class AccountUserDetailNavigator extends RouterNavigator {
   final AccountUserModel accountUser;
   final AccountDetailModel account;
@@ -134,10 +228,10 @@ class AccountUserDetailNavigator extends RouterNavigator {
   AccountUserDetailNavigator(BuildContext context, {required this.accountUser, required this.account, this.onEdit})
       : super(context: context);
 
-  Future<bool> showModalBottomSheet() async {
-    return await _modalBottomSheetShow(
-        context, AccountUserDetailButtomSheet(accountUser: accountUser, account: account));
-  }
+  Future<bool> showModalBottomSheet() async => await _modalBottomSheetShow(
+        context,
+        AccountUserDetailButtomSheet(accountUser: accountUser, account: account, onEdit: onEdit),
+      );
 }
 
 class AccountUserEditNavigator extends RouterNavigator {
@@ -150,9 +244,8 @@ class AccountUserEditNavigator extends RouterNavigator {
   @override
   bool get guard => AccountRouterGuard.userEdit(account: account, accountUser: accountUser);
 
-  Future<bool> showDialog() async {
-    return await _showDialog(context, AccountUserEditDialog(account: account, accountUser: accountUser));
-  }
+  Future<bool> showDialog() async =>
+      await _showDialog(context, AccountUserEditDialog(account: account, accountUser: accountUser));
 
   @override
   _then(value) {
@@ -176,9 +269,8 @@ class AccountUserInviteNavigator extends RouterNavigator {
   @override
   bool get guard => AccountRouterGuard.userInvite(account: account, userInfo: userInfo);
 
-  Future<bool> showDialog() async {
-    return await _showDialog(context, AccountUserInviteDialog(account: account, userInfo: userInfo));
-  }
+  Future<bool> showDialog() async =>
+      await _showDialog(context, AccountUserInviteDialog(account: account, userInfo: userInfo));
 }
 
 class AccountMappingNavigator extends RouterNavigator {
@@ -200,4 +292,11 @@ class AccountMappingNavigator extends RouterNavigator {
           onMappingChange: onMappingChange,
         ));
   }
+}
+
+class AccountUserConfigNavigator extends RouterNavigator {
+  final AccountDetailModel account;
+  AccountUserConfigNavigator(BuildContext context, {required this.account}) : super(context: context);
+
+  Future<bool> showDialog() async => await _showDialog(context, AccountUserConfigDialog(account: account));
 }

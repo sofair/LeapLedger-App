@@ -43,31 +43,43 @@ class CommonListTile extends ListTile {
     TransactionModel model, {
     Key? key,
     bool displayUser = false,
+    bool displayTime = true,
     VoidCallback? onTap,
+    IncomeExpenseDisplayModel? displayModel = IncomeExpenseDisplayModel.symbols,
   }) : this(
             key: key,
+            dense: true,
             leading: Icon(
               model.categoryIcon,
               color: ConstantColor.primaryColor,
             ),
             title: Text(model.categoryName),
-            subtitle: Text("${model.categoryFatherName}  ${DateFormat('yyyy-MM-dd').format(model.tradeTime)}"),
+            subtitle: displayTime
+                ? Text("${model.categoryFatherName}  ${DateFormat('yyyy-MM-dd').format(model.tradeTime)}")
+                : Text(model.categoryFatherName),
             trailing: Text.rich(
-              style: const TextStyle(fontSize: ConstantFontSize.headline, fontWeight: FontWeight.normal),
+              style: TextStyle(fontSize: ConstantFontSize.headline, fontWeight: FontWeight.normal),
               TextSpan(
                 children: displayUser
                     ? [
-                        AmountTextSpan.sameHeight(model.amount,
-                            textStyle:
-                                const TextStyle(fontSize: ConstantFontSize.headline, fontWeight: FontWeight.w500)),
+                        AmountTextSpan.sameHeight(
+                          model.amount,
+                          textStyle: TextStyle(fontSize: ConstantFontSize.headline, fontWeight: FontWeight.w500),
+                          incomeExpense: model.incomeExpense,
+                          displayModel: IncomeExpenseDisplayModel.symbols,
+                        ),
                         TextSpan(
-                            text: "\n${model.userName}",
-                            style: const TextStyle(fontSize: ConstantFontSize.body, fontWeight: FontWeight.normal))
+                          text: "\n${model.userName}",
+                          style: TextStyle(fontSize: ConstantFontSize.body, fontWeight: FontWeight.normal),
+                        )
                       ]
                     : [
-                        AmountTextSpan.sameHeight(model.amount,
-                            textStyle:
-                                const TextStyle(fontSize: ConstantFontSize.headline, fontWeight: FontWeight.w500))
+                        AmountTextSpan.sameHeight(
+                          model.amount,
+                          textStyle: TextStyle(fontSize: ConstantFontSize.headline, fontWeight: FontWeight.w500),
+                          incomeExpense: model.incomeExpense,
+                          displayModel: displayModel,
+                        )
                       ],
               ),
               textAlign: TextAlign.right,
@@ -153,19 +165,15 @@ class CommonListTile extends ListTile {
     bool onSelect = false,
   }) : this(
           key: key,
-          leading: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 4,
-                height: double.infinity,
-                color: onSelect ? Colors.blue : Colors.white,
-              ),
-              Icon(model.icon),
-            ],
-          ),
+          leading: Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
+            SizedBox(
+              width: Constant.margin / 2,
+              child: Container(color: onSelect ? ConstantColor.primaryColor : Colors.white),
+            ),
+            SizedBox(width: Constant.margin),
+            Icon(model.icon, size: Constant.iconSize),
+          ]),
           title: Text(model.name),
-          subtitle: Text(DateFormat('yyyy-MM-dd HH:mm:ss').format(model.createTime)),
           onTap: ontap,
         );
 }
@@ -181,7 +189,7 @@ class _UserName extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(text),
-          const Padding(padding: EdgeInsets.only(left: Constant.margin / 2), child: CommonLabel(text: "我"))
+          Padding(padding: EdgeInsets.only(left: Constant.margin / 2), child: CommonLabel(text: "我"))
         ],
       );
     }

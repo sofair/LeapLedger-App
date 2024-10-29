@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/bloc/account/account_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/routes/routes.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
-import 'package:keepaccount_app/widget/form/form.dart';
-import 'package:keepaccount_app/widget/icon/enter.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:leap_ledger_app/bloc/account/account_bloc.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
+import 'package:leap_ledger_app/routes/routes.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
+import 'package:leap_ledger_app/widget/form/form.dart';
+import 'package:leap_ledger_app/widget/icon/enter.dart';
+import 'package:timezone/src/env.dart' as tz;
 
 enum AccountEditMode {
   add,
@@ -15,25 +17,40 @@ enum AccountEditMode {
 
 class AccountEdit extends StatefulWidget {
   const AccountEdit({super.key, this.account});
-  final AccountModel? account;
+  final AccountDetailModel? account;
   @override
   AccountEditState createState() => AccountEditState();
 }
 
 class AccountEditState extends State<AccountEdit> {
   final _formKey = GlobalKey<FormState>();
-  late AccountModel account;
+  late AccountDetailModel account;
   late final AccountEditMode mode;
+  void initData() {
+    if (widget.account != null && widget.account!.isValid) {
+      mode = AccountEditMode.update;
+    } else {
+      mode = AccountEditMode.add;
+    }
+    if (widget.account == null) {
+      account = AccountDetailModel.fromJson({});
+    } else {
+      account = widget.account!.copy();
+    }
+  }
+
   @override
   void initState() {
-    if (widget.account == null) {
-      account = AccountModel.fromJson({});
-      mode = AccountEditMode.add;
-    } else {
-      account = widget.account!;
-      mode = AccountEditMode.update;
-    }
+    initData();
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(AccountEdit oldWidget) {
+    if (widget.account != oldWidget.account) {
+      initData();
+    }
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -42,29 +59,27 @@ class AccountEditState extends State<AccountEdit> {
         listener: (context, state) async {
           if (state is AccountSaveSuccess) {
             if (mode == AccountEditMode.add) {
-              await Navigator.push(context, TransactionCategoryRoutes.getTemplateRoute(context, account: state.account))
-                  .then((value) => Navigator.pop<AccountDetailModel>(context, state.account));
+              var templatePage = TransactionCategoryRoutes.templateNavigator(context, account: state.account);
+              await templatePage.push().then((value) => Navigator.pop<AccountDetailModel>(context, state.account));
             } else {
               Navigator.pop<AccountDetailModel>(context, state.account);
             }
           }
         },
         child: Scaffold(
-            appBar: AppBar(
-              title: Text(mode == AccountEditMode.add ? "添加账本" : "编辑账本"),
-              actions: <Widget>[
-                IconButton(
-                    icon: const Icon(
-                      Icons.save,
-                      size: 24,
-                    ),
-                    onPressed: _onSave),
-              ],
-            ),
-            body: Padding(
-              padding: const EdgeInsets.all(Constant.padding),
+          appBar: AppBar(
+            title: Text(mode == AccountEditMode.add ? "添加账本" : "编辑账本"),
+            actions: <Widget>[
+              IconButton(icon: Icon(Icons.save, size: Constant.iconSize), onPressed: _onSave),
+            ],
+          ),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: Constant.padding),
               child: buildForm(),
-            )));
+            ),
+          ),
+        ));
   }
 
   Widget buildForm() {
@@ -73,57 +88,91 @@ class AccountEditState extends State<AccountEdit> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          _buildRadio(),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: Constant.padding),
+            padding: EdgeInsets.symmetric(vertical: Constant.padding),
             child: CircularIcon(icon: account.icon),
           ),
-          FormInputField.string('名称', account.name, (text) => account.name = text),
-          const SizedBox(
-            height: 16,
+          SizedBox(
+            width: 250.w,
+            child: FormInputField.string('名称', account.name, (text) => account.name = text),
           ),
-          FormSelecter.accountIcon(account.icon, onChanged: _onSelectIcon),
+          SizedBox(height: Constant.padding),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: Constant.margin),
+            child: FormSelecter.accountIcon(account.icon, onChanged: _onSelectIcon),
+          ),
+          if (mode == AccountEditMode.add) _buildTypeSelectRadio(),
+          FormSelectField<String>(
+            options: _options(),
+            label: "地区",
+            initialValue: account.location,
+            onTap: (data) {
+              account.location = data;
+              Navigator.pop(context);
+            },
+            canEdit: mode == AccountEditMode.add,
+            buildSelecter: ({required onTap, required options}) => FilterBottomSelecter(
+              options: options,
+              onTap: onTap,
+              backgroundColor: Colors.white,
+              listHeight: MediaQuery.of(context).size.height * 2 / 3,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildRadio() {
-    return SizedBox(
-      width: MediaQuery.sizeOf(context).width,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Text(
-            "类型：",
-            style: TextStyle(color: ConstantColor.secondaryTextColor, fontSize: ConstantFontSize.body),
-          ),
-          SizedBox(
-            width: 100,
-            child: RadioListTile<AccountType>(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("独立"),
-              value: AccountType.independent,
-              groupValue: account.type,
-              onChanged: _onClickRadio,
-            ),
-          ),
-          SizedBox(
-            width: 100,
-            child: RadioListTile<AccountType>(
-              title: const Text("共享"),
-              contentPadding: EdgeInsets.zero,
-              value: AccountType.share,
-              groupValue: account.type,
-              onChanged: _onClickRadio,
-            ),
-          ),
-        ],
-      ),
-    );
+  List<SelectOption<String>> _options() {
+    List<SelectOption<String>> list = [];
+    tz.timeZoneDatabase.locations.forEach((key, value) {
+      list.add(SelectOption<String>(name: value.name, value: key));
+    });
+    return list;
+  }
+
+  Widget _buildTypeSelectRadio() {
+    return Padding(
+        padding: EdgeInsets.symmetric(vertical: Constant.margin, horizontal: Constant.padding),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(Constant.margin),
+                  child: Text("类型", style: TextStyle(letterSpacing: Constant.margin / 2)),
+                ),
+                Padding(
+                    padding: EdgeInsets.all(Constant.margin),
+                    child: Row(children: [
+                      SizedBox(
+                        width: 100.sp,
+                        child: RadioListTile<AccountType>(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text("独立"),
+                          value: AccountType.independent,
+                          groupValue: account.type,
+                          onChanged: _onClickRadio,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 100.sp,
+                        child: RadioListTile<AccountType>(
+                          title: const Text("共享"),
+                          contentPadding: EdgeInsets.zero,
+                          value: AccountType.share,
+                          groupValue: account.type,
+                          onChanged: _onClickRadio,
+                        ),
+                      )
+                    ]))
+              ]),
+        ));
   }
 
   void _onClickRadio(AccountType? value) {

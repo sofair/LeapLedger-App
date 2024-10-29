@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
 
 import 'cubit/user_account_invitation_cubit.dart';
 
@@ -53,7 +53,7 @@ class _UserAccountInvitationState extends State<UserAccountInvitation> {
           },
           child: CommonPageList<AccountUserInvitationModle>(
             buildListOne: _buildListTile,
-            prototypeData: AccountUserInvitationModle.prototypeData(),
+            prototypeData: AccountUserInvitationModle.prototypeData(DateTime.now()),
             initRefresh: true,
             controller: _pageController,
           ),
@@ -64,8 +64,8 @@ class _UserAccountInvitationState extends State<UserAccountInvitation> {
 
   Widget _buildListTile(AccountUserInvitationModle invitation) {
     return ListTile(
-      leading: Icon(invitation.account.icon, size: 32, color: ConstantColor.primaryColor),
-      title: Text("账本名称：${invitation.account.name}"),
+      leading: Icon(invitation.account.icon, size: Constant.iconlargeSize, color: ConstantColor.primaryColor),
+      title: Text(invitation.account.name),
       subtitle: Text(
         "来自${invitation.inviter.username}的邀请",
         style: const TextStyle(color: ConstantColor.greyText),
@@ -88,14 +88,14 @@ class _UserAccountInvitationState extends State<UserAccountInvitation> {
       default:
         return Text(
           invitation.status.name,
-          style: const TextStyle(fontSize: ConstantFontSize.largeHeadline, color: ConstantColor.greyText),
+          style: TextStyle(fontSize: ConstantFontSize.largeHeadline, color: ConstantColor.greyText),
         );
     }
   }
 
   Widget _buildButton(String text, VoidCallback onTap) {
     return Padding(
-      padding: const EdgeInsets.only(left: Constant.margin),
+      padding: EdgeInsets.only(left: Constant.margin),
       child: GestureDetector(
         onTap: onTap,
         child: DecoratedBox(
@@ -107,7 +107,7 @@ class _UserAccountInvitationState extends State<UserAccountInvitation> {
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
             child: Text(
               text,
-              style: const TextStyle(color: Colors.black, fontSize: ConstantFontSize.body),
+              style: TextStyle(color: Colors.black, fontSize: ConstantFontSize.body),
             ),
           ),
         ),

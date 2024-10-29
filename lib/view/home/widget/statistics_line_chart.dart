@@ -1,40 +1,48 @@
 part of 'enter.dart';
 
 class StatisticsLineChart extends StatefulWidget {
-  const StatisticsLineChart({super.key});
-
+  const StatisticsLineChart({super.key, required this.data});
+  final List<DayAmountStatisticApiModel> data;
   @override
   State<StatisticsLineChart> createState() => _StatisticsLineChartState();
 }
 
 class _StatisticsLineChartState extends State<StatisticsLineChart> {
-  List<DayAmountStatisticApiModel>? _expenseList;
+  late List<DayAmountStatisticApiModel> data;
+  late final HomeBloc _bloc;
+  @override
+  void initState() {
+    _bloc = BlocProvider.of<HomeBloc>(context);
+    data = widget.data;
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(StatisticsLineChart oldWidget) {
+    if (widget.data != oldWidget.data) {
+      data = widget.data;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<HomeBloc, HomeState>(
-      listener: (context, state) {
-        if (state is HomeStatisticsLineChart) {
-          setState(() {
-            _expenseList = state.expenseList;
-          });
-        }
-      },
-      child: _Func._buildCard(
-        title: "本月支出情况",
-        child: AspectRatio(
-            aspectRatio: 1.6,
-            child: Padding(
-              padding: const EdgeInsets.all(Constant.padding),
-              child: _expenseList != null
-                  ? _buildLineChart(_expenseList!)
-                  : const Center(child: CircularProgressIndicator()),
-            )),
+    return _Func._buildCard(
+      title: "本月支出情况",
+      child: AspectRatio(
+        aspectRatio: 1.6,
+        child: Padding(
+          padding: EdgeInsets.all(Constant.padding),
+          child: _buildLineChart(),
+        ),
       ),
     );
   }
 
-  Widget _buildLineChart(List<DayAmountStatisticApiModel> data) {
+  Widget _buildLineChart() {
+    if (data.isEmpty) {
+      return const SizedBox();
+    }
     return LineChart(
       LineChartData(
         lineTouchData: LineTouchData(
@@ -88,10 +96,10 @@ class _StatisticsLineChartState extends State<StatisticsLineChart> {
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, context) {
-                return Text(DateFormat('d日').format(data[value.toInt()].date),
-                    style: const TextStyle(
+                return Text(DateFormat('d日').format(_bloc.getTZDateTime(data[value.toInt()].date)),
+                    style: TextStyle(
                       color: Colors.grey,
-                      fontSize: 14,
+                      fontSize: ConstantFontSize.bodySmall,
                     ));
               },
               interval: data.length / 6 > 0 ? data.length / 6 : 1,
@@ -105,7 +113,7 @@ class _StatisticsLineChartState extends State<StatisticsLineChart> {
             barWidth: 1,
             spots: List.generate(
               data.length,
-              (index) => FlSpot(index.toDouble(), data[index].amount.toDouble()),
+              (index) => FlSpot(index.toDouble(), (data[index].amount / 100).toDouble()),
             ),
             dotData: FlDotData(
                 //折线节点

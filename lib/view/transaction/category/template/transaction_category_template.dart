@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/bloc/account/account_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/model.dart';
+import 'package:leap_ledger_app/bloc/account/account_bloc.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
 
 class TransactionCategoryTemplate extends StatefulWidget {
   const TransactionCategoryTemplate({super.key, required this.account});
-  final AccountModel account;
+  final AccountDetailModel account;
   @override
   State<TransactionCategoryTemplate> createState() => _TransactionCategoryTemplateState();
 }
@@ -21,12 +21,15 @@ class _TransactionCategoryTemplateState extends State<TransactionCategoryTemplat
 
   @override
   Widget build(BuildContext context) {
-    Widget child;
-    if (templateList == null) {
-      child = const Center(child: CircularProgressIndicator());
-    } else {
-      child = _buildList(templateList!);
-    }
+    var child = BlocBuilder<AccountBloc, AccountState>(
+      buildWhen: (previous, current) => current is AccountTemplateListLoaded,
+      builder: (context, state) {
+        if (state is AccountTemplateListLoaded) {
+          return _buildList(templateList!);
+        }
+        return _buildList([]);
+      },
+    );
 
     return BlocListener<AccountBloc, AccountState>(
       listener: (context, state) {
@@ -35,15 +38,10 @@ class _TransactionCategoryTemplateState extends State<TransactionCategoryTemplat
             templateList = state.list;
           });
         } else if (state is AccountTransCategoryInitSuccess) {
-          Navigator.pop(context);
+          Navigator.pop<AccountDetailModel>(context, state.account);
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("选择交易类型"),
-        ),
-        body: child,
-      ),
+      child: Scaffold(appBar: AppBar(title: const Text("选择交易类型")), body: child),
     );
   }
 
@@ -67,7 +65,7 @@ class _TransactionCategoryTemplateState extends State<TransactionCategoryTemplat
     }
     return Expanded(
         child: Padding(
-      padding: const EdgeInsets.all(Constant.padding),
+      padding: EdgeInsets.all(Constant.padding),
       child: GestureDetector(
         onTap: () => onSelect(account),
         child: DecoratedBox(
@@ -81,7 +79,7 @@ class _TransactionCategoryTemplateState extends State<TransactionCategoryTemplat
               Icon(account.icon, color: ConstantColor.primaryColor),
               Text(
                 account.name,
-                style: const TextStyle(fontSize: ConstantFontSize.headline),
+                style: TextStyle(fontSize: ConstantFontSize.headline),
               ),
             ]),
           ),

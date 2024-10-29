@@ -1,10 +1,9 @@
 part of '../transaction_edit.dart';
 
 class CategoryPicker extends StatefulWidget {
-  const CategoryPicker({this.initialVlaue, required this.type, required this.onSave, super.key});
-  final int? initialVlaue;
+  const CategoryPicker({required this.type, super.key});
+
   final IncomeExpense type;
-  final Function(TransactionCategoryModel category) onSave;
   @override
   State<CategoryPicker> createState() => _CategoryPickerState();
 }
@@ -12,70 +11,79 @@ class CategoryPicker extends StatefulWidget {
 class _CategoryPickerState extends State<CategoryPicker> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-  List<TransactionCategoryModel> categoryList = [];
-  bool isNoData = false;
-  int? selected;
+  int? get selected => _bloc.transInfo.categoryId;
+  late final EditBloc _bloc = BlocProvider.of<EditBloc>(context);
+  late final IncomeExpense type;
+  late final CategoryQueryCond queryCond;
+
   @override
   void initState() {
+    type = widget.type;
+    queryCond = CategoryQueryCond(type: type);
     fetchData();
-    selected = widget.initialVlaue;
     super.initState();
   }
 
   void fetchData() {
-    categoryList = [];
-    selected = null;
-    BlocProvider.of<EditBloc>(context).add(TransactionCategoryFetch(widget.type));
+    BlocProvider.of<CategoryBloc>(context).add(CategoryListLoadEvent(_bloc.account, cond: queryCond));
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     Widget child;
-    if (isNoData) {
-      child = Center(child: TransactionCategoryRoutes.getNoDataRichText(context));
-    } else if (categoryList.isEmpty) {
-      child = const Center(child: CircularProgressIndicator());
-    } else {
-      child = _buildCategoryGridView();
-    }
-    return BlocListener<EditBloc, EditState>(
-      listener: (context, state) {
-        if (widget.type == IncomeExpense.income && state is IncomeCategoryPickLoaded) {
-          setState(() {
-            categoryList = state.tree;
-            isNoData = categoryList.isEmpty;
-          });
-        } else if (widget.type == IncomeExpense.expense && state is ExpenseCategoryPickLoaded) {
-          setState(() {
-            categoryList = state.tree;
-            isNoData = categoryList.isEmpty;
-          });
-        } else if (state is AccountChanged) {
-          fetchData();
+
+    child = BlocBuilder<CategoryBloc, CategoryState>(
+      buildWhen: (context, state) {
+        if (state is CategoryListLoadedState && state.current(account: _bloc.account, cond: queryCond)) {
+          if (state.list.isNotEmpty) {
+            var selected = state.list.firstWhere(
+              (element) => element.id == _bloc.transInfo.categoryId,
+              orElse: () => state.list.first,
+            );
+            _bloc.transInfo.setCategory(selected);
+          }
+          return true;
         }
+        return false;
       },
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(Constant.padding, Constant.padding, Constant.padding, 0),
-        color: ConstantColor.greyBackground,
-        child: child,
-      ),
+      builder: (context, state) {
+        if (state is CategoryListLoadedState && state.current(account: _bloc.account, cond: queryCond)) {
+          if (state.list.isEmpty) {
+            return Center(child: NoData.categoryText(context, account: BlocProvider.of<EditBloc>(context).account));
+          }
+          return _buildCategoryGridView(state.list);
+        }
+        return SizedBox();
+      },
+    );
+
+    child = BlocListener<EditBloc, EditState>(
+      listener: (context, state) {
+        if (state is AccountChanged) fetchData();
+      },
+      child: child,
+    );
+    return Container(
+      padding: EdgeInsets.fromLTRB(Constant.padding, Constant.padding, Constant.padding, 0),
+      color: ConstantColor.greyBackground,
+      child: child,
     );
   }
 
-  Widget _buildCategoryGridView() {
+  Widget _buildCategoryGridView(List<TransactionCategoryModel> categoryList) {
     return GridView.builder(
-        shrinkWrap: true, // 让网格视图适应内容大小
+        shrinkWrap: true,
         padding: EdgeInsets.zero,
         itemCount: categoryList.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 5,
           crossAxisSpacing: Constant.padding,
           mainAxisSpacing: Constant.padding,
           childAspectRatio: 0.8,
         ),
         itemBuilder: (BuildContext context, int index) {
-          return CategoryIconAndName(
+          return CategoryIconAndName<TransactionCategoryModel>(
             onTap: _onTap,
             category: categoryList[index],
             isSelected: categoryList[index].id == selected,
@@ -84,9 +92,7 @@ class _CategoryPickerState extends State<CategoryPicker> with AutomaticKeepAlive
   }
 
   void _onTap(TransactionCategoryModel category) {
-    widget.onSave(category);
-    setState(() {
-      selected = category.id;
-    });
+    _bloc.transInfo.setCategory(category);
+    setState(() {});
   }
 }

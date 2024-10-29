@@ -8,120 +8,103 @@ class ConditionBottomSheet extends StatefulWidget {
 }
 
 class _ConditionBottomSheetState extends State<ConditionBottomSheet> {
-  List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryData = [];
   late final GlobalKey<FormState> _formKey;
+  late final FlowConditionCubit _conditionCubit;
+
+  TransactionQueryCondModel get _condition => _conditionCubit.condition;
   @override
   void initState() {
-    BlocProvider.of<FlowConditionBloc>(context).add(FlowConditionCategoryDataFetchEvent());
+    _conditionCubit = BlocProvider.of<FlowConditionCubit>(context);
+    _conditionCubit.fetchCategoryData();
     _formKey = GlobalKey<FormState>();
-    _initCondition(BlocProvider.of<FlowConditionBloc>(context).condition);
+    getAmountStr(int amount) {
+      String str = (amount / 100).toStringAsFixed(2);
+      if (str.endsWith('.00')) {
+        return str.substring(0, str.length - 3);
+      } else if (str.endsWith('0')) {
+        return str.substring(0, str.length - 1);
+      }
+      return str;
+    }
+
+    if (_condition.minimumAmount != null) {
+      _minAmountController.text = getAmountStr(_condition.minimumAmount!);
+    }
+    if (_condition.maximumAmount != null) {
+      _maxAmountController.text = getAmountStr(_condition.maximumAmount!);
+    }
     super.initState();
   }
 
-  late TransactionQueryConditionApiModel _condition;
-  void _initCondition(TransactionQueryConditionApiModel data) {
-    _condition = TransactionQueryConditionApiModel(
-      accountId: data.accountId,
-      categoryIds: data.categoryIds?.toSet(),
-      userIds: data.userIds?.toSet(),
-      incomeExpense: data.incomeExpense,
-      endTime: data.endTime,
-      startTime: data.startTime,
-      maximumAmount: data.maximumAmount,
-      minimumAmount: data.minimumAmount,
-    );
-    selectedCategory = _condition.categoryIds ?? {};
-    selectedIncomeExpense = _condition.incomeExpense;
+  @override
+  void dispose() {
+    _minAmountController.dispose();
+    _maxAmountController.dispose();
+    super.dispose();
   }
 
-  void _save() {
-    if (_formKey.currentState != null) {
-      _formKey.currentState!.save();
-    }
-    _condition.categoryIds = selectedCategory.isEmpty ? null : selectedCategory;
-    _condition.incomeExpense = selectedIncomeExpense;
-    BlocProvider.of<FlowConditionBloc>(context).add(FlowConditionDataUpdateEvent(_condition));
-    Navigator.of(context).pop();
-  }
-
-  void _reset() {
-    setState(() {
-      _initCondition(TransactionQueryConditionApiModel(
-          accountId: _condition.accountId, startTime: _condition.startTime, endTime: _condition.endTime));
-    });
-  }
-
-  bool _categoryLoad = false;
   @override
   Widget build(BuildContext context) {
-    return BlocListener<FlowConditionBloc, FlowConditionState>(
-      listener: (context, state) {
-        if (state is FlowConditionCategoryLoaded) {
-          setState(() {
-            _categoryLoad = true;
-            categoryData = state.tree;
-          });
-        }
-      },
-      child: Stack(children: [
-        Container(
-          padding: const EdgeInsets.only(top: Constant.padding),
-          decoration: ConstantDecoration.bottomSheet,
-          height: MediaQuery.of(context).size.height * 0.8,
-          width: MediaQuery.of(context).size.width,
-          child: Form(
-            key: _formKey,
+    var size = MediaQuery.of(context).size;
+    return PopScope(
+        onPopInvokedWithResult: (bool didPop, bool? result) => _conditionCubit.sync(),
+        child: BlocBuilder<FlowConditionCubit, FlowConditionState>(
+          buildWhen: (_, state) => state is FlowEditingConditionUpdate,
+          builder: (context, state) {
+            return Stack(children: [
+              Container(
+                decoration: ConstantDecoration.bottomSheet,
+                width: size.width,
+                child: _buildForm(),
+              ),
+              Positioned(
+                top: Constant.margin / 2,
+                right: Constant.margin / 2,
+                child: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
+              ),
+            ]);
+          },
+        ));
+  }
+
+  Widget _buildForm() {
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                    flex: 12,
-                    child: SingleChildScrollView(
-                        child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildOneConditon(name: "金额", _buildAmountInput()),
-                        _buildOneConditon(name: "分类", [..._buildIncomeExpense(), ..._buildCategory()]),
-                      ],
-                    ))),
-                //按钮
-                Expanded(
-                  child: _buildButtonGroup(),
-                ),
+                _buildOneConditon(name: "金额", _buildAmountInput()),
+                _buildOneConditon(name: "收支", _buildIncomeExpense()),
+                _buildCategory()
               ],
             ),
           ),
-        ),
-        Positioned(
-          top: 4,
-          right: 4,
-          child: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ),
-      ]),
+          _buildButtonGroup(),
+        ],
+      ),
     );
   }
 
   Widget _buildOneConditon(List<Widget> widgetList, {String? name}) {
     return Padding(
-      padding: const EdgeInsets.all(Constant.padding),
+      padding: EdgeInsets.fromLTRB(Constant.padding, Constant.padding, Constant.padding, 0),
       child: Column(
-        mainAxisSize: MainAxisSize.max,
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: Constant.padding),
+            padding: EdgeInsets.only(bottom: Constant.padding),
             child: Visibility(
               visible: name != null,
               child: Text(
                 name ?? "",
-                style: const TextStyle(fontSize: 18),
+                style: TextStyle(fontSize: ConstantFontSize.body, fontWeight: FontWeight.w500),
               ),
             ),
           ),
@@ -132,31 +115,37 @@ class _ConditionBottomSheetState extends State<ConditionBottomSheet> {
   }
 
   /// 金额
+  final TextEditingController _minAmountController = TextEditingController();
+  final TextEditingController _maxAmountController = TextEditingController();
   List<Widget> _buildAmountInput() {
     return [
       Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Flexible(
-            child: AmountInput(
-              onSave: (result) => _condition.minimumAmount = result,
-              decoration: AmountInput.defaultDecoration.copyWith(labelText: "最低金额"),
+          AmountInput(
+            controller: _minAmountController,
+            onChanged: (amount) => _conditionCubit.updateMinimumAmount(amount: amount),
+            decoration: AmountInput.defaultDecoration.copyWith(
+              labelText: "最低金额",
+              labelStyle: TextStyle(fontSize: ConstantFontSize.bodySmall),
             ),
           ),
           SizedBox(
             width: 32,
             child: Divider(
-              color: Colors.grey.shade500,
-              indent: 8,
-              endIndent: 8,
+              color: ConstantColor.greyText,
+              indent: Constant.margin,
+              endIndent: Constant.margin,
               height: 0.5,
               thickness: 0.5,
             ),
-          ), // Add some space between the text fields
-          Flexible(
-            child: AmountInput(
-              onSave: (result) => _condition.maximumAmount = result,
-              decoration: AmountInput.defaultDecoration.copyWith(labelText: "最高金额"),
+          ),
+          AmountInput(
+            controller: _maxAmountController,
+            onChanged: (amount) => _conditionCubit.updateMaximumAmount(amount: amount),
+            decoration: AmountInput.defaultDecoration.copyWith(
+              labelText: "最高金额",
+              labelStyle: TextStyle(fontSize: ConstantFontSize.bodySmall),
             ),
           ),
         ],
@@ -165,188 +154,131 @@ class _ConditionBottomSheetState extends State<ConditionBottomSheet> {
   }
 
   /// 收支
-  IncomeExpense? selectedIncomeExpense;
+  get selectedIncomeExpense => _condition.incomeExpense;
   List<Widget> _buildIncomeExpense() {
     return [
-      Padding(
-        padding: const EdgeInsets.only(bottom: Constant.padding),
-        child: SegmentedButton<IncomeExpense?>(
-          selected: {selectedIncomeExpense},
-          emptySelectionAllowed: true,
-          showSelectedIcon: false,
-          style: ButtonStyle(
-            visualDensity: VisualDensity.compact,
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+      SegmentedButton<IncomeExpense?>(
+        selected: {selectedIncomeExpense},
+        emptySelectionAllowed: true,
+        showSelectedIcon: false,
+        style: ButtonStyle(
+          visualDensity: VisualDensity.compact,
+          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          ),
+          textStyle: WidgetStateProperty.all<TextStyle>(const TextStyle(color: Colors.white)),
+          backgroundColor: WidgetStateProperty.resolveWith<Color>(
+            (Set<WidgetState> states) {
+              if (states.contains(WidgetState.selected)) {
+                return ConstantColor.primaryColor;
+              }
+              return Colors.white;
+            },
+          ),
+        ),
+        onSelectionChanged: (value) => _conditionCubit.changeIncomeExpense(ie: value.first),
+        segments: [
+          ButtonSegment(
+            value: IncomeExpense.income,
+            label: Padding(
+              padding: EdgeInsets.symmetric(vertical: Constant.padding, horizontal: Constant.margin),
+              child: Text(
+                "收入",
+                style: TextStyle(
+                  fontSize: ConstantFontSize.bodySmall,
+                  color: selectedIncomeExpense == IncomeExpense.income ? Colors.white : null,
+                ),
               ),
             ),
-            textStyle: MaterialStateProperty.all<TextStyle>(
-              const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: MaterialStateProperty.resolveWith<Color>(
-              (Set<MaterialState> states) {
-                if (states.contains(MaterialState.selected)) {
-                  return selectedIncomeExpense == IncomeExpense.income
-                      ? ConstantColor.incomeAmount
-                      : ConstantColor.expenseAmount;
-                }
-                return Colors.white;
-              },
-            ),
           ),
-          onSelectionChanged: (value) {
-            setState(() {
-              selectedIncomeExpense = value.first;
-            });
-          },
-          segments: const [
-            ButtonSegment(
-                value: IncomeExpense.income,
-                label: Text(
-                  "收入",
-                  style: TextStyle(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.w500,
-                  ),
-                )),
-            ButtonSegment(
-                value: IncomeExpense.expense,
-                label: Text(
-                  "支出",
-                  style: TextStyle(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ))
-          ],
-        ),
+          ButtonSegment(
+            value: IncomeExpense.expense,
+            label: Padding(
+              padding: EdgeInsets.symmetric(vertical: Constant.padding, horizontal: Constant.margin),
+              child: Text(
+                "支出",
+                style: TextStyle(
+                  fontSize: ConstantFontSize.bodySmall,
+                  color: selectedIncomeExpense == IncomeExpense.expense ? Colors.white : null,
+                ),
+              ),
+            ),
+          )
+        ],
       ),
     ];
   }
 
-  Set<int> selectedCategory = {};
-
   /// 交易类型
-  List<Widget> _buildCategory() {
-    return _categoryLoad == true
-        ? List.generate(
-            categoryData.length,
-            (index) => _buildCategoryGroup(categoryData[index].key, categoryData[index].value),
-          )
-        : List.generate(
-            categoryShimmerData.length,
-            (index) => _buildCategoryGroup(categoryShimmerData[index].key, categoryShimmerData[index].value),
-          );
-  }
-
-  _buildCategoryGroup(TransactionCategoryFatherModel father, List<TransactionCategoryModel> list) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: Constant.padding),
-          child: Text(
-            father.name,
-            style: const TextStyle(fontSize: 16),
-          ),
-        ),
-        list.isNotEmpty
-            ? GridView.builder(
-                physics: const NeverScrollableScrollPhysics(), // 设置为不可滚动
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 5, // 每行显示的项目数量
-                  crossAxisSpacing: 12.0, // x轴间距
-                  mainAxisSpacing: 0.0, // 主轴间距
-                ),
-                itemCount: list.length,
-                itemBuilder: (context, index) {
-                  return _buildCategoryIcon(list[index]);
-                })
-            : const Text("无"),
-      ],
+  Widget _buildCategory() {
+    return BlocBuilder<FlowConditionCubit, FlowConditionState>(
+      buildWhen: (_, state) => state is FlowConditionCategoryLoaded,
+      builder: (context, state) {
+        List<TransactionCategoryModel> list = [];
+        List.generate(
+          _conditionCubit.categorytree.length,
+          (index) => list.addAll(_conditionCubit.categorytree[index].value),
+        );
+        return _buildOneConditon([_buildCategoryChildren(list)], name: "类型");
+      },
     );
   }
 
+  _buildCategoryChildren(List<TransactionCategoryModel> list) {
+    if (list.isEmpty) {
+      return const Center(child: Text("无"));
+    }
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 5,
+        crossAxisSpacing: Constant.padding,
+        mainAxisSpacing: Constant.padding,
+        childAspectRatio: 0.8,
+      ),
+      itemCount: list.length,
+      itemBuilder: (context, index) => _buildCategoryIcon(list[index]),
+    );
+  }
+
+  Set<int> get selectCategory => _condition.categoryIds;
   Widget _buildCategoryIcon(TransactionCategoryModel category) {
-    Color color = selectedCategory.contains(category.id) ? ConstantColor.primaryColor : Colors.black54;
-    return GestureDetector(
-      onTap: () => _onTapCategrop(category),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return CategoryIconAndName(
+      category: category,
+      onTap: (category) => _conditionCubit.selectCategory(category: category),
+      isSelected: selectCategory.contains(category.id),
+    );
+  }
+
+  /// 按钮组
+  Widget _buildButtonGroup() {
+    return Padding(
+      padding: EdgeInsets.all(Constant.padding),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            category.icon,
-            size: 32,
-            color: color,
+          OutlinedButton(
+            onPressed: () {
+              _minAmountController.clear();
+              _maxAmountController.clear();
+              _conditionCubit.setOptionalFieldsToEmpty();
+            },
+            child: Text("重置", style: TextStyle(letterSpacing: Constant.buttomLetterSpacing)),
           ),
-          Text(
-            category.name,
-            style: TextStyle(color: color, fontSize: 14),
+          ElevatedButton(
+            style: ButtonStyle(
+                shape: WidgetStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
+            onPressed: () {
+              _conditionCubit.save();
+              Navigator.of(context).pop();
+            },
+            child: Text("确定", style: TextStyle(letterSpacing: Constant.buttomLetterSpacing)),
           )
         ],
       ),
     );
   }
-
-  _onTapCategrop(TransactionCategoryModel category) {
-    setState(() {
-      if (selectedCategory.contains(category.id)) {
-        selectedCategory.remove(category.id);
-      } else {
-        selectedCategory.add(category.id);
-      }
-    });
-  }
-
-  /// 按钮组
-  Widget _buildButtonGroup() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        SizedBox(
-            width: 100,
-            child: OutlinedButton(
-              style: ButtonStyle(
-                  shape: MaterialStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
-              onPressed: () {
-                _reset();
-              },
-              child: const Text(
-                "重 置",
-              ),
-            )),
-        SizedBox(
-          width: 100,
-          child: ElevatedButton(
-            style: ButtonStyle(
-                shape: MaterialStateProperty.all(const StadiumBorder(side: BorderSide(style: BorderStyle.none)))),
-            onPressed: () {
-              _save();
-            },
-            child: const Text(
-              "确 定",
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  final List<MapEntry<TransactionCategoryFatherModel, List<TransactionCategoryModel>>> categoryShimmerData = [
-    MapEntry(TransactionCategoryFatherModel.fromJson({})..name = "****", [
-      TransactionCategoryModel.fromJson({})..name = "**",
-      TransactionCategoryModel.fromJson({})..name = "**",
-      TransactionCategoryModel.fromJson({})..name = "**",
-      TransactionCategoryModel.fromJson({})..name = "**",
-    ]),
-    MapEntry(TransactionCategoryFatherModel.fromJson({})..name = "****", [
-      TransactionCategoryModel.fromJson({})..name = "**",
-      TransactionCategoryModel.fromJson({})..name = "**",
-    ])
-  ];
 }

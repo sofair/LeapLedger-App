@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'package:keepaccount_app/api/api_server.dart';
-import 'package:keepaccount_app/model/user/model.dart';
+import 'package:leap_ledger_app/api/api_server.dart';
+import 'package:leap_ledger_app/model/user/model.dart';
 import 'package:meta/meta.dart';
 
 part 'user_config_event.dart';
@@ -31,6 +31,7 @@ class UserConfigBloc extends Bloc<UserConfigEvent, UserConfigState> {
     if (data == null) {
       return;
     }
-    emit(UserTransactionShareConfigUpdateSuccess(data));
+    transShareConfig = data;
+    emit(UserTransactionShareConfigUpdateSuccess(transShareConfig!));
   }
 }

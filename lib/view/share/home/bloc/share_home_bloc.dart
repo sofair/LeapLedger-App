@@ -1,16 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/api/api_server.dart';
-import 'package:keepaccount_app/api/model/model.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/model/transaction/model.dart';
+import 'package:leap_ledger_app/api/api_server.dart';
+import 'package:leap_ledger_app/bloc/transaction/transaction_bloc.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
+import 'package:leap_ledger_app/model/common/model.dart';
+import 'package:leap_ledger_app/model/transaction/model.dart';
 
 part 'share_home_event.dart';
 part 'share_home_state.dart';
 
 class ShareHomeBloc extends Bloc<ShareHomeEvent, ShareHomeState> {
-  ShareHomeBloc() : super(ShareHomeInitial()) {
+  ShareHomeBloc({required TransactionBloc transactionBloc}) : super(ShareHomeInitial()) {
+    _transBloc = transactionBloc;
+    _transBlocSubscription = _transBloc.stream.listen(_transBlocListen);
     on<LoadShareHomeEvent>((event, emit) async {
       await _handleShareHomeLoaded(emit, account: event.account);
     });
@@ -23,9 +28,45 @@ class ShareHomeBloc extends Bloc<ShareHomeEvent, ShareHomeState> {
     on<SetAccountMappingEvent>((event, emit) async {
       await _setAccountMapping(event.mapping, emit);
     });
+    on<AddRecentTrans>((event, emit) => _addRecentTrans(trans: event.trans, emit));
+    on<DeleteRecentTrans>((event, emit) => _deleteRecentTrans(emit, trans: event.trans));
+    on<UpdateTotal>((event, emit) => _updateTotal(emit, oldTrans: event.oldTrans, newTrans: event.newTrans));
   }
   static ShareHomeBloc of(BuildContext context) {
     return BlocProvider.of<ShareHomeBloc>(context);
+  }
+
+  late final TransactionBloc _transBloc;
+  late final StreamSubscription _transBlocSubscription;
+  _transBlocListen(TransactionState state) {
+    if (account == null) return;
+    if (state is TransactionStatisticUpdate) {
+      if (account!.id == state.oldTrans?.accountId || account!.id == state.newTrans?.accountId) {
+        this.add(UpdateTotal(state.oldTrans, state.newTrans));
+      }
+      return;
+    }
+    if (state is! AccountRelatedTransactionState) {
+      return;
+    }
+    var isCurrentAccount = account != null && state.accountId == account!.id;
+    if (!isCurrentAccount) {
+      return;
+    }
+    if (state is TransactionAddSuccess) {
+      this.add(AddRecentTrans(state.trans));
+    } else if (state is TransactionDeleteSuccess) {
+      this.add(DeleteRecentTrans(state.delTrans));
+    } else if (state is TransactionUpdateSuccess) {
+      this.add(DeleteRecentTrans(state.oldTrans));
+      this.add(AddRecentTrans(state.newTrans));
+    }
+  }
+
+  @override
+  Future<void> close() async {
+    _transBlocSubscription.cancel();
+    await super.close();
   }
 
   List<AccountDetailModel> accountList = [];
@@ -40,7 +81,7 @@ class ShareHomeBloc extends Bloc<ShareHomeEvent, ShareHomeState> {
       account = null;
       emit(NoShareAccount());
       return;
-    } else if (account == null || accountList.lastIndexWhere((element) => element.id == account!.id) > 0) {
+    } else if (account == null || accountList.lastIndexWhere((element) => element.id == account!.id) == -1) {
       //当前账本发生变化
       await _changeAccount(accountList.first, emit);
     }
@@ -52,14 +93,16 @@ class ShareHomeBloc extends Bloc<ShareHomeEvent, ShareHomeState> {
     if (account != null) {
       ShareHomeBloc.account = account;
     }
-    if (ShareHomeBloc.account == null) {
+    if (ShareHomeBloc.account == null || !ShareHomeBloc.account!.isValid) {
       // 无账本则先获取账本列表
       await _handelAccountLoad(emit);
       if (account == null) {
         return;
       }
+      emit(ShareHomeLoaded());
       await Future.wait([_getRecentTrans(emit), _getAccountUser(emit), _getTotal(emit), _getAccountMapping(emit)]);
     } else {
+      emit(ShareHomeLoaded());
       await Future.wait([
         _handelAccountLoad(emit),
         _getRecentTrans(emit),
@@ -71,6 +114,8 @@ class ShareHomeBloc extends Bloc<ShareHomeEvent, ShareHomeState> {
   }
 
   AccountMappingModel? accountMapping;
+  List<int> alreadyShownTips = [];
+  bool notDisturb = false;
   Future<void> _getAccountMapping(emit) async {
     if (account == null) {
       return;
@@ -86,6 +131,7 @@ class ShareHomeBloc extends Bloc<ShareHomeEvent, ShareHomeState> {
 
   Future<void> _changeAccount(AccountDetailModel account, emit) async {
     if (false == account.isValid) {
+      ShareHomeBloc.account = null;
       emit(NoShareAccount());
       return;
     }
@@ -93,10 +139,11 @@ class ShareHomeBloc extends Bloc<ShareHomeEvent, ShareHomeState> {
     if (ShareHomeBloc.account != null && account.id == ShareHomeBloc.account!.id) {
       ShareHomeBloc.account = account;
       emit(AccountHaveChanged(account));
-      await _handelAccountLoad(emit);
+      //await _handelAccountLoad(emit);
       return;
     }
     ShareHomeBloc.account = account;
+    emit(ShareHomeLoaded());
     emit(AccountHaveChanged(account));
     await Future.wait([
       _getRecentTrans(emit),
@@ -114,18 +161,44 @@ class ShareHomeBloc extends Bloc<ShareHomeEvent, ShareHomeState> {
 
     emit(AccountUserLoading());
     userList = await AccountApi.getUserList(id: account!.id);
+    if (account == null) {
+      return;
+    }
+    userList.forEach((user) => user.createTime = account!.getTZDateTime(user.createTime));
     emit(AccountUserLoaded(userList));
   }
 
-  IncomeExpenseStatisticApiModel? todayTransTotal, monthTransTotal;
+  InExStatisticWithTimeModel? todayTransTotal, monthTransTotal;
   Future<void> _getTotal(emit) async {
     if (account == null) {
       return;
     }
     var record = await AccountApi.getInfo(
         accountId: account!.id, types: [InfoType.todayTransTotal, InfoType.currentMonthTransTotal]);
+    if (account == null) {
+      return;
+    }
+    record.todayTransTotal!.setLocation(account!.timeLocation);
+    record.currentMonthTransTotal!.setLocation(account!.timeLocation);
     todayTransTotal = record.todayTransTotal;
     monthTransTotal = record.currentMonthTransTotal;
+    emit(AccountTotalLoaded(todayTransTotal!, monthTransTotal!));
+  }
+
+  Future<void> _updateTotal(emit, {TransactionEditModel? oldTrans, TransactionEditModel? newTrans}) async {
+    if (account == null || todayTransTotal == null || monthTransTotal == null) {
+      return;
+    }
+    if (oldTrans != null && oldTrans.accountId == account!.id) {
+      oldTrans.setLocation(account!.timeLocation);
+      todayTransTotal!.handleTransEditModel(editModel: oldTrans, isAdd: false);
+      monthTransTotal!.handleTransEditModel(editModel: oldTrans, isAdd: false);
+    }
+    if (newTrans != null && newTrans.accountId == account!.id) {
+      newTrans.setLocation(account!.timeLocation);
+      todayTransTotal!.handleTransEditModel(editModel: newTrans, isAdd: true);
+      monthTransTotal!.handleTransEditModel(editModel: newTrans, isAdd: true);
+    }
     emit(AccountTotalLoaded(todayTransTotal!, monthTransTotal!));
   }
 
@@ -135,6 +208,33 @@ class ShareHomeBloc extends Bloc<ShareHomeEvent, ShareHomeState> {
       return;
     }
     recentTrans = await AccountApi.getRecentTrans(accountId: account!.id);
+    if (account == null) {
+      return;
+    }
+    recentTrans.forEach((trans) => trans.setLocation(account!.timeLocation));
+    emit(AccountRecentTransLoaded(recentTrans));
+  }
+
+  Future<void> _addRecentTrans(emit, {required TransactionModel trans}) async {
+    if (account == null || account!.id != trans.accountId) return;
+    trans.setLocation(account!.timeLocation);
+    var length = recentTrans.length;
+    for (int i = 0; i < length; i++) {
+      if (recentTrans[i].tradeTime.isBefore(trans.tradeTime)) {
+        recentTrans.insert(i, trans);
+        break;
+      }
+    }
+    if (length == recentTrans.length) recentTrans.add(trans);
+    emit(AccountRecentTransLoaded(recentTrans));
+  }
+
+  Future<void> _deleteRecentTrans(emit, {required TransactionModel trans}) async {
+    if (account == null || account!.id != trans.accountId) return;
+    trans.setLocation(account!.timeLocation);
+    var index = recentTrans.indexWhere((element) => trans.id == element.id);
+    if (index < 0) return;
+    recentTrans.removeAt(index);
     emit(AccountRecentTransLoaded(recentTrans));
   }
 }

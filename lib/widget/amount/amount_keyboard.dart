@@ -6,7 +6,7 @@ class AmountKeyboard extends StatefulWidget {
   const AmountKeyboard({super.key, required this.onRefresh, required this.onComplete, this.openAgain = true});
 
   final Function(int amount, String input, String history) onRefresh;
-  final Function(int amount, bool isAgain) onComplete;
+  final Function(bool isAgain, int? amount) onComplete;
   final bool openAgain;
   @override
   State<AmountKeyboard> createState() => _AmountKeyboardState();
@@ -37,7 +37,7 @@ class _AmountKeyboardState extends State<AmountKeyboard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: Constant.margin / 2, vertical: Constant.margin / 2),
+      margin: EdgeInsets.symmetric(horizontal: Constant.margin / 2, vertical: Constant.margin / 2),
       width: MediaQuery.sizeOf(context).width,
       color: ConstantColor.greyBackground,
       child: Row(
@@ -50,7 +50,7 @@ class _AmountKeyboardState extends State<AmountKeyboard> {
             children: [
               _buildButton(const Text("1"), () => onClickNumber(1)),
               _buildButton(const Text("4"), () => onClickNumber(4)),
-              _buildButton(const Text("6"), () => onClickNumber(6)),
+              _buildButton(const Text("7"), () => onClickNumber(7)),
               _buildButton(const Text("."), () => onClickDot())
             ],
           )),
@@ -60,7 +60,7 @@ class _AmountKeyboardState extends State<AmountKeyboard> {
             children: [
               _buildButton(const Text("2"), () => onClickNumber(2)),
               _buildButton(const Text("5"), () => onClickNumber(5)),
-              _buildButton(const Text("7"), () => onClickNumber(7)),
+              _buildButton(const Text("8"), () => onClickNumber(8)),
               _buildButton(const Text("0"), () => onClickNumber(0))
             ],
           )),
@@ -98,10 +98,9 @@ class _AmountKeyboardState extends State<AmountKeyboard> {
     return AspectRatio(
       aspectRatio: 1.6,
       child: Container(
-        margin: const EdgeInsets.all(Constant.margin / 2),
+        margin: EdgeInsets.all(Constant.margin / 2),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(Constant.radius), color: backgroundColor),
         child: Ink(
-            height: 50,
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(Constant.radius)),
             child: Material(
               color: Colors.transparent,
@@ -110,9 +109,7 @@ class _AmountKeyboardState extends State<AmountKeyboard> {
                   onTap: () {
                     onTap();
                   },
-                  child: Center(
-                    child: name,
-                  )),
+                  child: Center(child: name)),
             )),
       ),
     );
@@ -213,9 +210,17 @@ class _AmountKeyboardState extends State<AmountKeyboard> {
         amount += input;
         _transmitRefresh();
       case AmountKeyboardAction.complete:
-        widget.onComplete(amount, false);
+        if (inputString == "") {
+          widget.onComplete(false, null);
+        } else {
+          widget.onComplete(false, amount);
+        }
       case AmountKeyboardAction.again:
-        widget.onComplete(amount, true);
+        if (inputString == "") {
+          widget.onComplete(true, null);
+        } else {
+          widget.onComplete(true, amount);
+        }
         initValue();
         _transmitRefresh();
 
@@ -252,13 +257,13 @@ class _TextAmountKeyboardState extends State<TextAmountKeyboard> {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Container(
-          padding: const EdgeInsets.all(Constant.margin),
-          margin: const EdgeInsets.all(Constant.margin),
+          padding: EdgeInsets.all(Constant.margin),
+          margin: EdgeInsets.all(Constant.margin),
           alignment: Alignment.centerRight,
           child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            SameHightAmountTextSpan(
-              amount: amount,
-              textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+            AmountText.sameHeight(
+              amount,
+              textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: Colors.black),
               dollarSign: true,
             ),
             SingleChildScrollView(
@@ -273,12 +278,12 @@ class _TextAmountKeyboardState extends State<TextAmountKeyboard> {
                       history,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
-                      style: const TextStyle(fontSize: ConstantFontSize.bodySmall),
+                      style: TextStyle(fontSize: ConstantFontSize.bodySmall),
                     ),
                     const SizedBox(width: 2),
                     Text(
                       input,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: ConstantFontSize.headline),
+                      style: TextStyle(fontWeight: FontWeight.w500, fontSize: ConstantFontSize.headline),
                     )
                   ],
                 ))
@@ -300,5 +305,5 @@ class _TextAmountKeyboardState extends State<TextAmountKeyboard> {
     });
   }
 
-  onComplete(int amount, bool isAgain) {}
+  onComplete(bool isAgain, int? amount) {}
 }

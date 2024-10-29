@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/bloc/user/user_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/user/model.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
-import 'package:keepaccount_app/widget/form/form.dart';
+import 'package:leap_ledger_app/bloc/user/user_bloc.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/model/user/model.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
+import 'package:leap_ledger_app/widget/form/form.dart';
 
 class UserSearch extends StatefulWidget {
   const UserSearch({super.key});
@@ -23,7 +23,7 @@ class _UserSearchState extends State<UserSearch> {
         refreshListener: _onFetchData,
         loadMoreListener: _onFetchData,
         filter: (UserInfoModel data) {
-          return inputStr == null || data.username.startsWith(inputStr!) || data.email.startsWith(inputStr!);
+          return realInputStr == null || data.username.startsWith(realInputStr!);
         });
     _onFetchData(offset: 0, limit: _pageController.limit);
     super.initState();
@@ -44,35 +44,36 @@ class _UserSearchState extends State<UserSearch> {
   }
 
   String? inputStr;
+  String? realInputStr;
+  _changeInputStr(String? value) {
+    inputStr = value;
+    if (inputStr != null) {
+      int hashIndex = inputStr!.indexOf('#');
+      if (hashIndex != -1) {
+        realInputStr = inputStr!.substring(0, hashIndex);
+        return;
+      }
+    }
+    realInputStr = inputStr;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: DefaultTextStyle.merge(
-          style: const TextStyle(fontSize: ConstantFontSize.largeHeadline),
-          child: SizedBox(
-            width: double.infinity,
-            height: 100,
-            child: Padding(
-              padding: const EdgeInsets.only(left: Constant.padding, top: Constant.padding, bottom: Constant.padding),
-              child: FormInputField.searchInput(onChanged: (String? value) {
-                inputStr = value;
-                _pageController.notifyListeners();
-              }),
-            ),
+          style: TextStyle(fontSize: ConstantFontSize.largeHeadline),
+          child: FormInputField.searchInput(
+            onChanged: (String? value) {
+              _changeInputStr(value);
+              _pageController.notifyListeners();
+            },
+            onSubmitted: (String? value) {
+              _changeInputStr(value);
+              _pageController.refresh();
+            },
           ),
         ),
-        actions: [
-          GestureDetector(
-            onTap: () => _pageController.refresh(),
-            child: const Center(
-                child: Padding(
-              padding: EdgeInsets.only(right: Constant.padding),
-              child: Icon(Icons.search_outlined),
-            )),
-          )
-        ],
       ),
       body: BlocListener<UserBloc, UserState>(
         listenWhen: (_, state) {

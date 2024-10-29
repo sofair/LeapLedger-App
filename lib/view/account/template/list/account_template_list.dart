@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:keepaccount_app/bloc/user/user_bloc.dart';
-import 'package:keepaccount_app/common/global.dart';
-import 'package:keepaccount_app/model/account/model.dart';
-import 'package:keepaccount_app/view/account/template/list/bloc/account_template_list_bloc.dart';
-import 'package:keepaccount_app/widget/common/common.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:leap_ledger_app/bloc/user/user_bloc.dart';
+import 'package:leap_ledger_app/common/global.dart';
+import 'package:leap_ledger_app/model/account/model.dart';
+import 'package:leap_ledger_app/view/account/template/list/bloc/account_template_list_bloc.dart';
+import 'package:leap_ledger_app/widget/common/common.dart';
 
 class AccountTemplateList extends StatelessWidget {
   const AccountTemplateList({super.key});
@@ -37,7 +38,6 @@ class _AccountTemplateListBodyState extends State<AccountTemplateListBody> {
     return BlocListener<AccountTemplateListBloc, AccountTemplateListState>(
         listener: (context, state) {
           if (state is AddAccountSuccess) {
-            Global.hideOverlayLoader();
             BlocProvider.of<UserBloc>(context).add(SetCurrentAccount(state.account));
             Navigator.pop(context);
           }
@@ -48,7 +48,7 @@ class _AccountTemplateListBodyState extends State<AccountTemplateListBody> {
           if (state is AccountTemplateListLoaded) {
             return buildList(state.list);
           }
-          return buildShimmerList();
+          return ShimmerList();
         }));
   }
 
@@ -62,7 +62,7 @@ class _AccountTemplateListBodyState extends State<AccountTemplateListBody> {
           );
         },
         separatorBuilder: (BuildContext context, int index) {
-          return Divider(color: Colors.grey.shade400, height: 1);
+          return Divider(color: Colors.grey.shade400, height: 1.sp);
         });
   }
 
@@ -76,13 +76,10 @@ class _AccountTemplateListBodyState extends State<AccountTemplateListBody> {
         triggerAddEvent(model);
       },
       child: Container(
-          height: 100,
+          height: 100.h,
           decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.grey.shade300,
-              width: 2.0,
-            ),
-            borderRadius: BorderRadius.circular(12.0),
+            border: Border.all(color: Colors.grey.shade300, width: 2.0),
+            borderRadius: BorderRadius.circular(Constant.radius),
           ),
           margin: const EdgeInsets.all(16),
           child: Row(
@@ -91,12 +88,12 @@ class _AccountTemplateListBodyState extends State<AccountTemplateListBody> {
             children: [
               Icon(
                 model.icon,
-                size: 32,
+                size: Constant.iconlargeSize,
                 color: Colors.black54,
               ),
               Text(
                 model.name,
-                style: const TextStyle(fontSize: 20, color: Colors.black87),
+                style: TextStyle(fontSize: ConstantFontSize.largeHeadline, color: Colors.black87),
               )
             ],
           )),
@@ -104,7 +101,6 @@ class _AccountTemplateListBodyState extends State<AccountTemplateListBody> {
   }
 
   void triggerAddEvent(AccountTemplateModel model) {
-    Global.showOverlayLoader();
     BlocProvider.of<AccountTemplateListBloc>(context).add(UseAccountTemplate(model));
   }
 }
