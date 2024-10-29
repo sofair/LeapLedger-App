@@ -4,6 +4,8 @@
 ![GitHub Release](https://img.shields.io/github/v/release/ZiRunHua/LeapLedger-App)
 
 # LeapLedger-App
+ [English](README.en.md) | [简体中文](README.md)
+
 `LeapLedger`是一个的前后端分离的免费开源的记账软件，基于`flutter`带来丝滑流畅的使用体验，在未来轻松扩展至iOS、Mac和Windows。
 
 这是`LeapLedger`的客户端部分，更多的介绍内容请浏览:https://github.com/ZiRunHua/LeapLedger
