@@ -5,7 +5,7 @@
 
 # LeapLedger-App
  [English](README.en.md) | [简体中文](README.md)
- 
+
 `LeapLedger` is a free, open-source, and front-end/back-end separated accounting software. It offers a smooth and seamless user experience based on `Flutter`, with future plans to easily extend to iOS, Mac, and Windows.
 
 This is the client-side part of `LeapLedger`. For more introduction content, please visit: https://github.com/ZiRunHua/LeapLedger
@@ -109,4 +109,5 @@ The LeapLedger project is still in its early development stage, and many feature
 We will conduct feature development and adjustments on the develop branch, while the main branch is used for releasing stable versions.
 
 
-[![Stargazers over time](https://starchart.cc/ZiRunHua/LeapLedger-App.svg)](https://starchart.cc/ZiRunHua/LeapLedger-App)
+## Stargazers over time
+[![Stargazers over time](https://starchart.cc/ZiRunHua/LeapLedger-App.svg?variant=adaptive)](https://starchart.cc/ZiRunHua/LeapLedger-App)

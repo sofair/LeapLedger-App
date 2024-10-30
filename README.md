@@ -108,4 +108,5 @@ LeapLedger项目仍在初期开发阶段，许多功能和细节还在不断完�
 我们会在develop分支进行功能开发和调整，而main分支则用于发布稳定版本。
 
 
-[![Stargazers over time](https://starchart.cc/ZiRunHua/LeapLedger-App.svg)](https://starchart.cc/ZiRunHua/LeapLedger-App)
+## Stargazers over time
+[![Stargazers over time](https://starchart.cc/ZiRunHua/LeapLedger-App.svg?variant=adaptive)](https://starchart.cc/ZiRunHua/LeapLedger-App)
