@@ -1,0 +1,31 @@
+name: Launch Create Release
+
+on:
+    inputs:
+      tag:
+        required: true
+        type: string
+      release_name: 
+        required: true
+        type: string
+      server_host: 
+        required: true
+        type: string
+      server_port: 
+        required: true
+        type: string
+
+    secrets:
+      SERVER_SIGN_KEY:
+        required: true
+        
+jobs:
+  create-release:
+    uses: ./.github/workflows/common-create-release.yml
+    with:
+      tag: ${{ inputs.tag }} 
+      release_name: ${{ inputs.release_name }}
+      server_host: ${{ inputs.server_host }}
+      server_port: ${{ inputs.server_port }}
+    secrets: 
+       SERVER_SIGN_KEY: ${{ secrets.SERVER_SIGN_KEY }}
