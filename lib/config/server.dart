@@ -11,15 +11,17 @@ class Server {
 class Network {
   late final String host;
   late final String port;
+  late final bool tls;
   late final String httpAddress;
   late final String websocketAddress;
   Network() {
     host = const String.fromEnvironment("config.server.network.host", defaultValue: '10.0.2.2').trim();
     port = const String.fromEnvironment("config.server.network.port", defaultValue: '8080').trim();
+    tls = const bool.fromEnvironment("config.server.network.tls", defaultValue: true);
     if (host.isEmpty) host = '10.0.2.2';
     if (port.isEmpty) host = '8080';
 
-    if (port == "443") {
+    if (tls) {
       httpAddress = "https://$host:$port";
       websocketAddress = "wss://$host:$port";
     } else {
@@ -29,6 +31,7 @@ class Network {
   }
   Network.fromJson(dynamic data) {
     if (data.runtimeType == Map<String, dynamic>) {
+      tls = (const data['tls'] != "false");
       host = data['host'];
       port = data['port'];
     } else {
