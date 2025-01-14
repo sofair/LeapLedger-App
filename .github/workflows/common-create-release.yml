@@ -15,6 +15,9 @@ on:
       server_port: 
         required: true
         type: string
+      server_tls: 
+        required: true
+        type: boolean
 
     secrets:
       SERVER_SIGN_KEY:
@@ -46,7 +49,8 @@ jobs:
         run: |
           flutter build apk --release \
             --dart-define=config.server.network.host=${{ inputs.server_host }} \
-            --dart-define=config.server.network.port=${{ inputs.server_port }} \
+            --dart-define=config.server.network.port=${{ inputs.server_port }} \            
+            --dart-define=config.server.network.tls=${{ inputs.server_tls }} \
             --dart-define=config.server.signKey=${{ secrets.SERVER_SIGN_KEY }}
 
       - name: Create Release
