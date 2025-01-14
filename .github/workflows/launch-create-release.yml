@@ -15,6 +15,9 @@ on:
       server_port: 
         required: true
         type: string
+      server_tls: 
+        required: true
+        type: boolean
 
     secrets:
       SERVER_SIGN_KEY:
@@ -28,5 +31,6 @@ jobs:
       release_name: ${{ inputs.release_name }}
       server_host: ${{ inputs.server_host }}
       server_port: ${{ inputs.server_port }}
+      server_tls: ${{ inputs.server_tls }}
     secrets: 
        SERVER_SIGN_KEY: ${{ secrets.SERVER_SIGN_KEY }}
