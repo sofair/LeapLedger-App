@@ -31,7 +31,7 @@ class Network {
   }
   Network.fromJson(dynamic data) {
     if (data.runtimeType == Map<String, dynamic>) {
-      tls = (const data['tls'] != "false");
+      tls = data['tls'] != "false";
       host = data['host'];
       port = data['port'];
     } else {
