@@ -127,7 +127,8 @@ class _HomeState extends State<Home> {
                     return CategoryAmountRank(data: []);
                   },
                 ),
-              )
+              ),
+              SizedBox(height: Constant.iconlargeSize)
             ],
           )),
     );
